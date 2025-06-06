@@ -1,39 +1,22 @@
-import { DateCalendar, PickersDay } from '@mui/x-date-pickers';
+import { DateCalendar, PickersDay, type PickerDayOwnerState, type PickersDayProps } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';
 
-import Day from './Day';
 import type { BaseEntry } from '../../types';
+import Day from './Day';
 
 
 interface CalendarProps<T extends BaseEntry> {
     selectedDates: T[];
-    onSelectedDatesChange: (dates: T[]) => void;
+    handleDayToggle: (date: Date) => void;
 }
 
 
 // T is the type of Entry of the currently active page.
 
-export default function Calendar<T extends BaseEntry>({ selectedDates, onSelectedDatesChange: setSelectedDates }: CalendarProps<T>) {
+export default function Calendar<T extends BaseEntry>({ selectedDates, handleDayToggle }: CalendarProps<T>) {
     // Toggle a single day in/out of selectedDates
-    const handleDayToggle = (day: Date) => {
-        const iso = format(day, 'yyyy-MM-dd');
-        const exists = selectedDates.find((e) => e.date === iso);
-
-        if (exists) {
-            // Remove it
-            setSelectedDates(
-                selectedDates.filter((entry) => entry.date !== iso)
-            );
-        } else {
-            const newEntry: BaseEntry = {
-                id: `${iso}-${Date.now()}`,
-                date: iso,
-            };
-            setSelectedDates([...selectedDates, newEntry as T]);
-        }
-    };
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -42,28 +25,32 @@ export default function Calendar<T extends BaseEntry>({ selectedDates, onSelecte
                 <h2 style={{ textAlign: 'right' }}>
                     בחר תאריכים
                 </h2>
+
                 <DateCalendar
                     views={['day']} // no year/month dropdown
-
-                    // Tell MUI to use *our* Day component for each day cell:
-                    slots={{ day: Day }}
-                    // Pass our selectedDates + toggle function INTO each Day:
+                    slots={{ day: Day as any }}
                     slotProps={{
-                        day: {
-                            selectedDates,
-                            onDayToggle: handleDayToggle,
-                        } as any,
+                        day: (ownerState) => {
+                            // ownerState.day is the Date for this cell
+                            const thisDateStr = format(ownerState.day, 'yyyy-MM-dd');
+                            const isSelected = selectedDates.some((e) => e.date === thisDateStr);
+
+                            return {
+                                // Your overrides:
+                                isSelected: isSelected,
+                                onClick: () => handleDayToggle(ownerState.day),
+                            };
+                        },
                     }}
                     sx={{
                         width: 400,
-
 
                         // Make each day (number cell) bigger:
                         '& .MuiPickersDay-root': {
                             width: 48,
                             height: 48,
                             fontSize: '1.2rem',
-                            margin: 0, // IMPORTANT: prevent unwanted spacing
+                            margin: 0,
                         },
 
                         '& .Mui-selected': {
@@ -87,6 +74,20 @@ export default function Calendar<T extends BaseEntry>({ selectedDates, onSelecte
                                 backgroundColor: '#009185', // darker green on hover
                             },
                         },
+                        "& .MuiFocusVisibleOverride": {
+                            backgroundColor: "#00A495",       // whatever color you prefer
+                            "&:hover": {
+                                backgroundColor: "#009185",
+                            },
+                        },
+                        "& .MuiPickersDay-root:focus-visible": {
+                            backgroundColor: "#a2c6c3",
+                            width: 40,
+                            height: 40,
+                            margin: "4px",
+                            "&:hover": { backgroundColor: "#009185" },
+                        },
+
 
 
                         // Fix the weekday labels row:
@@ -103,7 +104,6 @@ export default function Calendar<T extends BaseEntry>({ selectedDates, onSelecte
 
 
                         // overflow fix
-
                         '& .MuiPickersSlideTransition-root.MuiDayCalendar-slideTransition': {
                             height: 280, // tweak this number based day size
                         },

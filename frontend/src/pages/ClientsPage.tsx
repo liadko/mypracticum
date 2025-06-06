@@ -1,20 +1,32 @@
 // src/pages/ClientsPage.tsx
 import { useState } from "react";
 import Calendar from "../components/Calendar/Calendar";
-import type { BaseEntry, ClientEntry } from "../types";
+import type { ClientEntry } from "../types";
+import { format } from "date-fns"
 
 export default function ClientsPage() {
     const [entries, setEntries] = useState<ClientEntry[]>([]);
 
-    const handleDatesChange = (newBases: BaseEntry[]) => {
-        const merged: ClientEntry[] = newBases.map((b) => {
-            const existing = entries.find((e) => e.date === b.date);
-            return existing
-                ? existing
-                : { id: b.id, date: b.date, hoursSpent: 1, clientName: "" };
-        });
-        setEntries(merged);
-    };
+    function handleDayToggle(day: Date) {
+        
+        const iso = format(day, 'yyyy-MM-dd');
+        const exists = entries.find((e) => e.date === iso);
+        
+        console.log("Day Toggled", entries)
+
+        if (exists) {
+            // Remove that existing ClientEntry
+            setEntries((prev) => prev.filter((e) => e.date !== iso));
+        } else {
+            // Add a new ClientEntry, defaulting clientName to empty string
+            const newEntry: ClientEntry = {
+                id: `${iso}-${Date.now()}`,
+                date: iso,
+                clientName: "",
+            };
+            setEntries((prev) => [...prev, newEntry]);
+        }
+    }
 
     return (
         <>
@@ -22,7 +34,7 @@ export default function ClientsPage() {
             <div className="date-picker">
                 <Calendar
                     selectedDates={entries}
-                    onSelectedDatesChange={handleDatesChange}
+                    handleDayToggle={handleDayToggle}
                 />
             </div>
 

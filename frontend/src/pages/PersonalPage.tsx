@@ -1,7 +1,9 @@
 // src/pages/PersonalPage.tsx
 import { useState } from "react";
 import Calendar from "../components/Calendar/Calendar";
-import type { BaseEntry, PersonalEntry, ExternalTherapist } from "../types";
+import type { PersonalEntry, ExternalTherapist } from "../types";
+import { format } from "date-fns"
+
 
 const allTherapists: ExternalTherapist[] = [
     { name: "Dr. Adler" },
@@ -9,27 +11,32 @@ const allTherapists: ExternalTherapist[] = [
 ];
 
 export default function PersonalPage() {
-    // Only holds PersonalEntry[]; no need for a pageSetterMap here.
     const [entries, setEntries] = useState<PersonalEntry[]>([]);
 
-    // When Calendar gives us a BaseEntry[], we merge it into PersonalEntry[].
-    const handleDatesChange = (newBases: BaseEntry[]) => {
-        const merged: PersonalEntry[] = newBases.map((b) => {
-            const existing = entries.find((e) => e.date === b.date);
-            return existing
-                ? existing
-                : { id: b.id, date: b.date, hoursSpent: 1, externalTherapist: null };
-        });
-        setEntries(merged);
-    };
+    function handleDayToggle(day: Date) {
+        const iso = format(day, 'yyyy-MM-dd');
+        const exists = entries.find((e) => e.date === iso);
 
+        if (exists) {
+            // Remove that existing PersonalEntry
+            setEntries((prev) => prev.filter((e) => e.date !== iso));
+        } else {
+            // Add a new PersonalEntry, defaulting externalTherapist to null
+            const newEntry: PersonalEntry = {
+                id: `${iso}-${Date.now()}`,
+                date: iso,
+                externalTherapist: null,
+            };
+            setEntries((prev) => [...prev, newEntry]);
+        }
+    }
     return (
         <>
             {/* LEFT: Calendar */}
             < div className="date-picker" >
                 <Calendar
                     selectedDates={entries}
-                    onSelectedDatesChange={handleDatesChange}
+                    handleDayToggle={handleDayToggle}
                 />
             </div >
 

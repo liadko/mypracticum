@@ -1,7 +1,9 @@
 // src/pages/MentorPage.tsx
 import { useState } from "react";
 import Calendar from "../components/Calendar/Calendar";
-import type { BaseEntry, MentorEntry, Mentor } from "../types";
+import type {  MentorEntry, Mentor } from "../types";
+import { format } from "date-fns"
+
 
 const allMentors: Mentor[] = [
     { name: "Dr. Levin", email: "levin@example.com", specialty: "clinical" },
@@ -11,15 +13,24 @@ const allMentors: Mentor[] = [
 export default function MentorPage() {
     const [entries, setEntries] = useState<MentorEntry[]>([]);
 
-    const handleDatesChange = (newBases: BaseEntry[]) => {
-        const merged: MentorEntry[] = newBases.map((b) => {
-            const existing = entries.find((e) => e.date === b.date);
-            return existing
-                ? existing
-                : { id: b.id, date: b.date, hoursSpent: 1, mentor: null };
-        });
-        setEntries(merged);
-    };
+
+    function handleDayToggle(day: Date) {
+        const iso = format(day, 'yyyy-MM-dd');
+        const exists = entries.find((e) => e.date === iso);
+
+        if (exists) {
+            // Remove that existing MentorEntry
+            setEntries((prev) => prev.filter((e) => e.date !== iso));
+        } else {
+            // Add a new MentorEntry, defaulting mentor to null
+            const newEntry: MentorEntry = {
+                id: `${iso}-${Date.now()}`,
+                date: iso,
+                mentor: null,
+            };
+            setEntries((prev) => [...prev, newEntry]);
+        }
+    }
 
     return (
         <>
@@ -27,7 +38,7 @@ export default function MentorPage() {
             <div className="date-picker">
                 <Calendar
                     selectedDates={entries}
-                    onSelectedDatesChange={handleDatesChange}
+                    handleDayToggle={handleDayToggle}
                 />
             </div>
 
