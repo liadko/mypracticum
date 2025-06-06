@@ -1,10 +1,8 @@
-import React from 'react';
+import DesktopApp from './pages/DesktopApp'
 
 export default function App() {
   return (
-    <div>
-      <h1>Hello, Practicount!</h1>
-    </div>
+    <DesktopApp userName='שגי קורן'/>
   );
 }
 
