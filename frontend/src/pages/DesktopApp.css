@@ -41,7 +41,7 @@ h1 {
 }
 
 /* MAIN CONTENT LAYOUT */
-.content {
+.calendar-with-list {
     display: flex;
     flex: 1;
     padding: 1rem;

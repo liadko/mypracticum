@@ -9,7 +9,7 @@ import type {
 
 const BASE_API = "/api/students"
 
-async function fetchPersonalEntries(studentId: string): Promise<PersonalEntry[]> {
+export async function fetchPersonalEntries(studentId: string): Promise<PersonalEntry[]> {
 
     const url = `${BASE_API}/${studentId}/entries?category=personal`;
     const resp = await fetch(url);
@@ -25,7 +25,7 @@ async function fetchPersonalEntries(studentId: string): Promise<PersonalEntry[]>
 
 }
 
-async function fetchMentorEntries(
+export async function fetchMentorEntries(
     studentId: string
 ): Promise<MentorEntry[]> {
     const url = `${BASE_API}/${studentId}/entries?category=mentor`;
@@ -36,7 +36,7 @@ async function fetchMentorEntries(
     return (await resp.json()) as MentorEntry[];
 }
 
-async function fetchClientEntries(
+export async function fetchClientEntries(
     studentId: string
 ): Promise<ClientEntry[]> {
     const url = `${BASE_API}/${studentId}/entries?category=clients`;
@@ -49,7 +49,7 @@ async function fetchClientEntries(
     return (await resp.json()) as ClientEntry[];
 }
 
-async function addEntry(
+export async function addEntry(
     studentId: string,
     category: Category,
     date: string
@@ -65,7 +65,7 @@ async function addEntry(
     return resp.json()
 }
 
-async function deleteEntry(
+export async function deleteEntry(
     studentId: string,
     category: Category,
     entryId: string

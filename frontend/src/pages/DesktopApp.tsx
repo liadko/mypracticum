@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import Calendar from "../components/Calendar/Calendar";
-import './DesktopApp.css';
-import type { ClientPageState, MentorEntry, MentorPageState, PersonalEntry, PersonalPageState } from '../types';
 import PersonalPage from './PersonalPage';
 import MentorPage from './MentorPage';
-import ClientsPage from './ClientsPage';
-import { EntriesProvider, useEntries } from '../context/EntriesContext';
+import ClientsPage from './ClientPage';
+
+import { useEntries } from '../context/EntriesContext';
+import './DesktopApp.css';
 
 interface DesktopAppProps {
     userName: string;
@@ -17,43 +16,38 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
     const [activePage, setActivePage] = useState<string>(pages[0]);
 
     const {
-        personalEntries,
-        togglePersonalDay,
-        totalHours,
         loading,
         error,
     } = useEntries();
-    
+
     if (loading) return <div>Loading your personal hours…</div>;
     if (error) return <div>Oops, something went wrong: {error.message}</div>;
 
     return (
-            <div className="desktop-app">
-                {/* HEADER */}
-                <header className="header">
-                    <h1>{userName}</h1>
-                </header>
+        <div className="desktop-app">
+            {/* HEADER */}
+            <header className="header">
+                <h1>{userName}</h1>
+            </header>
 
-                {/* NAV BAR */}
-                <nav className="nav-bar">
-                    {pages.map((page) => (
-                        <button
-                            key={page}
-                            className={`nav-button ${activePage === page ? 'active' : ''}`}
-                            onClick={() => setActivePage(page)}
-                        >
-                            {translate(page)}
-                        </button>
-                    ))}
-                </nav>
+            {/* NAV BAR */}
+            <nav className="nav-bar">
+                {pages.map((page) => (
+                    <button
+                        key={page}
+                        className={`nav-button ${activePage === page ? 'active' : ''}`}
+                        onClick={() => setActivePage(page)}
+                    >
+                        {translate(page)}
+                    </button>
+                ))}
+            </nav>
 
-                {/* MAIN CONTENT */}
-                <div className="content">
-                    {activePage === "Personal" && <PersonalPage />}
-                    {activePage === "Mentor" && <MentorPage />}
-                    {activePage === "Clients" && <ClientsPage />}
-                </div>
-            </div>
+            {/* MAIN CONTENT */}
+            {activePage === "Personal" && <PersonalPage />}
+            {activePage === "Mentor" && <MentorPage />}
+            {activePage === "Clients" && <ClientsPage />}
+        </div>
     );
 };
 
