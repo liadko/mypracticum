@@ -14,18 +14,14 @@ interface CalendarProps<T extends BaseEntry> {
 
 
 // T is the type of Entry of the currently active page.
-
 export default function Calendar<T extends BaseEntry>({ selectedDates, handleDayToggle }: CalendarProps<T>) {
-    // Toggle a single day in/out of selectedDates
+
+    const daySize = 70
+    const dayIconMargin = 10
+
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                {/* === YOUR CUSTOM HEADER === */}
-                <h2 style={{ textAlign: 'right' }}>
-                    בחר תאריכים
-                </h2>
-
                 <DateCalendar
                     views={['day']} // no year/month dropdown
                     slots={{ day: Day as any }}
@@ -43,54 +39,60 @@ export default function Calendar<T extends BaseEntry>({ selectedDates, handleDay
                         },
                     }}
                     sx={{
-                        width: 400,
+                        width: 500,
+                        height: 550,
+                        maxHeight: "none",
+                        margin: 0,
+
 
                         // Make each day (number cell) bigger:
                         '& .MuiPickersDay-root': {
-                            width: 48,
-                            height: 48,
-                            fontSize: '1.2rem',
-                            margin: 0,    
+                            width: daySize,
+                            height: daySize,
+                            fontSize: '1.4rem',
+                            margin: "0",
                         },
 
                         '& .Mui-selected': {
-                            width: 40,
-                            height: 40,
-                            margin: "4px",
+                            width: daySize - 2 * dayIconMargin,
+                            height: daySize - 2 * dayIconMargin,
+                            margin: `${dayIconMargin}px`,
                         },
 
                         '& .MuiPickersDay-today': {
-                            backgroundColor: 'transparent',
-                            width: 40,
-                            height: 40,
-                            margin: "4px",
+                            width: daySize - 2 * dayIconMargin,
+                            height: daySize - 2 * dayIconMargin,
+                            margin: `${dayIconMargin}px`,
                         },
 
+                        // June 2025 Header
+                        "& .MuiPickersCalendarHeader-labelContainer": {
+                            fontSize: "1.35rem",   // adjust as you like
+                        },
 
-
-                        // Fix the weekday labels row:
+                        // weekday labels:
                         '& .MuiDayCalendar-weekDayLabel': {
-                            width: 44,
+                            width: 66,
                             textAlign: 'center',
+                            fontSize: '1.15em',
+                            marginTop: "5px",
                         },
 
-                        // Optional: center the weekday row nicely
-                        '& .MuiDayCalendar-header': {
+                        // center the weekday row nicely
+                        '& .MuiDayCalendar-header-root': {
                             marginRight: "0px",
-                            fontSize: "1.6rem",
                         },
 
 
                         // overflow fix
                         '& .MuiPickersSlideTransition-root.MuiDayCalendar-slideTransition': {
-                            height: 280, // tweak this number based day size
+                            height: 450, // tweak this number based day size
                         },
 
 
                     }
                     }
                 />
-            </div>
         </LocalizationProvider>
     );
 }

@@ -43,7 +43,10 @@ export function CalendarWithList<T extends BaseEntry>({
 
     return (
         <div className="calendar-with-list">
-            <div className="date-picker">
+            <div className="calender-side">
+                <h2 style={{ textAlign: 'center' }}>
+                    בחר תאריכים
+                </h2>
                 <Calendar
                     selectedDates={entries}
                     // Calendar gives you a Date object; convert to "YYYY-MM-DD"
@@ -52,26 +55,28 @@ export function CalendarWithList<T extends BaseEntry>({
                     }
                 />
             </div>
-            <div className="selected-list">
-                <div className="selected-list-header">
-                    <span className="selected-list-counter">{entries.length}/{hoursNeeded}</span>
-                    <span className="selected-list-title">{title}</span>
-                </div>
-                <div className="selected-list-entries">
-                    {entries.length === 0 && <div style={{ textAlign: "right" }}>נא לסמן תאריכים בלוח השנה</div>}
-                    {entries.map((item) => (
-                        <div
-                            key={item.id}
-                            id={`entry-${item.id}`}
-                            className="selected-item"
-                        >
-                            <span className="extra">{renderExtra(item)}</span>
-                            {renderItemActions && (
-                                <span className="actions">{renderItemActions(item)}</span>
-                            )}
-                            <span className="date">{format(parseISO(item.date), "dd/MM/yyyy")}</span>
-                        </div>
-                    ))}
+            <div className="list-side">
+                <div className="selected-list">
+                    <div className="selected-list-header">
+                        <span className="selected-list-counter">{entries.length}/{hoursNeeded}</span>
+                        <span className="selected-list-title">{title}</span>
+                    </div>
+                    <div className="selected-list-entries">
+                        {entries.length === 0 && <div style={{ textAlign: "right" }}>נא לסמן תאריכים בלוח השנה</div>}
+                        {entries.map((item) => (
+                            <div
+                                key={item.id}
+                                id={`entry-${item.id}`}
+                                className="selected-item"
+                            >
+                                <span className="extra">{renderExtra(item)}</span>
+                                {renderItemActions && (
+                                    <span className="actions">{renderItemActions(item)}</span>
+                                )}
+                                <span className="date">{format(parseISO(item.date), "dd/MM/yyyy")}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>);

@@ -14,7 +14,7 @@ export default function ClientsPage() {
     <CalendarWithList<ClientEntry>
       title="שעות מטופלים פרטיים"
       entries={clientEntries}
-      hoursNeeded={150}
+      hoursNeeded={300}
       onDayToggle={(date) => toggleDay("client", date)}
       renderExtra={renderClientExtra}
     />
