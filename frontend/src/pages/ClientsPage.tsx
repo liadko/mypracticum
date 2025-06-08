@@ -12,7 +12,6 @@ export default function ClientsPage() {
         const iso = format(day, 'yyyy-MM-dd');
         const exists = entries.find((e) => e.date === iso);
         
-        console.log("Day Toggled", entries)
 
         if (exists) {
             // Remove that existing ClientEntry

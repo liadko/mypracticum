@@ -50,11 +50,10 @@ export default function Calendar<T extends BaseEntry>({ selectedDates, handleDay
                             width: 48,
                             height: 48,
                             fontSize: '1.2rem',
-                            margin: 0,
+                            margin: 0,    
                         },
 
                         '& .Mui-selected': {
-                            backgroundColor: '#00A495',
                             width: 40,
                             height: 40,
                             margin: "4px",
@@ -65,27 +64,6 @@ export default function Calendar<T extends BaseEntry>({ selectedDates, handleDay
                             width: 40,
                             height: 40,
                             margin: "4px",
-                        },
-
-                        '& .MuiPickersDay-root.Mui-selected': {
-                            backgroundColor: '#00A495', // green background
-                            color: '#fff',              // white text
-                            '&:hover': {
-                                backgroundColor: '#009185', // darker green on hover
-                            },
-                        },
-                        "& .MuiFocusVisibleOverride": {
-                            backgroundColor: "#00A495",       // whatever color you prefer
-                            "&:hover": {
-                                backgroundColor: "#009185",
-                            },
-                        },
-                        "& .MuiPickersDay-root:focus-visible": {
-                            backgroundColor: "#a2c6c3",
-                            width: 40,
-                            height: 40,
-                            margin: "4px",
-                            "&:hover": { backgroundColor: "#009185" },
                         },
 
 

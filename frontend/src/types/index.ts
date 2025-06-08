@@ -14,6 +14,14 @@ export interface ClientEntry extends BaseEntry {
     clientName: string;
 }
 
+export type Category = "personal" | "mentor" | "client"
+
+export interface EntryMap {
+  personal: PersonalEntry[]
+  mentor: MentorEntry[]
+  client: ClientEntry[]
+}
+
 interface BasePageState {
     totalHours: number;
     title: string;
@@ -26,7 +34,7 @@ export interface MentorPageState extends BasePageState {
     entries: MentorEntry[];
 }
 
-export interface ClientsPageState extends BasePageState {
+export interface ClientPageState extends BasePageState {
     entries: ClientEntry[];
 }
 
