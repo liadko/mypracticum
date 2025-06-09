@@ -1,4 +1,4 @@
-import { DateCalendar, PickersDay, type PickerDayOwnerState, type PickersDayProps } from '@mui/x-date-pickers';
+import { DateCalendar } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';

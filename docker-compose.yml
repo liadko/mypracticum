@@ -1,0 +1,40 @@
+services:
+  # Backend Go Service
+  backend:
+    build: ./backend
+    container_name: mypracticum-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: "postgresql://postgres:PostgresKodi555@postgres:5432/mypracticum?sslmode=disable"
+    volumes:
+      - ./backend:/app # This is crucial for air to see file changes
+    depends_on:
+      - postgres
+    # The `command` line is now removed
+
+    # Frontend React Service
+  frontend:
+    build: ./frontend
+    container_name: mypracticum-frontend
+    ports:
+      - "3000:80" # Map host port 3000 to container port 80 (Nginx)
+    volumes:
+      - ./frontend/src:/app/src # Mounts your src folder for live reloading (dev only)
+    depends_on:
+      - backend
+
+  # Postgres Database Service
+  postgres:
+    image: postgres:15-alpine # Use the same Postgres image you use now
+    container_name: mypracticum-postgres
+    ports:
+      - "5432:5432" # Keep the port mapping for local tools like psql
+    environment:
+      POSTGRES_PASSWORD: "PostgresKodi555" # Use your actual password
+      POSTGRES_DB: "mypracticum"
+    volumes:
+      - practicum_pgdata:/var/lib/postgresql/data
+
+volumes:
+  practicum_pgdata:

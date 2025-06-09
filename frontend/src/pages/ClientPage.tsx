@@ -3,7 +3,8 @@ import { useEntries } from "../context/EntriesContext";
 import type { ClientEntry } from "../types";
 
 // show the client’s name or a placeholder
-function renderClientExtra(entry: ClientEntry) {
+function renderClientExtra(_entry: ClientEntry) {
+    
   return <input></input>
 }
 

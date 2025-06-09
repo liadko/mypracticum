@@ -1,0 +1,19 @@
+# .air.toml
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# More explicit command definition
+cmd = "go build -o ./tmp/main ."
+bin = "./tmp/main"
+
+# Watch all .go files.
+include_ext = ["go"]
+# Don't watch the temp directory.
+exclude_dir = ["tmp"]
+# Add a small delay for stability.
+delay = 1000 # ms
+
+[log]
+time = true
