@@ -1,27 +1,21 @@
-# Stage 1: Build the React application
-FROM node:20-alpine AS builder
+# Use an official Node.js image.
+FROM node:20-alpine
 
+# Set the working directory inside the container.
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Copy package.json and lock files.
+COPY package*.json ./
 
-# Install dependencies
+# Install dependencies.
 RUN npm install
 
-# Copy the rest of the source code
+# Copy the rest of your source code.
+# This ensures the container has the files if the volume mount is slow to initialize.
 COPY . .
 
-# Build the production-ready static files
-RUN npm run build
+# Expose the port Vite runs on.
+EXPOSE 5173
 
-# Stage 2: Serve the static files with Nginx
-FROM nginx:stable-alpine
-
-# Copy the built assets from the builder stage to Nginx's public directory
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Expose the port Nginx will run on (port 80 is the default for Nginx)
-EXPOSE 80
-
-# The default Nginx command starts the server, so no CMD is needed
+# The command to start the Vite development server.
+CMD ["npm", "run", "dev"]

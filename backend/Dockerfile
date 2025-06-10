@@ -10,8 +10,10 @@ RUN go install github.com/air-verse/air@latest
 COPY go.mod go.sum ./
 RUN go mod download
 
+COPY . . 
+
 # Expose the port
 EXPOSE 8080
 
 # The command to run. `air` will watch for file changes and re-run the server.
-CMD ["air", "-c", ".air.toml", "-d"]
+CMD ["air", "-c", ".air.toml"]

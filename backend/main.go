@@ -1,28 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"os"
 
 	"mypracticum/backend/db"
 )
 
 func main() {
-	fmt.Println("\n\n")
+	log.Print("------ [SERVER RESTARTING] ------\n\n")
 
-	// connStr := "host=localhost " +
-	// 	"port=5432 " +
-	// 	"user=postgres " +
-	// 	"password=PostgresKodi555 " +
-	// 	"dbname=mypracticum " +
-	// 	"sslmode=disable"
-
-	// Get the database connection string from the environment variable
-	connStr := os.Getenv("DATABASE_URL")
-	if connStr == "" {
-		log.Fatal("DATABASE_URL environment variable is not set")
-	}
+	connStr := "host=localhost " +
+		"port=5432 " +
+		"user=postgres " +
+		"password=PostgresKodi555 " +
+		"dbname=mypracticum " +
+		"sslmode=disable"
 
 	dbConn, err := db.Connect(connStr)
 	if err != nil {
@@ -32,7 +24,7 @@ func main() {
 		log.Fatal("DB migrate:", err)
 	}
 
-	fmt.Println("Database connected successfully!")
+	log.Println("Database connected successfully!")
 
 	// r := gin.Default()
 	// handlers.RegisterEntriesRoutes(r, dbConn)

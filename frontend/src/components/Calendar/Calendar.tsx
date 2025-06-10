@@ -16,8 +16,8 @@ interface CalendarProps<T extends BaseEntry> {
 // T is the type of Entry of the currently active page.
 export default function Calendar<T extends BaseEntry>({ selectedDates, handleDayToggle }: CalendarProps<T>) {
 
-    const daySize = 70
-    const dayIconMargin = 10
+    const daySize = 60
+    const dayIconMargin = 8
 
 
     return (
@@ -40,7 +40,7 @@ export default function Calendar<T extends BaseEntry>({ selectedDates, handleDay
                     }}
                     sx={{
                         width: 500,
-                        height: 550,
+                        height: 473,
                         maxHeight: "none",
                         margin: 0,
 
@@ -72,7 +72,7 @@ export default function Calendar<T extends BaseEntry>({ selectedDates, handleDay
 
                         // weekday labels:
                         '& .MuiDayCalendar-weekDayLabel': {
-                            width: 66,
+                            width: 56,
                             textAlign: 'center',
                             fontSize: '1.15em',
                             marginTop: "5px",
@@ -86,7 +86,7 @@ export default function Calendar<T extends BaseEntry>({ selectedDates, handleDay
 
                         // overflow fix
                         '& .MuiPickersSlideTransition-root.MuiDayCalendar-slideTransition': {
-                            height: 450, // tweak this number based day size
+                            height: 400, // tweak this number based day size
                         },
 
 
