@@ -6,14 +6,10 @@ import (
 	"os"
 
 	"mypracticum/backend/db"
-	"mypracticum/backend/handlers"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	fmt.Println("Brev")
-	fmt.Println("Nig Nig")
+	fmt.Println("\n\n")
 
 	// connStr := "host=localhost " +
 	// 	"port=5432 " +
@@ -28,7 +24,7 @@ func main() {
 		log.Fatal("DATABASE_URL environment variable is not set")
 	}
 
-	dbConn, err := db.Connect("postgresql://postgres:PostgresKodi555@postgres:5432/mypracticum?sslmode=disable")
+	dbConn, err := db.Connect(connStr)
 	if err != nil {
 		log.Fatal("DB connect:", err)
 	}
@@ -38,7 +34,7 @@ func main() {
 
 	fmt.Println("Database connected successfully!")
 
-	r := gin.Default()
-	handlers.RegisterEntriesRoutes(r, dbConn)
-	r.Run(":8080")
+	// r := gin.Default()
+	// handlers.RegisterEntriesRoutes(r, dbConn)
+	// r.Run(":8080")
 }

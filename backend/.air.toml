@@ -1,19 +1,36 @@
-# .air.toml
-
+# Root directory to watch. "." means the current directory.
 root = "."
+# Directory for temporary files, like the compiled binary.
 tmp_dir = "tmp"
 
 [build]
-# More explicit command definition
+# 1. Command to compile the Go application into the tmp directory.
 cmd = "go build -o ./tmp/main ."
+# 2. Path to the compiled binary that `air` will manage.
 bin = "./tmp/main"
+# 3. The full command to execute. Prints a separator, then runs the app.
+full_bin = "echo '------ [SERVER RESTARTING] ------' && ./tmp/main"
 
-# Watch all .go files.
+# File extensions to watch for changes.
 include_ext = ["go"]
-# Don't watch the temp directory.
-exclude_dir = ["tmp"]
-# Add a small delay for stability.
-delay = 1000 # ms
+# Add a small delay to handle file system events gracefully.
+delay = 1000 # In milliseconds
 
 [log]
+# Show timestamps in `air`'s own log output.
 time = true
+
+[misc]
+# This was the critical fix for your Docker environment.
+# It uses manual checking (polling) instead of file system events.
+poll = true
+# Delete the tmp directory when `air` exits.
+clean_on_exit = true
+
+
+[color]
+# Customize each part's color. If no color found, use the raw app log.
+main = "magenta"
+watcher = "cyan"
+build = "yellow"
+runner = "green"
