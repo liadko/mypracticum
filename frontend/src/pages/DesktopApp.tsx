@@ -1,27 +1,27 @@
-import { useState } from 'react';
-import PersonalPage from './PersonalPage';
-import MentorPage from './MentorPage';
-import ClientsPage from './ClientPage';
+import { useState } from 'react'
+import PersonalPage from './PersonalPage'
+import MentorPage from './MentorPage'
+import ClientsPage from './ClientPage'
 
-import { useEntries } from '../context/EntriesContext';
-import './DesktopApp.css';
+import { useEntries } from '../context/EntriesContext'
+import './DesktopApp.css'
 
 interface DesktopAppProps {
-    userName: string;
+    userName: string
 }
 
-const pages = ['Personal', 'Mentor', 'Clients'];
+const pages = ['Personal', 'Mentor', 'Clients']
 
 const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
-    const [activePage, setActivePage] = useState<string>(pages[0]);
+    const [activePage, setActivePage] = useState<string>(pages[2])
 
     const {
         loading,
         error,
-    } = useEntries();
+    } = useEntries()
 
-    if (loading) return <div>Loading your personal hours…</div>;
-    if (error) return <div>Oops, something went wrong: {error.message}</div>;
+    if (loading) return <div>Loading your personal hours…</div>
+    if (error) return <div>Oops, something went wrong: {error.message}</div>
 
     return (
         <div className="desktop-app">
@@ -48,10 +48,10 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
             {activePage === "Mentor" && <MentorPage />}
             {activePage === "Clients" && <ClientsPage />}
         </div>
-    );
-};
+    )
+}
 
-export default DesktopApp;
+export default DesktopApp
 
 
 function translate(pageName: string) {

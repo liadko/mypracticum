@@ -4,6 +4,10 @@ import (
 	"log"
 
 	"mypracticum/backend/db"
+	"mypracticum/backend/handlers"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -26,7 +30,16 @@ func main() {
 
 	log.Println("Database connected successfully!")
 
-	// r := gin.Default()
-	// handlers.RegisterEntriesRoutes(r, dbConn)
-	// r.Run(":8080")
+	r := gin.Default()
+	// --- 2. Configure and Use the CORS Middleware ---
+	config := cors.DefaultConfig()
+	// Allow the origin of your React development server
+	config.AllowOrigins = []string{"http://localhost:5173"}
+	// You might want to allow other headers if needed, like Authorization
+	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type"}
+
+	r.Use(cors.New(config))
+
+	handlers.RegisterEntriesRoutes(r, dbConn)
+	r.Run(":8080")
 }

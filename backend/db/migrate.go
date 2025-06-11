@@ -16,6 +16,17 @@ func Migrate(db *sql.DB) error {
        created_at TIMESTAMPTZ DEFAULT now()
      );`,
 
+		// NEW MIGRATION: Conditionally rename 'id_number' to 'student_id'.
+		// This DO block makes the rename operation safe to run multiple times.
+		`DO $$
+		 BEGIN
+			 IF EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='id_number')
+			 THEN
+				  ALTER TABLE users RENAME COLUMN id_number TO student_id;
+			 END IF;
+		 END;
+		 $$;`,
+
 		`CREATE TABLE IF NOT EXISTS mentors (
        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

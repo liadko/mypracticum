@@ -7,11 +7,11 @@ import type {
 } from "../types";
 
 
-const BASE_API = "/api/students"
+const BASE_API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export async function fetchPersonalEntries(studentId: string): Promise<PersonalEntry[]> {
 
-    const url = `${BASE_API}/${studentId}/entries?category=personal`;
+    const url = `${BASE_API_URL}/${studentId}/entries/personal`;
     const resp = await fetch(url);
 
     if (!resp.ok) {
@@ -28,7 +28,7 @@ export async function fetchPersonalEntries(studentId: string): Promise<PersonalE
 export async function fetchMentorEntries(
     studentId: string
 ): Promise<MentorEntry[]> {
-    const url = `${BASE_API}/${studentId}/entries?category=mentor`;
+    const url = `${BASE_API_URL}/${studentId}/entries/mentor`;
     const resp = await fetch(url);
     if (!resp.ok) {
         throw new Error(`Failed to load mentor entries (status ${resp.status})`);
@@ -39,7 +39,7 @@ export async function fetchMentorEntries(
 export async function fetchClientEntries(
     studentId: string
 ): Promise<ClientEntry[]> {
-    const url = `${BASE_API}/${studentId}/entries?category=clients`;
+    const url = `${BASE_API_URL}/${studentId}/entries/client`;
     const resp = await fetch(url);
     if (!resp.ok) {
         throw new Error(
@@ -55,8 +55,12 @@ export async function addEntry(
     date: string
 ): Promise<BaseEntry> {
     const resp = await fetch(
-        `/api/students/${studentId}/entries/${category}`,
-        { method: "POST", body: JSON.stringify({ date }) }
+        `${BASE_API_URL}/${studentId}/entries/${category}`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ date })
+        }
     )
     if (!resp.ok) {
         // you can read resp.status, resp.statusText, or even await resp.text()
@@ -71,7 +75,7 @@ export async function deleteEntry(
     entryId: string
 ): Promise<void> {
     const resp = await fetch(
-        `/api/students/${studentId}/entries/${category}/${entryId}`,
+        `${BASE_API_URL}/${studentId}/entries/${category}/${entryId}`,
         { method: "DELETE" }
     )
     if (!resp.ok) {
@@ -79,3 +83,16 @@ export async function deleteEntry(
     }
 }
 
+
+export async function updateClientName(studentId: string, entryId: string, newName: string): Promise<ClientEntry> {
+    const response = await fetch(`${BASE_API_URL}/students/${studentId}/entries/client/${entryId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientName: newName }),
+    });
+    if (!response.ok) {
+        throw new Error(`Update failed: ${response.status} ${response.statusText}`)
+    }
+
+    return response.json()
+}
