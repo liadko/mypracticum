@@ -1,18 +1,15 @@
 package models
 
 type PersonalEntry struct {
-	ID                string                 `json:"id"`
-	Date              string                 `json:"date"`
-	ExternalTherapist *struct{ Name string } `json:"externalTherapist,omitempty"`
+	ID                  string  `json:"id"`
+	Date                string  `json:"date"`
+	ExternalTherapistID *string `json:"externalTherapist,omitempty"`
 }
 
 type MentorEntry struct {
-	ID     string `json:"id"`
-	Date   string `json:"date"`
-	Mentor *struct {
-		Name  string `json:"name"`
-		Email string `json:"email"`
-	} `json:"mentor,omitempty"`
+	ID       string  `json:"id"`
+	Date     string  `json:"date"`
+	MentorID *string `json:"mentorId,omitempty"`
 }
 
 type ClientEntry struct {

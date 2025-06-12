@@ -43,7 +43,7 @@ func getClientEntries(db *sql.DB) gin.HandlerFunc {
 			SELECT id, date, COALESCE(client_name, '') 
 			FROM entries 
 			WHERE user_id = $1 AND type = 'client' 
-			ORDER BY date ASC
+			ORDER BY date DESC
 		`
 		rows, err := db.QueryContext(c, entriesQuery, userUUID)
 		if err != nil {
@@ -83,9 +83,50 @@ func getClientEntries(db *sql.DB) gin.HandlerFunc {
 // getPersonalEntries returns an empty list of personal entries.
 func getPersonalEntries(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// This handler currently returns an empty slice as a placeholder.
-		// It can be implemented later with the same lookup logic as getClientEntries.
-		c.JSON(http.StatusOK, []models.PersonalEntry{})
+		// --- Step 1: Look up UserUUID
+		userUUID, ok := getUserUUID(c, db)
+		if !ok {
+			return // Stop execution
+		}
+
+		// --- Step 2: Use the found UserUUID to fetch the entries ---
+		entriesQuery := `
+			SELECT id, date, external_therapist_id
+			FROM entries 
+			WHERE user_id = $1 AND type = 'personal' 
+			ORDER BY date DESC
+		`
+		rows, err := db.QueryContext(c, entriesQuery, userUUID)
+		if err != nil {
+			log.Printf("Error querying personal entries for user_id %s: %v", userUUID, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve entries"})
+			return
+		}
+		defer rows.Close()
+
+		entries := []models.PersonalEntry{}
+		for rows.Next() {
+			var entry models.PersonalEntry
+			var entryDate time.Time
+
+			if err := rows.Scan(&entry, &entryDate, entry.ExternalTherapistID); err != nil {
+				log.Printf("Error scanning personal entry row: %v", err)
+				continue // Skip bad rows and continue
+			}
+
+			entry.Date = entryDate.Format("2006-01-02")
+
+			entries = append(entries, entry)
+		}
+
+		// Final check for errors during row iteration
+		if err = rows.Err(); err != nil {
+			log.Printf("Error iterating client entry rows: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process entries"})
+			return
+		}
+
+		c.JSON(http.StatusOK, entries)
 	}
 }
 
