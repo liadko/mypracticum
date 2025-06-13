@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import './Extras.css'
 
 // Define the props our component will accept
 interface ClientNameInputProps {
+  id: string;
   // The official, server-confirmed value of the client's name
   value: string;
   // The function to call when an update should be sent to the server
@@ -10,7 +12,7 @@ interface ClientNameInputProps {
   disabled?: boolean;
 }
 
-export function ClientNameInput({ value: serverValue, onUpdate, disabled = false }: ClientNameInputProps) {
+export function ClientNameInput({ id, value: serverValue, onUpdate, disabled = false }: ClientNameInputProps) {
   // 1. "Local State": This holds what the user is currently typing.
   // It defaults to the value from the server.
   const [localValue, setLocalValue] = useState(serverValue);
@@ -35,13 +37,13 @@ export function ClientNameInput({ value: serverValue, onUpdate, disabled = false
   }, [localValue, serverValue, onUpdate]);
 
 
-  // This `useEffect` handles the ROLLBACK logic.
-  // It watches for changes to the `serverValue` prop.
-  useEffect(() => {
-    // If the `serverValue` prop changes (e.g., because a rollback happened in the context),
-    // we force our local input's state to match it.
-    setLocalValue(serverValue);
-  }, [serverValue]);
+  // // This `useEffect` handles the ROLLBACK logic.
+  // // It watches for changes to the `serverValue` prop.
+  // useEffect(() => {
+  //   // If the `serverValue` prop changes (e.g., because a rollback happened in the context),
+  //   // we force our local input's state to match it.
+  //   setLocalValue(serverValue);
+  // }, [serverValue]);
 
 
   // 2. The actual <input> element.
@@ -50,11 +52,15 @@ export function ClientNameInput({ value: serverValue, onUpdate, disabled = false
   return (
     <input
       type="text"
+      className={`client-name ${disabled ? 'disabled' : ''}`}
+      name={`client-name-input-${id}`}
+      
       value={localValue}
       onChange={(e) => setLocalValue(e.target.value)}
+      
       disabled={disabled}
+      dir="rtl"
       placeholder="שם המטופל/ת"
-      className={disabled ? 'disabled-input-style' : ''} // Example for styling
     />
   );
 }

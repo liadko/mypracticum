@@ -9,7 +9,6 @@ export interface CalendarWithListProps<T extends BaseEntry> {
     hoursNeeded: number;
     onDayToggle: (date: string) => void;
     renderExtra: (item: T) => React.ReactNode;
-    renderItemActions?: (item: T) => React.ReactNode;
 }
 
 export function CalendarWithList<T extends BaseEntry>({
@@ -18,7 +17,6 @@ export function CalendarWithList<T extends BaseEntry>({
     hoursNeeded,
     onDayToggle,
     renderExtra,
-    renderItemActions,
 }: CalendarWithListProps<T>) {
     // track the most‐recent calendar click
     const [lastToggledDate, setLastToggledDate] = useState<string | null>(null);
@@ -70,9 +68,7 @@ export function CalendarWithList<T extends BaseEntry>({
                                 className="selected-item"
                             >
                                 <span className="extra">{renderExtra(item)}</span>
-                                {renderItemActions && (
-                                    <span className="actions">{renderItemActions(item)}</span>
-                                )}
+
                                 <span className="date">{format(parseISO(item.date), "dd/MM/yyyy")}</span>
                             </div>
                         ))}

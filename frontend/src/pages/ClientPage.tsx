@@ -1,24 +1,24 @@
 import { useCallback } from 'react'
 import { CalendarWithList } from "../components/CalendarWithList";
-import { ClientNameInput } from "../components/ClientNameInput";
+import { ClientNameInput } from "../components/Extras/ClientNameInput";
 import { useEntries } from "../context/EntriesContext";
 import type { ClientEntry } from "../types";
 
 export default function ClientsPage() {
-  // Let's assume your context provides an `isOffline` state for the "circuit breaker" idea
-  const { clientEntries, toggleDay, updateClientName, error } = useEntries();
+  const { clientEntries, toggleDay, handleUpdateClient, error } = useEntries();
 
   const renderClientExtra = useCallback(
     (entry: ClientEntry) => {
       return (
         <ClientNameInput
+          id={entry.id}
           value={entry.clientName}
-          onUpdate={(newName) => updateClientName(entry.id, newName)}
+          onUpdate={(newName) => handleUpdateClient(entry.id, newName)}
           disabled={!!error}
         />
       );
     },
-    [updateClientName, error] // Dependencies for the callback
+    [handleUpdateClient, error] // Dependencies for the callback
   );
 
   return (

@@ -22,7 +22,6 @@ export async function fetchPersonalEntries(studentId: string): Promise<PersonalE
     // TS type checking
     return (await resp.json()) as PersonalEntry[];
 
-
 }
 
 export async function fetchMentorEntries(
@@ -83,16 +82,40 @@ export async function deleteEntry(
     }
 }
 
-
+// The function to update a client's name
 export async function updateClientName(studentId: string, entryId: string, newName: string): Promise<ClientEntry> {
-    const response = await fetch(`${BASE_API_URL}/students/${studentId}/entries/client/${entryId}`, {
+    console.log("updateClientName Called")
+
+    const response = await fetch(`${BASE_API_URL}/${studentId}/entries/client/${entryId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        // The body is specific to this action
         body: JSON.stringify({ clientName: newName }),
     });
-    if (!response.ok) {
-        throw new Error(`Update failed: ${response.status} ${response.statusText}`)
-    }
+    if (!response.ok) throw new Error("Update failed");
+    return response.json();
+}
 
-    return response.json()
+// The function to update an entry's assigned mentor
+export async function updateMentor(studentId: string, entryId: string, mentorId: string | null): Promise<MentorEntry> {
+    const response = await fetch(`${BASE_API_URL}/${studentId}/entries/mentor/${entryId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        // The body is different here
+        body: JSON.stringify({ mentorId: mentorId }),
+    });
+    if (!response.ok) throw new Error("Update failed");
+    return response.json();
+}
+
+// The function to update an entry's assigned mentor
+export async function updateExternalTherapist(studentId: string, entryId: string, externalTherapistId: string | null): Promise<MentorEntry> {
+    const response = await fetch(`${BASE_API_URL}/${studentId}/entries/personal/${entryId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        // The body is different here
+        body: JSON.stringify({ externalTherapistId: externalTherapistId }),
+    });
+    if (!response.ok) throw new Error("Update failed");
+    return response.json();
 }

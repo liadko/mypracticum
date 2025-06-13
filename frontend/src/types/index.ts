@@ -9,10 +9,11 @@ export interface PersonalEntry extends BaseEntry {
 export interface MentorEntry extends BaseEntry {
     mentor: Mentor | null;
 }
-
 export interface ClientEntry extends BaseEntry {
     clientName: string;
 }
+
+export type SomeEntry =  PersonalEntry | MentorEntry | ClientEntry
 
 export type Category = "personal" | "mentor" | "client"
 
@@ -21,9 +22,6 @@ export interface EntryMap {
     mentor: MentorEntry[]
     client: ClientEntry[]
 }
-
-
-
 
 export interface Mentor {
     name: string;

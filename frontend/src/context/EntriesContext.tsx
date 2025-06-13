@@ -1,13 +1,13 @@
 import { createContext, useState, useEffect, useCallback, useContext } from "react"
-import type { BaseEntry, ClientEntry, MentorEntry, PersonalEntry } from "../types"
+import type { BaseEntry, ClientEntry, MentorEntry, PersonalEntry, SomeEntry } from "../types"
 import type { Category, EntryMap } from "../types"
-import { fetchPersonalEntries, fetchMentorEntries, fetchClientEntries, addEntry, deleteEntry } from "../services/entries"
+import { fetchPersonalEntries, fetchMentorEntries, fetchClientEntries, addEntry, deleteEntry, updateClientName, updateMentor, updateExternalTherapist } from "../services/entries"
 
 interface EntriesContextValue {
     personalEntries: PersonalEntry[]
     mentorEntries: MentorEntry[]
     clientEntries: ClientEntry[]
-    totalHours: { personal: number; mentor: number; clients: number }
+    totalHours: { personal: number; mentor: number; client: number }
     loading: boolean
     error: Error | null
     /**
@@ -17,7 +17,11 @@ interface EntriesContextValue {
     toggleDay: (category: Category, date: string) => Promise<void>
 
     // entry updates
-    updateClientName: (clientId: string, clientName: string) => void
+    handleUpdateClient: (entryId: string, newName: string) => Promise<void>
+    handleUpdateMentor: (entryId: string, newMentorId: string | null) => Promise<void>
+    handleUpdatePersonal: (entryId: string, newExternalTherapistId: string | null) => Promise<void>
+
+    handleUpdate: (category: Category, entryId: string, newValue: string) => Promise<SomeEntry>
 }
 
 export const EntriesContext = createContext<EntriesContextValue | null>(null)
@@ -41,14 +45,19 @@ export function EntriesProvider({
     const totalHours = {
         personal: entries.personal.length,
         mentor: entries.mentor.length,
-        clients: entries.client.length,
+        client: entries.client.length,
     }
 
-    // Set of entry dates that are pending 
+    //
+    const [newlyAddedEntryId, setNewlyAddedEntryId] = useState<string | null>(null)
+
+    // Set of entry dates that are pending (being added/deleted) 
     const [pending, setPending] = useState<Set<string>>(new Set())
 
     // Entry updating
     const [statusTimerId, setStatusTimerId] = useState<number | null>(null);
+
+
 
 
     // Initial load of all three categories
@@ -85,12 +94,30 @@ export function EntriesProvider({
     }
 
 
+    const handleUpdateClient = useCallback(async (entryId: string, newName: string) => {
+        console.log("handleUpdateClient Called")
+        try {
+            const result = await handleUpdate("client", entryId, newName) as ClientEntry
 
-    /*
-    * A generic handler that manages the global "Saving..." / "Saved" status UI.
-    * It takes the actual API call as a promise.
-    */
-    const handleUpdate = useCallback(async (apiCallPromise: Promise<any>) => {
+
+            setEntries(current => ({
+                ...current,
+                client: current.client.map(e =>
+                    e.id === entryId ? result : e
+                ),
+            }));
+
+        } catch (error) {
+            setError(new Error("Handle Update Failed, Changes could not be saved"))
+        }
+
+    }, [entries, studentId]); // Dependency for useCallback
+
+
+
+    const handleUpdate = useCallback(async (category: Category, entryId: string, newValue: string) => {
+        
+        console.log("Handle Update Called")
         // 1. Clear any pending "All changes saved" message timer.
         if (statusTimerId) {
             clearTimeout(statusTimerId);
@@ -98,71 +125,36 @@ export function EntriesProvider({
         // 2. Immediately set the global status to "Saving...".
         setUpdatingServer(true);
 
-        try {
-            // 3. Await the API call promise that was passed in.
-            const result = await apiCallPromise;
+        // 3. Await the API call promise that was passed in.
+        let savedEntry: SomeEntry;
 
-            // 4. On SUCCESS, set a timer to show the "saved" message after a delay.
-            const newTimer = setTimeout(() => {
-                setUpdatingServer(false);
-            }, 1500); // 1.5 second delay
-            setStatusTimerId(newTimer);
-
-            return result; // Return the result for the specific function to use
-
-        } catch (error) {
-            // 5. On FAILURE, show an error message immediately.
-            console.error("Handle Update Failed, Changes could not be saved")
-            setError(new Error("Handle Update Failed, Changes could not be saved"))
-            //setUpdatingServer("Error: Changes could not be saved.");
-            // Re-throw the error so the calling function knows to perform a rollback.
-            throw error;
+        switch (category) {
+            case 'client':
+                // The 'newValue' here is the client's name (a string)
+                savedEntry = await updateClientName(studentId, entryId, newValue as string);
+                break;
+            case 'mentor':
+                // The 'newValue' here is the mentor's ID (a string or null)
+                savedEntry = await updateMentor(studentId, entryId, newValue as string | null);
+                break;
+            case 'personal':
+                // The 'newValue' here is the therapist's ID (a string or null)
+                savedEntry = await updateExternalTherapist(studentId, entryId, newValue as string | null);
+                break;
         }
+
+        // 4. On SUCCESS, set a timer to show the "saved" message after a delay.
+        const newTimer = setTimeout(() => {
+            setUpdatingServer(false);
+        }, 1500); // 1.5 second delay
+        setStatusTimerId(newTimer);
+
+        return savedEntry; // Return the result for the specific function to use
+
+
     }, [statusTimerId]); // Dependency for useCallback
 
 
-    /**
-     * Updates a client's name. Handles optimistic UI, server reconciliation, and rollback.
-     */
-    const updateClientName = useCallback(async (entryId: string, newName: string) => {
-        const originalEntries = entries; // Snapshot for rollback
-
-        // Optimistically update the UI for a snappy user experience
-        setEntries(currentEntries => ({
-            ...currentEntries,
-            client: currentEntries.client.map(e =>
-                e.id === entryId ? { ...e, clientName: newName } : e
-            ),
-        }));
-
-        try {
-            // Define the specific API call. This returns a promise.
-            const apiCallPromise = fetch(`/api/students/studentId/entries/clients/${entryId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ clientName: newName }),
-            }).then(res => {
-                if (!res.ok) throw new Error("Server error");
-                return res.json();
-            });
-
-            // Pass the promise to the generic handler and wait for the server's response.
-            const savedEntry = await handleUpdate(apiCallPromise);
-
-            // Reconcile state with the authoritative response from the server.
-            setEntries(currentEntries => ({
-                ...currentEntries,
-                client: currentEntries.client.map(e =>
-                    e.id === entryId ? savedEntry : e
-                ),
-            }));
-
-        } catch (error) {
-            // If handleUpdate (or the fetch) threw an error, roll back the UI.
-            console.error("Failed to update client name:", error);
-            setEntries(originalEntries);
-        }
-    }, [entries, handleUpdate]);
 
 
     const handleRemoveEntry = useCallback(
@@ -206,6 +198,7 @@ export function EntriesProvider({
                 [category]: insertEntrySorted(prev[category], { id: tempId, date } as BaseEntry),
             }))
 
+            setNewlyAddedEntryId(tempId);
 
             // // 3) Send to server
             try {
@@ -266,7 +259,7 @@ export function EntriesProvider({
                 loading,
                 error,
                 toggleDay,
-                updateClientName
+                handleUpdateClient,
             } as EntriesContextValue}
         >
             {children}

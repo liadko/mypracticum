@@ -12,7 +12,7 @@
     padding: 0 2em;
 }
 
-h1 {
+.header h1 {
     text-align: right;
 }
 
@@ -30,7 +30,7 @@ h1 {
     border: none;
     width: 160px;
     margin: 0 1rem;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     padding: 0.5rem 1rem;
     cursor: pointer;
     color: #333333;
@@ -55,7 +55,7 @@ h1 {
 
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     flex: 6;
 }

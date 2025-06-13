@@ -1,0 +1,19 @@
+.client-name {
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.client-name:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(0, 11, 23, 0.25);
+}
+
+.client-name.disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+  opacity: 0.7;
+}

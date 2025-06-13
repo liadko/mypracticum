@@ -80,7 +80,6 @@ func getClientEntries(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-// getPersonalEntries returns an empty list of personal entries.
 func getPersonalEntries(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// --- Step 1: Look up UserUUID
@@ -108,10 +107,15 @@ func getPersonalEntries(db *sql.DB) gin.HandlerFunc {
 		for rows.Next() {
 			var entry models.PersonalEntry
 			var entryDate time.Time
+			var externalTherapistID sql.NullString
 
-			if err := rows.Scan(&entry, &entryDate, entry.ExternalTherapistID); err != nil {
+			if err := rows.Scan(&entry.ID, &entryDate, &externalTherapistID); err != nil {
 				log.Printf("Error scanning personal entry row: %v", err)
 				continue // Skip bad rows and continue
+			}
+
+			if externalTherapistID.Valid {
+				entry.ExternalTherapistID = &externalTherapistID.String
 			}
 
 			entry.Date = entryDate.Format("2006-01-02")
@@ -121,7 +125,7 @@ func getPersonalEntries(db *sql.DB) gin.HandlerFunc {
 
 		// Final check for errors during row iteration
 		if err = rows.Err(); err != nil {
-			log.Printf("Error iterating client entry rows: %v", err)
+			log.Printf("Error iterating personal entry rows: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process entries"})
 			return
 		}
@@ -130,11 +134,57 @@ func getPersonalEntries(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
-// getMentorEntries returns an empty list of mentor entries.
 func getMentorEntries(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// This handler also returns an empty slice as a placeholder.
-		c.JSON(http.StatusOK, []models.MentorEntry{})
+		// --- Step 1: Look up UserUUID
+		userUUID, ok := getUserUUID(c, db)
+		if !ok {
+			return // Stop execution
+		}
+
+		// --- Step 2: Use the found UserUUID to fetch the entries ---
+		entriesQuery := `
+			SELECT id, date, mentor_id
+			FROM entries 
+			WHERE user_id = $1 AND type = 'mentor' 
+			ORDER BY date DESC
+		`
+		rows, err := db.QueryContext(c, entriesQuery, userUUID)
+		if err != nil {
+			log.Printf("Error querying mentor entries for user_id %s: %v", userUUID, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve entries"})
+			return
+		}
+		defer rows.Close()
+
+		entries := []models.MentorEntry{}
+		for rows.Next() {
+			var entry models.MentorEntry
+			var entryDate time.Time
+			var mentorID sql.NullString
+
+			if err := rows.Scan(&entry.ID, &entryDate, &mentorID); err != nil {
+				log.Printf("Error scanning personal entry row: %v", err)
+				continue // Skip bad rows and continue
+			}
+
+			if mentorID.Valid {
+				entry.MentorID = &mentorID.String
+			}
+
+			entry.Date = entryDate.Format("2006-01-02")
+
+			entries = append(entries, entry)
+		}
+
+		// Final check for errors during row iteration
+		if err = rows.Err(); err != nil {
+			log.Printf("Error iterating mentor entry rows: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to process entries"})
+			return
+		}
+
+		c.JSON(http.StatusOK, entries)
 	}
 }
 
@@ -145,6 +195,8 @@ func addEntry(db *sql.DB) gin.HandlerFunc {
 
 		userUUID, ok := getUserUUID(c, db)
 		if !ok {
+			log.Printf("Error inserting new entry: user UUID doesn't exist")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user doesn't exist"})
 			return // Stop execution
 		}
 
@@ -230,7 +282,7 @@ func updateEntry(db *sql.DB) gin.HandlerFunc {
 		}
 
 		switch category {
-		case "clients":
+		case "client":
 			var req struct {
 				ClientName string `json:"clientName"`
 			}
