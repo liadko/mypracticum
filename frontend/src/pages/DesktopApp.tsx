@@ -13,7 +13,9 @@ interface DesktopAppProps {
 const pages = ['Personal', 'Mentor', 'Clients']
 
 const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
+    const {updatingServer} = useEntries();
     const [activePage, setActivePage] = useState<string>(pages[2])
+
 
     const {
         loading,
@@ -26,8 +28,27 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
     return (
         <div className="desktop-app">
             {/* HEADER */}
+            {/* HEADER */}
             <header className="header">
+                {/* Left block */}
+                <div className="header-left">
+                    <img src="/signature.png" alt="Signature" className="signature-image" />
+                    <label className="agreement">
+                        <span className="agreement-text">אני מאשר/ת את כל הדיווחים</span>
+                        <img src="/checkbox.svg" alt="אישור" className="agreement-checkbox" />
+                    </label>
+                </div>
+
+                {/* Title */}
                 <h1>{userName}</h1>
+
+                {/* Right block */}
+                <div className="header-right">
+                    <span className="status">
+                        {updatingServer ? '...שומר שינויים' : 'כל השינויים שמורים'}
+                    </span>
+                    <img src="/logo.png" alt="Logo" className="header-logo" />
+                </div>
             </header>
 
             {/* NAV BAR */}

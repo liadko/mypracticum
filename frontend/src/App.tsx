@@ -5,9 +5,9 @@ import { EntriesProvider } from './context/EntriesContext';
 const theme = createTheme({
     palette: {
         primary: {
-            //main: '#3A75C4',
-            // main: '#f9223c',
-            main: '#00A495',
+            //main: '#3A75C4', // blue
+            // main: '#f9223c', // pink
+            main: '#00A495', // green
         },
         secondary: {
             main: '#00ff00',

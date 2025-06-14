@@ -34,12 +34,11 @@ export default function Calendar<T extends BaseEntry>({ entries, handleDayToggle
                         // ownerState.day is the Date for this cell
                         const thisDateStr = format(ownerState.day, 'yyyy-MM-dd');
                         const isSelected = entries.some((e) => e.date === thisDateStr);
-                        const highlightedDateStr = format(highlightedDate ?? Date.now(), 'yyyy-MM-dd')
 
                         return {
                             // Your overrides:
                             isSelected: isSelected,
-                            isFocused: highlightedDateStr == thisDateStr,
+                            isFocused: highlightedDate == thisDateStr,
                             onClick: () => handleDayToggle(ownerState.day),
                         };
                     },
@@ -49,7 +48,6 @@ export default function Calendar<T extends BaseEntry>({ entries, handleDayToggle
                     height: 473,
                     maxHeight: "none",
                     margin: 0,
-
 
 
 

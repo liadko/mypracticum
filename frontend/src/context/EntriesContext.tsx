@@ -8,8 +8,10 @@ interface EntriesContextValue {
     mentorEntries: MentorEntry[]
     clientEntries: ClientEntry[]
     totalHours: { personal: number; mentor: number; client: number }
+
     loading: boolean
     error: Error | null
+    updatingServer: boolean
     /**
      * Toggle a date on or off for the given category.
      * Performs optimistic update, then POST or DELETE under the hood.
@@ -114,7 +116,7 @@ export function EntriesProvider({
 
 
     const handleUpdate = useCallback(async (category: Category, entryId: string, newValue: string) => {
-        
+
         console.log("Handle Update Called")
         // 1. Clear any pending "All changes saved" message timer.
         if (statusTimerId) {
@@ -253,8 +255,11 @@ export function EntriesProvider({
                 mentorEntries: entries.mentor,
                 clientEntries: entries.client,
                 totalHours,
+
                 loading,
                 error,
+                updatingServer,
+
                 toggleDay,
                 handleUpdateClient,
             } as EntriesContextValue}
