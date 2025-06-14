@@ -60,7 +60,7 @@ export function ClientNameInput({ id, value: serverValue, onUpdate, disabled = f
       
       disabled={disabled}
       dir="rtl"
-      placeholder="שם המטופל/ת"
+      placeholder='ר"ת מטופל/ת'
     />
   );
 }

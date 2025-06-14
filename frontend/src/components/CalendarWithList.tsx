@@ -19,25 +19,25 @@ export function CalendarWithList<T extends BaseEntry>({
     renderExtra,
 }: CalendarWithListProps<T>) {
     // track the most‐recent calendar click
-    const [lastToggledDate, setLastToggledDate] = useState<string | null>(null);
+    const [highlightedDate, highlightDate] = useState<string | null>(null);
 
     // wrapper that both notifies parent and records the date
     function handleDayToggle(date: string) {
         onDayToggle(date);
-        setLastToggledDate(date);
+        highlightDate(date);
     }
 
     // after entries change, if the last toggled date still exists,
     // scroll that entry into view
     useEffect(() => {
-        if (!lastToggledDate) return;
-        const entry = entries.find((e) => e.date === lastToggledDate);
+        if (!highlightedDate) return;
+        const entry = entries.find((e) => e.date === highlightedDate);
         if (entry) {
             document
                 .getElementById(`entry-${entry.id}`)
                 ?.scrollIntoView({ behavior: "smooth", block: "center" });
         }
-    }, [entries, lastToggledDate]);
+    }, [entries, highlightedDate]);
 
     return (
         <div className="calendar-with-list">
@@ -46,7 +46,8 @@ export function CalendarWithList<T extends BaseEntry>({
                     בחר תאריכים
                 </h2>
                 <Calendar
-                    selectedDates={entries}
+                    entries={entries}
+                    highlightedDate={highlightedDate ?? undefined}
                     // Calendar gives you a Date object; convert to "YYYY-MM-DD"
                     handleDayToggle={(day) =>
                         handleDayToggle(format(day, "yyyy-MM-dd"))
@@ -65,7 +66,8 @@ export function CalendarWithList<T extends BaseEntry>({
                             <div
                                 key={item.id}
                                 id={`entry-${item.id}`}
-                                className="selected-item"
+                                className={`selected-item ${item.date==highlightedDate ? 'highlighted-item' : ''}`}
+                                onClick={()=>highlightDate(item.date)}
                             >
                                 <span className="extra">{renderExtra(item)}</span>
 

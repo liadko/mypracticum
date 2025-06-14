@@ -48,8 +48,6 @@ export function EntriesProvider({
         client: entries.client.length,
     }
 
-    //
-    const [newlyAddedEntryId, setNewlyAddedEntryId] = useState<string | null>(null)
 
     // Set of entry dates that are pending (being added/deleted) 
     const [pending, setPending] = useState<Set<string>>(new Set())
@@ -198,7 +196,6 @@ export function EntriesProvider({
                 [category]: insertEntrySorted(prev[category], { id: tempId, date } as BaseEntry),
             }))
 
-            setNewlyAddedEntryId(tempId);
 
             // // 3) Send to server
             try {

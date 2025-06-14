@@ -5,11 +5,14 @@ import { EntriesProvider } from './context/EntriesContext';
 const theme = createTheme({
     palette: {
         primary: {
+            //main: '#3A75C4',
+            // main: '#f9223c',
             main: '#00A495',
         },
         secondary: {
             main: '#00ff00',
         },
+
     },
 });
 
