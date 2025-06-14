@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import PersonalPage from './PersonalPage'
 import MentorPage from './MentorPage'
-import ClientsPage from './ClientPage'
+import ClientPage from './ClientPage'
 
 import { useEntries } from '../context/EntriesContext'
 import './DesktopApp.css'
@@ -10,7 +10,7 @@ interface DesktopAppProps {
     userName: string
 }
 
-const pages = ['Personal', 'Mentor', 'Clients']
+const pages = ['personal', 'mentor', 'client']
 
 const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
     const {updatingServer} = useEntries();
@@ -56,7 +56,7 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
                 {pages.map((page) => (
                     <button
                         key={page}
-                        className={`nav-button ${activePage === page ? 'active' : ''}`}
+                        className={`nav-button ${activePage === page ? 'active' : ''} ${activePage}-page`}
                         onClick={() => setActivePage(page)}
                     >
                         {translate(page)}
@@ -65,9 +65,9 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
             </nav>
 
             {/* MAIN CONTENT */}
-            {activePage === "Personal" && <PersonalPage />}
-            {activePage === "Mentor" && <MentorPage />}
-            {activePage === "Clients" && <ClientsPage />}
+            {activePage === "personal" && <PersonalPage />}
+            {activePage === "mentor" && <MentorPage />}
+            {activePage === "client" && <ClientPage />}
         </div>
     )
 }
@@ -77,11 +77,11 @@ export default DesktopApp
 
 function translate(pageName: string) {
     switch (pageName) {
-        case "Mentor":
+        case "mentor":
             return "הדרכה"
-        case "Personal":
+        case "personal":
             return "טיפול אישי"
-        case "Clients":
+        case "client":
             return "מטופלים פרטיים"
         default:
             return "לא הצלחתי לתרגם!"

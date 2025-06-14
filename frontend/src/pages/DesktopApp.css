@@ -4,6 +4,7 @@
     height: 100vh;
 }
 
+
 /* HEADER */
 .header {
     display: flex;
@@ -98,7 +99,8 @@
 
 .nav-button.active {
     /* border-bottom: 3px solid #017268; */
-    box-shadow: 0px 6px 3px -3px hsl(175, 73%, 38%);
+    box-shadow: 0px 6px 3px -3px var(--main-color);
+    /* hsl(175, 73%, 38%); */
 
     font-weight: 600;
 }
@@ -170,7 +172,6 @@
     border-radius: 4px;
 
     cursor: pointer;
-
     font-size: 1.1em;
 }
 
@@ -178,35 +179,40 @@
     font-weight: 500;
 }
 
+.extra {
+    z-index: 10;
+}
 
-/* Animation for the new item blink */
 @keyframes blink-in {
     0% {
         background-color: #f9f9f9;
     }
 
-    /* Normal background */
     100% {
-        background-color: #cbf8ef;
+        background-color: var(--highlight-color);
     }
-
-    /* Light blue highlight */
 }
 
-/* Class to apply the animation */
 .selected-item.highlighted-item {
     animation: blink-in 0.5s ease-out forwards;
+
 }
 
-.remove-button {
-    background-color: #ff4d4f;
-    border: none;
-    color: #ffffff;
-    padding: 0.3rem 0.6rem;
-    border-radius: 3px;
-    cursor: pointer;
+
+
+
+
+.client-page {
+    --highlight-color: #cbf8ef;
+    --main-color: #00A495;
 }
 
-.remove-button:hover {
-    background-color: #e04344;
+.mentor-page {
+    --highlight-color: #a89eff;
+    --main-color: #3A75C4;
+}
+
+.personal-page {
+    --highlight-color: #fe8d8d;
+    --main-color: #fc3d54;
 }

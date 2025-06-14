@@ -3,8 +3,13 @@ import { CalendarWithList } from "../components/CalendarWithList";
 import { ClientNameInput } from "../components/Extras/ClientNameInput";
 import { useEntries } from "../context/EntriesContext";
 import type { ClientEntry } from "../types";
+import { createTheme, ThemeProvider, } from '@mui/material/styles'
 
-export default function ClientsPage() {
+const theme = createTheme({
+  palette: { primary: { main: '#00A495' } } // green
+})
+
+export default function ClientPage() {
   const { clientEntries, toggleDay, handleUpdateClient, error } = useEntries();
 
   const renderClientExtra = useCallback(
@@ -22,12 +27,16 @@ export default function ClientsPage() {
   );
 
   return (
-    <CalendarWithList<ClientEntry>
-      title="שעות מטופלים פרטיים"
-      entries={clientEntries}
-      hoursNeeded={300}
-      onDayToggle={(date) => toggleDay("client", date)}
-      renderExtra={renderClientExtra}
-    />
+    <ThemeProvider theme={theme}>
+      <div className='client-page'>
+        <CalendarWithList<ClientEntry>
+          title="שעות מטופלים פרטיים"
+          entries={clientEntries}
+          hoursNeeded={300}
+          onDayToggle={(date) => toggleDay("client", date)}
+          renderExtra={renderClientExtra}
+        />
+      </div>
+    </ThemeProvider>
   );
 }

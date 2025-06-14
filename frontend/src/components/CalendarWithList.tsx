@@ -62,16 +62,16 @@ export function CalendarWithList<T extends BaseEntry>({
                     </div>
                     <div className="selected-list-entries">
                         {entries.length === 0 && <div style={{ textAlign: "right" }}>נא לסמן תאריכים בלוח השנה</div>}
-                        {entries.map((item) => (
+                        {entries.map((entry) => (
                             <div
-                                key={item.id}
-                                id={`entry-${item.id}`}
-                                className={`selected-item ${item.date==highlightedDate ? 'highlighted-item' : ''}`}
-                                onClick={()=>highlightDate(item.date)}
+                                key={entry.id}
+                                id={`entry-${entry.id}`}
+                                className={`selected-item ${entry.date==highlightedDate ? 'highlighted-item' : ''}`}
+                                onClick={()=>highlightDate(entry.date)}
                             >
-                                <span className="extra">{renderExtra(item)}</span>
+                                <span className="extra">{renderExtra(entry)}</span>
 
-                                <span className="date">{format(parseISO(item.date), "dd/MM/yyyy")}</span>
+                                <span className="date">{format(parseISO(entry.date), "dd/MM/yyyy")}</span>
                             </div>
                         ))}
                     </div>
