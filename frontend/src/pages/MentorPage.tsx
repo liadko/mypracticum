@@ -24,7 +24,6 @@ export default function MentorPage() {
           hoursNeeded={150}
           onDayToggle={(date) => toggleDay("mentor", date)}
           renderExtra={renderMentorExtra}
-        /* no renderItemActions until mentors exist */
         />
       </div>
 
