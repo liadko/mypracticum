@@ -13,19 +13,11 @@ import (
 func main() {
 	log.Print("------ [SERVER RESTARTING] ------\n\n")
 
-	connStr := "host=localhost " +
-		"port=5432 " +
-		"user=postgres " +
-		"password=PostgresKodi555 " +
-		"dbname=mypracticum " +
-		"sslmode=disable"
+	connStr := `postgres://postgres:PostgresKodi555@localhost:5432/mypracticum?sslmode=disable`
 
 	dbConn, err := db.Connect(connStr)
 	if err != nil {
 		log.Fatal("DB connect:", err)
-	}
-	if err := db.Migrate(dbConn); err != nil {
-		log.Fatal("DB migrate:", err)
 	}
 
 	log.Println("Database connected successfully!")
