@@ -1,17 +1,15 @@
 import { createContext, useState, useEffect, useCallback, useContext } from "react"
-import type { BaseEntry, ClientEntry, MentorEntry, PersonalEntry, SomeEntry } from "../types"
+import type { BaseEntry, ClientEntry, MentorEntry, TherapistEntry, SomeEntry, Entry } from "../types"
 import type { Category, EntryMap } from "../types"
-import { fetchPersonalEntries, fetchMentorEntries, fetchClientEntries, addEntry, deleteEntry, updateClientName, updateMentor, updateExternalTherapist } from "../services/entries"
+import { fetchTherapistEntries, fetchMentorEntries, fetchClientEntries, addEntry, deleteEntry, updateClientName, updateMentor, updateExternalTherapist } from "../services/entries"
 
 interface EntriesContextValue {
-    personalEntries: PersonalEntry[]
-    mentorEntries: MentorEntry[]
-    clientEntries: ClientEntry[]
-    totalHours: { personal: number; mentor: number; client: number }
+    entries: Entry[]
 
     loading: boolean
     error: Error | null
     updatingServer: boolean
+    
     /**
      * Toggle a date on or off for the given category.
      * Performs optimistic update, then POST or DELETE under the hood.
@@ -21,7 +19,7 @@ interface EntriesContextValue {
     // entry updates
     handleUpdateClient: (entryId: string, newName: string) => Promise<void>
     handleUpdateMentor: (entryId: string, newMentorId: string | null) => Promise<void>
-    handleUpdatePersonal: (entryId: string, newExternalTherapistId: string | null) => Promise<void>
+    handleUpdateTherapist: (entryId: string, newExternalTherapistId: string | null) => Promise<void>
 
     handleUpdate: (category: Category, entryId: string, newValue: string) => Promise<SomeEntry>
 }
@@ -44,11 +42,7 @@ export function EntriesProvider({
     const [updatingServer, setUpdatingServer] = useState<boolean>(false);
     const [error, setError] = useState<Error | null>(null)
 
-    const totalHours = {
-        personal: entries.personal.length,
-        mentor: entries.mentor.length,
-        client: entries.client.length,
-    }
+
 
 
     // Set of entry dates that are pending (being added/deleted) 
@@ -65,7 +59,7 @@ export function EntriesProvider({
         let isMounted = true
         setLoading(true)
         Promise.all([
-            fetchPersonalEntries(studentId),
+            fetchTherapistEntries(studentId),
             fetchMentorEntries(studentId),
             fetchClientEntries(studentId),
         ])

@@ -27,7 +27,7 @@ export default function Calendar<T extends BaseEntry>({ entries, handleDayToggle
                 //key={highlightedDate ? format(highlightedDate, 'yyyy-MM') : undefined}
                 views={['day']} // no year/month dropdown
                 //referenceDate={highlightedDate ? parseISO(highlightedDate) : undefined}
-                value={highlightedDate ? parseISO(highlightedDate) : undefined}
+                value={highlightedDate ? parseISO(highlightedDate) : null}
                 slots={{ day: Day as any }}
                 slotProps={{
                     day: (ownerState) => {

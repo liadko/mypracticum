@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import PersonalPage from './PersonalPage'
+import TherapistPage from './TherapistPage'
 import MentorPage from './MentorPage'
 import ClientPage from './ClientPage'
 
@@ -10,7 +10,7 @@ interface DesktopAppProps {
     userName: string
 }
 
-const pages = ['personal', 'mentor', 'client']
+const pages = ['therapist', 'mentor', 'client']
 
 const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
     const {updatingServer} = useEntries();
@@ -65,7 +65,7 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
             </nav>
 
             {/* MAIN CONTENT */}
-            {activePage === "personal" && <PersonalPage />}
+            {activePage === "therapist" && <TherapistPage />}
             {activePage === "mentor" && <MentorPage />}
             {activePage === "client" && <ClientPage />}
         </div>

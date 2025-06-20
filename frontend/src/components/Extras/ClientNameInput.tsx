@@ -37,15 +37,6 @@ export function ClientNameInput({ id, value: serverValue, onUpdate, disabled = f
   }, [localValue, serverValue, onUpdate]);
 
 
-  // // This `useEffect` handles the ROLLBACK logic.
-  // // It watches for changes to the `serverValue` prop.
-  // useEffect(() => {
-  //   // If the `serverValue` prop changes (e.g., because a rollback happened in the context),
-  //   // we force our local input's state to match it.
-  //   setLocalValue(serverValue);
-  // }, [serverValue]);
-
-
   // 2. The actual <input> element.
   // Its `value` is tied to our immediate local state.
   // Its `onChange` updates only our immediate local state.

@@ -1,43 +1,61 @@
-import { useState, useEffect } from "react";
-import Calendar from "./Calendar/Calendar"; // your MUI wrapper
-import type { BaseEntry } from "../types";
+
+import { useState, useMemo, useEffect } from 'react'
+import Calendar from './Calendar/Calendar'
 import { format, parseISO } from 'date-fns'
+import type { BaseEntry, Contact } from '../types'
+import { ContactDropdown } from './ContactDropdown'
 
 export interface CalendarWithListProps<T extends BaseEntry> {
-    title: string;
-    entries: T[];
-    hoursNeeded: number;
-    onDayToggle: (date: string) => void;
-    renderExtra: (item: T) => React.ReactNode;
+    contacts: Contact[]             // all contacts of this category
+    entries: T[]                    // all entries of this category
+
+    hoursNeeded: number
+    titleText: string // text displayed before the nameDropdown
+
+    onEntryToggle: (contactId: string, date: string) => void
+    renderExtra: (entry: T) => React.ReactNode
 }
 
 export function CalendarWithList<T extends BaseEntry>({
-    title,
+    contacts,
     entries,
     hoursNeeded,
-    onDayToggle,
+    titleText,
+    onEntryToggle,
     renderExtra,
 }: CalendarWithListProps<T>) {
-    // track the most‐recent calendar click
-    const [highlightedDate, highlightDate] = useState<string | null>(null);
+    // selected contact UUID
+    const [selectedContactId, setSelectedContactId] = useState<string>(
+        () => contacts[0]?.id ?? ''
+    )
+    // highlighted date for scrolling/focus
+    const [highlightedDate, setHighlightedDate] = useState<string>('')
 
-    // wrapper that both notifies parent and records the date
-    function handleDayToggle(date: string) {
-        onDayToggle(date);
-        highlightDate(date);
+    // filter entries for the current contact
+    const filtered = useMemo(
+        () => entries.filter(e => e.contactId === selectedContactId),
+        [entries, selectedContactId]
+    )
+    // hours tally
+    const hoursCount = useMemo(
+        () => filtered.length,
+        [filtered]
+    )
+    // when you click the calendar:
+    function handleDay(date: string) {
+        onEntryToggle(selectedContactId, date)
+        setHighlightedDate(date)
     }
 
-    // after entries change, if the last toggled date still exists,
-    // scroll that entry into view
+    // scroll into view after any change
     useEffect(() => {
-        if (!highlightedDate) return;
-        const entry = entries.find((e) => e.date === highlightedDate);
-        if (entry) {
-            document
-                .getElementById(`entry-${entry.id}`)
-                ?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-    }, [entries, highlightedDate]);
+        if (!highlightedDate) return
+        const el = document.getElementById(
+            `entry-${filtered.find(e => e.date === highlightedDate)?.id}`
+        )
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, [filtered, highlightedDate])
+
 
     return (
         <div className="calendar-with-list">
@@ -50,7 +68,7 @@ export function CalendarWithList<T extends BaseEntry>({
                     highlightedDate={highlightedDate ?? undefined}
                     // Calendar gives you a Date object; convert to "YYYY-MM-DD"
                     handleDayToggle={(day) =>
-                        handleDayToggle(format(day, "yyyy-MM-dd"))
+                        handleDay(format(day, "yyyy-MM-dd"))
                     }
                 />
             </div>
@@ -58,7 +76,15 @@ export function CalendarWithList<T extends BaseEntry>({
                 <div className="selected-list">
                     <div className="selected-list-header">
                         <span className="selected-list-counter">{entries.length}/{hoursNeeded}</span>
-                        <span className="selected-list-title">{title}</span>
+                        <div className="selected-list-title">
+                            <ContactDropdown
+                                contacts={contacts}
+                                value={selectedContactId}
+                                onChange={setSelectedContactId}
+                            />
+                            <span className='selected-list-title-text'>{titleText}</span>
+
+                        </div>
                     </div>
                     <div className="selected-list-entries">
                         {entries.length === 0 && <div style={{ textAlign: "right" }}>נא לסמן תאריכים בלוח השנה</div>}
@@ -66,10 +92,10 @@ export function CalendarWithList<T extends BaseEntry>({
                             <div
                                 key={entry.id}
                                 id={`entry-${entry.id}`}
-                                className={`selected-item ${entry.date==highlightedDate ? 'highlighted-item' : ''}`}
-                                onClick={()=>highlightDate(entry.date)}
+                                className={`selected-item ${entry.date == highlightedDate ? 'highlighted-item' : ''}`}
+                                onClick={() => setHighlightedDate(entry.date)}
                             >
-                                <span className="extra">{renderExtra(entry)}</span>
+                                ({renderExtra && <span className="extra">{renderExtra(entry)}</span>})
 
                                 <span className="date">{format(parseISO(entry.date), "dd/MM/yyyy")}</span>
                             </div>

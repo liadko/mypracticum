@@ -1,42 +1,20 @@
-import { useCallback } from 'react'
-import { CalendarWithList } from "../components/CalendarWithList";
-import { ClientNameInput } from "../components/Extras/ClientNameInput";
-import { useEntries } from "../context/EntriesContext";
-import type { ClientEntry } from "../types";
-import { createTheme, ThemeProvider, } from '@mui/material/styles'
-
-const theme = createTheme({
-  palette: { primary: { main: '#00A495' } } // green
-})
+import { useEntries, useContacts } from '../context'
+import { CalendarWithList } from '../components/CalendarWithList'
+import type { ClientEntry, Contact, Entry } from '../types'
 
 export default function ClientPage() {
-  const { clientEntries, toggleDay, handleUpdateClient, error } = useEntries();
-
-  const renderClientExtra = useCallback(
-    (entry: ClientEntry) => {
-      return (
-        <ClientNameInput
-          id={entry.id}
-          value={entry.clientName}
-          onUpdate={(newName) => handleUpdateClient(entry.id, newName)}
-          disabled={!!error}
-        />
-      );
-    },
-    [handleUpdateClient, error] // Dependencies for the callback
-  );
+  // pull all client‐type contacts & entries from context
+  const contacts = useContacts().filter((c : Contact)=>c.type==='client')
+  const entries = useEntries().entries.filter((e : Entry)=>e.contactId&&contacts.some(c=>c.id===e.contactId)) as ClientEntry[]
 
   return (
-    <ThemeProvider theme={theme}>
-      <div className='client-page'>
-        <CalendarWithList<ClientEntry>
-          title="שעות מטופלים פרטיים"
-          entries={clientEntries}
-          hoursNeeded={300}
-          onDayToggle={(date) => toggleDay("client", date)}
-          renderExtra={renderClientExtra}
-        />
-      </div>
-    </ThemeProvider>
-  );
+    <CalendarWithList<ClientEntry>
+      contacts={{} as any}
+      entries={entries}
+      hoursNeeded={300}
+      titleText='שעות הטיפול הפרטיות עם'
+      onEntryToggle={(contactId,date)=>useEntries().toggleEntry(contactId,date)}
+      renderExtra={e=>/* your old ClientNameInput */null}
+    />
+  )
 }
