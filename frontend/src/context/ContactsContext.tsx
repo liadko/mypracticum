@@ -77,8 +77,10 @@ export const ContactsProvider: React.FC<React.PropsWithChildren<{}>> = ({ childr
         return m
     }, [contacts])
 
-    const getContactsByType = useCallback((type: ContactType) =>
-        contacts.filter(c => c.type === type), [contacts])
+    const getContactsByType = useCallback(
+        (type: ContactType) =>
+            contacts.filter(c => c.type === type),
+        [contacts])
 
     return (
         <ContactsContext.Provider value={{

@@ -2,28 +2,28 @@
 import { useState, useMemo, useEffect } from 'react'
 import Calendar from './Calendar/Calendar'
 import { format, parseISO } from 'date-fns'
-import type { BaseEntry, Contact } from '../types'
+import type { Contact, Entry } from '../types'
 import { ContactDropdown } from './ContactDropdown'
 
-export interface CalendarWithListProps<T extends BaseEntry> {
+export interface CalendarWithListProps{
     contacts: Contact[]             // all contacts of this category
-    entries: T[]                    // all entries of this category
+    entries: Entry[]                    // all entries of this category
 
     hoursNeeded: number
     titleText: string // text displayed before the nameDropdown
 
     onEntryToggle: (contactId: string, date: string) => void
-    renderExtra: (entry: T) => React.ReactNode
+    renderExtra: (entry: Entry) => React.ReactNode
 }
 
-export function CalendarWithList<T extends BaseEntry>({
+export function CalendarWithList({
     contacts,
     entries,
     hoursNeeded,
     titleText,
     onEntryToggle,
     renderExtra,
-}: CalendarWithListProps<T>) {
+}: CalendarWithListProps) {
     // selected contact UUID
     const [selectedContactId, setSelectedContactId] = useState<string>(
         () => contacts[0]?.id ?? ''
@@ -36,13 +36,9 @@ export function CalendarWithList<T extends BaseEntry>({
         () => entries.filter(e => e.contactId === selectedContactId),
         [entries, selectedContactId]
     )
-    // hours tally
-    const hoursCount = useMemo(
-        () => filtered.length,
-        [filtered]
-    )
+
     // when you click the calendar:
-    function handleDay(date: string) {
+    function handleDayClick(date: string) {
         onEntryToggle(selectedContactId, date)
         setHighlightedDate(date)
     }
@@ -64,18 +60,16 @@ export function CalendarWithList<T extends BaseEntry>({
                     בחר תאריכים
                 </h2>
                 <Calendar
-                    entries={entries}
+                    entries={filtered}
                     highlightedDate={highlightedDate ?? undefined}
                     // Calendar gives you a Date object; convert to "YYYY-MM-DD"
-                    handleDayToggle={(day) =>
-                        handleDay(format(day, "yyyy-MM-dd"))
-                    }
+                    handleDayToggle={handleDayClick}
                 />
             </div>
             <div className="list-side">
                 <div className="selected-list">
                     <div className="selected-list-header">
-                        <span className="selected-list-counter">{entries.length}/{hoursNeeded}</span>
+                        <span className="selected-list-counter">{filtered.length}/{hoursNeeded}</span>
                         <div className="selected-list-title">
                             <ContactDropdown
                                 contacts={contacts}

@@ -3,19 +3,20 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format, parseISO } from 'date-fns';
 
-import type { BaseEntry } from '../../types';
+import type { Entry } from '../../types';
 import Day from './Day';
 
 
-interface CalendarProps<T extends BaseEntry> {
-    entries: T[];
-    handleDayToggle: (date: Date) => void;
+interface CalendarProps{
+    entries: Entry[];
+    handleDayToggle: (date: string) => void;
     highlightedDate: string | undefined;
 }
 
 
-// T is the type of Entry of the currently active page.
-export default function Calendar<T extends BaseEntry>({ entries, handleDayToggle, highlightedDate }: CalendarProps<T>) {
+// holds a list of the selected dates, an which date (if any) is highlighted.
+// upon toggle it calls the callback handleDayToggle
+export default function Calendar({ entries, handleDayToggle, highlightedDate }: CalendarProps) {
 
     const daySize = 60
     const dayIconMargin = 8
@@ -39,7 +40,7 @@ export default function Calendar<T extends BaseEntry>({ entries, handleDayToggle
                             // Your overrides:
                             isSelected: isSelected,
                             isFocused: highlightedDate == thisDateStr,
-                            onClick: () => handleDayToggle(ownerState.day),
+                            onClick: () => handleDayToggle(thisDateStr),
                         };
                     },
                 }}

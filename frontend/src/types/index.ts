@@ -31,40 +31,16 @@ export type NewContact = Omit<Contact, 'id'>
 
 
 
-export interface BaseEntry {
+export interface Entry {
     id: string          // uuid
     date: string        // "YYYY-MM-DD"
     contactId: string   // FK → Contact.id
     approved: boolean
 }
 
-export interface ClientEntry extends BaseEntry {
-    contact: ClientContact
+export interface NewEntry {
+  contactId: string
+  date: string       // "YYYY-MM-DD"
 }
-
-export interface MentorEntry extends BaseEntry {
-    contact: MentorContact
-}
-
-export interface TherapistEntry extends BaseEntry {
-    contact: TherapistContact
-}
-
-export type Entry =
-    | ClientEntry
-    | MentorEntry
-    | TherapistEntry
-
-export interface EntryMap {
-    client: ClientEntry[]
-    mentor: MentorEntry[]
-    therapist: TherapistEntry[]
-}
-
-export type Category = keyof EntryMap  // 'client' | 'mentor' | 'therapist'
-
-
-
-
 
 
