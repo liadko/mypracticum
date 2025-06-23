@@ -5,33 +5,52 @@ import (
 
 	"mypracticum/backend/db"
 	"mypracticum/backend/handlers"
+	"mypracticum/backend/middleware"
+	"mypracticum/backend/repository/postgres"
+	"mypracticum/backend/service"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	log.Print("------ [SERVER RESTARTING] ------\n\n")
+	log.Print("------ [SERVER RESTARTING] ------")
 
-	connStr := `postgres://postgres:PostgresKodi555@localhost:5432/mypracticum?sslmode=disable`
-
+	// 1. Connect to Postgres
+	connStr := "postgres://postgres:PostgresKodi555@localhost:5432/mypracticum?sslmode=disable"
 	dbConn, err := db.Connect(connStr)
 	if err != nil {
 		log.Fatal("DB connect:", err)
 	}
-
 	log.Println("Database connected successfully!")
 
+	// 2. Build repositories via factory
+	repoFactory := postgres.NewPostgresFactory(dbConn)
+
+	// 3. Build services
+	authSvc := service.NewAuthService(repoFactory.UserRepo())
+	entrySvc := service.NewEntryService(repoFactory.EntryRepo())
+	contactSvc := service.NewContactService(repoFactory.ContactRepo())
+
+	// 4. Build handlers
+	entryH := handlers.NewEntryHandler(entrySvc)
+	contactH := handlers.NewContactHandler(contactSvc)
+
+	// 5. Configure Gin + CORS + auth middleware
 	r := gin.Default()
-	// --- 2. Configure and Use the CORS Middleware ---
-	config := cors.DefaultConfig()
-	// Allow the origin of your React development server
-	config.AllowOrigins = []string{"http://localhost:5173"}
-	// You might want to allow other headers if needed, like Authorization
-	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type"}
 
-	r.Use(cors.New(config))
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowCredentials: true,
+	}))
 
-	handlers.RegisterEntriesRoutes(r, dbConn)
+	r.Use(middleware.AuthMiddleware(authSvc))
+
+	// 6. Mount routes
+	handlers.RegisterRoutes(r, entryH, contactH)
+
+	// 7. Start server
 	r.Run(":8080")
 }

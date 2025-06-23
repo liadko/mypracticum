@@ -8,9 +8,16 @@ export default defineConfig({
   server: {
     host: true, // This tells Vite to listen on all network interfaces
     port: 5173,  // You can explicitly set the port here too
-      // Add this watch object to enable polling
+    // Add this watch object to enable polling
     watch: {
       usePolling: true,
+    },
+
+    proxy: {
+      '/api': {
+        target: 'http://host.docker.internal:8080',
+        changeOrigin: true,
+      },
     },
 
   }

@@ -9,6 +9,7 @@ export async function fetchAllEntries(
     studentId: string
 ): Promise<Entry[]> {
     const res = await fetch(`${BASE_API_URL}/${studentId}/entries`)
+
     if (!res.ok) {
         throw new Error(`Failed to load entries: ${res.status} ${res.statusText}`)
     }

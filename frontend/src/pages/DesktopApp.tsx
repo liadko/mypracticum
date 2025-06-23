@@ -13,7 +13,6 @@ interface DesktopAppProps {
 const pages = ['therapist', 'mentor', 'client']
 
 const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
-    const {updatingServer} = useEntries();
     const [activePage, setActivePage] = useState<string>(pages[2])
 
 
@@ -45,7 +44,7 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
                 {/* Right block */}
                 <div className="header-right">
                     <span className="status">
-                        {updatingServer ? '...שומר שינויים' : 'כל השינויים שמורים'}
+                        {true ? '...שומר שינויים' : 'כל השינויים שמורים'}
                     </span>
                     <img src="/logo.png" alt="Logo" className="header-logo" />
                 </div>
@@ -65,8 +64,8 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
             </nav>
 
             {/* MAIN CONTENT */}
-            {activePage === "therapist" && <TherapistPage />}
-            {activePage === "mentor" && <MentorPage />}
+            {/* {activePage === "therapist" && <TherapistPage />}
+            {activePage === "mentor" && <MentorPage />} */}
             {activePage === "client" && <ClientPage />}
         </div>
     )
