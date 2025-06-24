@@ -17,7 +17,7 @@ func main() {
 	log.Print("------ [SERVER RESTARTING] ------")
 
 	// 1. Connect to Postgres
-	connStr := "postgres://postgres:PostgresKodi555@localhost:5432/mypracticum?sslmode=disable"
+	connStr := "postgres://postgres:mypassword@localhost:5432/mypracticum?sslmode=disable"
 	dbConn, err := db.Connect(connStr)
 	if err != nil {
 		log.Fatal("DB connect:", err)

@@ -37,7 +37,7 @@ services:
     ports:
       - "5432:5432" # Keep the port mapping for local tools like psql
     environment:
-      POSTGRES_PASSWORD: "PostgresKodi555" # Use your actual password
+      POSTGRES_PASSWORD: "mypassword"
       POSTGRES_DB: "mypracticum"
     volumes:
       - practicum_pgdata:/var/lib/postgresql/data
