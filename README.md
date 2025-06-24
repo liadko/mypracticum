@@ -9,15 +9,21 @@ A full-stack platform for psychotherapy training programs—such as Temurot Scho
 
 ---
 
-## 📊 Architecture
+## 📊 Recent Update - Backend Architecture
 
-### Previous Architecture  
-*(Insert your “before” diagram here)*  
-![Previous Architecture](docs/old-architecture.png)
+<h3 align="center">Previous Architecture</h3>
 
-### Refactored Architecture  
-*(Insert your “after” diagram here)*  
-![New Architecture](docs/new-architecture.png)
+<p align="center">
+  <img src="docs/old-architecture.png" alt="Previous Architecture" width="600" />
+</p>
+
+---
+
+<h3 align="center">New Architecture</h3>
+
+<p align="center">
+  <img src="docs/new-architecture.png" alt="New Architecture" width="900" />
+</p>
 
 ---
 
