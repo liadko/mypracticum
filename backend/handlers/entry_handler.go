@@ -30,6 +30,17 @@ func (h *EntryHandler) List(c *gin.Context) {
 		return
 	}
 
-	// 3) Return JSON
-	c.JSON(http.StatusOK, entries)
+	// 3) Map to DTO
+	resp := make([]EntryResponse, len(entries))
+	for i, d := range entries {
+		resp[i] = EntryResponse{
+			ID:        d.ID,
+			ContactID: d.ContactID,
+			Date:      d.Date,
+			Approved:  d.Approved,
+		}
+	}
+
+	// 4) Return JSON
+	c.JSON(http.StatusOK, resp)
 }

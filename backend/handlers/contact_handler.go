@@ -23,12 +23,27 @@ func (h *ContactHandler) List(c *gin.Context) {
 	userID := c.GetString("userID")
 
 	// 2) Fetch from service
-	contacts, err := h.svc.ListContacts(c, userID)
+	domainContacts, err := h.svc.ListContacts(c, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list contacts"})
 		return
 	}
 
-	// 3) Return JSON
-	c.JSON(http.StatusOK, contacts)
+	// 3) Map to DTO
+	resp := make([]ContactResponse, len(domainContacts))
+	for i, d := range domainContacts {
+		resp[i] = ContactResponse{
+			ID:        d.ID,
+			UserID:    d.UserID,
+			Type:      string(d.Type),
+			Name:      d.Name,
+			Email:     d.Email,
+			Phone:     d.Phone,
+			Specialty: d.Specialty,
+		}
+	}
+
+	// 4) Return JSON
+	c.JSON(http.StatusOK, resp)
+
 }
