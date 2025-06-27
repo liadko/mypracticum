@@ -1,23 +1,33 @@
 import { useContacts } from '../context/ContactsContext'
 import { useEntries } from '../context/EntriesContext'
 import { CalendarWithList } from '../components/CalendarWithList'
-import type { Entry } from '../types'
+import { useMemo } from 'react'
 
 export default function ClientPage() {
   // pull all client‐type contacts & entries from context
-  const contacts = useContacts().getContactsByType('client')
+  const { getContactsByType } = useContacts()
+  const { entries } = useEntries()
 
-  const clientEntries = useEntries().entries.filter(
-    (e: Entry) =>
-      contacts.some((c) => c.id === e.contactId)
-    ) as Entry[]
+  const contacts = useMemo(
+    () => getContactsByType('client'),
+    [getContactsByType]
+  )
+
+  const clientEntries = useMemo(
+    () =>
+      entries.filter(e =>
+        contacts.some(c => c.id === e.contactId)
+      ),
+    [entries, contacts]
+  )
+
 
   return (
     <CalendarWithList
-      contacts={{} as any}
+      contacts={contacts}
       entries={clientEntries}
       hoursNeeded={300}
-      titleText='שעות הטיפול הפרטיות עם'
+      titleText='שעות הטיפול עם'
       onEntryToggle={useEntries().toggleEntry}
       renderExtra={e =>/* your old ClientNameInput */null}
     />

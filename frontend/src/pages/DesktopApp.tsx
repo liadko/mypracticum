@@ -44,7 +44,7 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
                 {/* Right block */}
                 <div className="header-right">
                     <span className="status">
-                        {true ? '...שומר שינויים' : 'כל השינויים שמורים'}
+                        {false ? '...שומר שינויים' : 'כל השינויים שמורים'}
                     </span>
                     <img src="/logo.png" alt="Logo" className="header-logo" />
                 </div>
@@ -78,7 +78,7 @@ function translate(pageName: string) {
     switch (pageName) {
         case "mentor":
             return "הדרכה"
-        case "personal":
+        case "therapist":
             return "טיפול אישי"
         case "client":
             return "מטופלים פרטיים"

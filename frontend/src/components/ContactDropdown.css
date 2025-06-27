@@ -1,0 +1,94 @@
+/* ContactDropdown.css */
+
+.contact-dropdown {
+  display: inline-block;
+  position: relative;
+  width: 200px;
+  /* tweak to fit your layout */
+}
+
+/* the always‐visible toggle */
+.contact-dropdown-toggle {
+  display: inline-flex;
+  box-sizing: border-box;
+  justify-content: space-between;
+  align-items: center;
+
+  width: 100%;
+  padding: 7px 12px;
+  padding-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 17px;
+  background: #fff;
+  font-size: 1.4em;
+  font-weight: 700;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+/* when open, change the arrow up in the toggle */
+.contact-dropdown-toggle::after {
+  content: '▼';
+  margin-left: 6px;
+  transition: transform 0.2s;
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.25s;
+}
+
+.contact-dropdown.open .contact-dropdown-toggle::after {
+  transform: rotate(-180deg);
+}
+
+/* the menu panel, hidden by default */
+.contact-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* show panel when open */
+.contact-dropdown.open .contact-dropdown-menu {
+  display: block;
+}
+
+/* each item */
+.contact-dropdown-item {
+  padding: 8px 12px;
+  font-weight: bold;
+  cursor: pointer;
+  direction: rtl;
+}
+
+/* highlight the selected or hovered item */
+.contact-dropdown-item:hover,
+.contact-dropdown-item.active {
+  background: #d3ffee;
+}
+
+/* footer row */
+.contact-dropdown-footer {
+  padding: 8px 12px;
+  border-top: 1px solid #eee;
+  font-style: italic;
+  color: #000;
+  background-color: #F8F8F8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.contact-dropdown-footer:hover {
+  background-color: #f0f0f0;
+}

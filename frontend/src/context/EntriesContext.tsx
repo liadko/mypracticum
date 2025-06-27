@@ -53,6 +53,7 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
 
             const prev = entries
             setEntries(curr => D.removeEntry(curr, entryId))
+
             try {
                 await S.deleteEntry(studentId, entryId)
             } catch (err: any) {
@@ -69,20 +70,25 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
     const create = useCallback(
         async (contactId: string, date: string) => {
 
-            const tempId = crypto.randomUUID()
-            const temp: Entry = { id: tempId, contactId, date, approved: false }
+            const newEntry: NewEntry = { contactId, date }
 
+            const tempId = crypto.randomUUID()
+
+            const tempEntry: Entry = {
+                id: tempId,
+                ...newEntry,
+                approved: false,        // or whatever default
+            }
             // optimistic
             const prev = entries
-            setEntries(curr => D.addEntry(curr, temp))
+            setEntries(curr => D.addEntry(curr, tempEntry))
 
             try {
-                const real = await S.createEntry(studentId, { contactId, date } as NewEntry)
+                const real = await S.createEntry(studentId, newEntry)
                 setEntries(curr => {
                     const withoutTemp = D.removeEntry(curr, tempId)
                     return D.addEntry(withoutTemp, real)
                 })
-                setError(null)
             } catch (err: any) {
                 console.error(err)
                 setEntries(prev)

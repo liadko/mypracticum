@@ -1,8 +1,6 @@
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
+import React, { useState, useRef, useEffect } from 'react'
 import type { Contact } from '../types'
+import './ContactDropdown.css'
 
 interface Props {
   contacts: Contact[]
@@ -11,21 +9,61 @@ interface Props {
 }
 
 export function ContactDropdown({ contacts, value, onChange }: Props) {
+  const [open, setOpen] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
+
+  // close when clicking outside
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (root.current && !root.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [])
+
+  const selected = contacts.find(c => c.id === value)
+
   return (
-    <FormControl variant="standard" sx={{ minWidth:160 }}>
-      <InputLabel id="contact-select">בחר</InputLabel>
-      <Select
-        labelId="contact-select"
-        value={value}
-        onChange={e => onChange(e.target.value as string)}
-      >
-        {contacts.map(c=>(
-          <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+    <div
+      ref={root}
+      className={`contact-dropdown${open ? ' open' : ''}`}
+      onClick={() => setOpen(o => !o)}
+    >
+      <div className="contact-dropdown-toggle">
+        {selected?.name ?? 'בחר…'}
+      </div>
+
+      <div className="contact-dropdown-menu">
+        {contacts.map(c => (
+          <div
+            key={c.id}
+            className={
+              'contact-dropdown-item' +
+              (c.id === value ? ' active' : '')
+            }
+            onClick={e => {
+              e.stopPropagation()
+              onChange(c.id)
+              setOpen(false)
+            }}
+          >
+            {c.name}
+          </div>
         ))}
-        <MenuItem value="__edit__" sx={{fontStyle:'italic'}}>
-          ✎ Edit…
-        </MenuItem>
-      </Select>
-    </FormControl>
+
+        <div
+          className="contact-dropdown-footer"
+          onClick={e => {
+            e.stopPropagation()
+            onChange('__edit__')
+            setOpen(false)
+          }}
+        >
+          עריכת מטופלים &#9881;
+        </div>
+      </div>
+    </div>
   )
 }

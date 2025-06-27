@@ -4,8 +4,10 @@ import Calendar from './Calendar/Calendar'
 import { format, parseISO } from 'date-fns'
 import type { Contact, Entry } from '../types'
 import { ContactDropdown } from './ContactDropdown'
+import './CalendarWithList.css'
 
-export interface CalendarWithListProps{
+
+export interface CalendarWithListProps {
     contacts: Contact[]             // all contacts of this category
     entries: Entry[]                    // all entries of this category
 
@@ -26,7 +28,8 @@ export function CalendarWithList({
 }: CalendarWithListProps) {
     // selected contact UUID
     const [selectedContactId, setSelectedContactId] = useState<string>(
-        () => contacts[0]?.id ?? ''
+        //() => contacts[0]?.id ?? ''
+        () => ''
     )
     // highlighted date for scrolling/focus
     const [highlightedDate, setHighlightedDate] = useState<string>('')
@@ -56,7 +59,7 @@ export function CalendarWithList({
     return (
         <div className="calendar-with-list">
             <div className="calender-side">
-                <h2 style={{ textAlign: 'center' }}>
+                <h2 className="calendar-header" style={{  }}>
                     בחר תאריכים
                 </h2>
                 <Calendar
@@ -69,19 +72,17 @@ export function CalendarWithList({
             <div className="list-side">
                 <div className="selected-list">
                     <div className="selected-list-header">
-                        <span className="selected-list-counter">{filtered.length}/{hoursNeeded}</span>
-                        <div className="selected-list-title">
-                            <ContactDropdown
-                                contacts={contacts}
-                                value={selectedContactId}
-                                onChange={setSelectedContactId}
-                            />
-                            <span className='selected-list-title-text'>{titleText}</span>
+                        {/* <span className="selected-list-counter">{filtered.length}/{hoursNeeded}</span> */}
+                        <span className='selected-list-header-text'>{titleText}</span>
+                        <ContactDropdown
+                            contacts={contacts}
+                            value={selectedContactId}
+                            onChange={setSelectedContactId}
+                        />
 
-                        </div>
                     </div>
                     <div className="selected-list-entries">
-                        {entries.length === 0 && <div style={{ textAlign: "right" }}>נא לסמן תאריכים בלוח השנה</div>}
+                        {/*selectedContactId != '' && entries.length === 0 && <div style={{ textAlign: "right" }}>נא לסמן תאריכים בלוח השנה</div>*/}
                         {entries.map((entry) => (
                             <div
                                 key={entry.id}
