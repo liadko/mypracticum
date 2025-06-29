@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import type { Entry, NewEntry } from '../types'
 import * as D from '../domain/entries'         // pure helpers: addEntry, removeEntry (sorted)
 import * as S from '../services/entriesService' // I/O: fetchAllEntries, createEntry, deleteEntry
+import toast from 'react-hot-toast'
 
 interface EntriesProviderProps {
     studentId: string
@@ -92,7 +93,8 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
             } catch (err: any) {
                 console.error(err)
                 setEntries(prev)
-                setError(err)
+                toast.error('Couldn\'t Add Entry')
+                //setError(err)
             }
         },
         [entries]

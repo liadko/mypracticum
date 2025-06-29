@@ -2,6 +2,11 @@ import { useContacts } from '../context/ContactsContext'
 import { useEntries } from '../context/EntriesContext'
 import { CalendarWithList } from '../components/CalendarWithList'
 import { useMemo } from 'react'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+
+const theme = createTheme({
+  palette: { primary: { main: '#00A495' } } // pink
+})
 
 export default function ClientPage() {
   // pull all client‐type contacts & entries from context
@@ -23,13 +28,17 @@ export default function ClientPage() {
 
 
   return (
-    <CalendarWithList
-      contacts={contacts}
-      entries={clientEntries}
-      hoursNeeded={300}
-      titleText='שעות הטיפול עם'
-      onEntryToggle={useEntries().toggleEntry}
-      renderExtra={e =>/* your old ClientNameInput */null}
-    />
+    <ThemeProvider theme={theme}>
+      <div className='client-page-theme'>
+        <CalendarWithList
+          contacts={contacts}
+          entries={clientEntries}
+          hoursNeeded={300}
+          titleText='שעות הטיפול עם'
+          onEntryToggle={useEntries().toggleEntry}
+          renderExtra={e =>/* your old ClientNameInput */null}
+        />
+      </div>
+    </ThemeProvider>
   )
 }

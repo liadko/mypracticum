@@ -55,7 +55,7 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
                 {pages.map((page) => (
                     <button
                         key={page}
-                        className={`nav-button ${activePage === page ? 'active' : ''} ${activePage}-page`}
+                        className={`nav-button ${activePage === page ? 'active' : ''} ${activePage}-page-theme`}
                         onClick={() => setActivePage(page)}
                     >
                         {translate(page)}

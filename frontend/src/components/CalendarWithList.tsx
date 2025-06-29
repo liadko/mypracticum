@@ -65,7 +65,6 @@ export function CalendarWithList({
                 <Calendar
                     entries={filtered}
                     highlightedDate={highlightedDate ?? undefined}
-                    // Calendar gives you a Date object; convert to "YYYY-MM-DD"
                     handleDayToggle={handleDayClick}
                 />
             </div>
@@ -83,14 +82,14 @@ export function CalendarWithList({
                     </div>
                     <div className="selected-list-entries">
                         {/*selectedContactId != '' && entries.length === 0 && <div style={{ textAlign: "right" }}>נא לסמן תאריכים בלוח השנה</div>*/}
-                        {entries.map((entry) => (
+                        {filtered.map((entry) => (
                             <div
                                 key={entry.id}
                                 id={`entry-${entry.id}`}
                                 className={`selected-item ${entry.date == highlightedDate ? 'highlighted-item' : ''}`}
                                 onClick={() => setHighlightedDate(entry.date)}
                             >
-                                ({renderExtra && <span className="extra">{renderExtra(entry)}</span>})
+                                ({/*renderExtra && <span className="extra">{renderExtra(entry)}</span>*/})
 
                                 <span className="date">{format(parseISO(entry.date), "dd/MM/yyyy")}</span>
                             </div>

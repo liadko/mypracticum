@@ -107,23 +107,20 @@
     font-weight: 600;
 }
 
-/* MAIN CONTENT LAYOUT */
 
 
 
-
-
-.client-page {
+.client-page-theme {
     --highlight-color: #cbf8ef;
     --main-color: #00A495;
 }
 
-.mentor-page {
+.mentor-page-theme {
     --highlight-color: #a89eff;
     --main-color: #3A75C4;
 }
 
-.personal-page {
+.therapist-page-theme {
     --highlight-color: #fe8d8d;
     --main-color: #fc3d54;
 }
