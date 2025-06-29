@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"time"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -38,15 +37,11 @@ func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID string) ([]do
 	entries := []domain.Entry{}
 	for rows.Next() {
 		var entry domain.Entry
-		var dt time.Time // Scan directly into time.Time for correct handling
 
-		if err := rows.Scan(&entry.ID, &entry.ContactID, &dt, &entry.Approved); err != nil {
+		if err := rows.Scan(&entry.ID, &entry.ContactID, &entry.Date, &entry.Approved); err != nil {
 			log.Printf("Error scanning client entry row: %v", err)
 			continue // Skip bad rows and continue
 		}
-
-		// Format the date to the "YYYY-MM-DD" string your frontend expects
-		entry.Date = dt.Format("2006-01-02")
 
 		entries = append(entries, entry)
 	}
@@ -59,9 +54,38 @@ func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID string) ([]do
 }
 
 // Create satisfies EntryRepository
-func (r *PostgresEntryRepo) Create(ctx context.Context, e domain.Entry) (domain.Entry, error) {
-	// INSERT … RETURNING id,contact_id,date,approved
-	return domain.Entry{}, fmt.Errorf("Create Not Implemented Yet")
+func (r *PostgresEntryRepo) Create(
+	ctx context.Context,
+	e domain.Entry,
+) (domain.Entry, error) {
+
+	// 1) run INSERT … RETURNING
+	const q = `
+    INSERT INTO entries (id, user_id, contact_id, date, approved)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id, user_id, contact_id, date, approved
+    `
+	row := r.db.QueryRowContext(ctx, q,
+		e.ID,
+		e.UserID,
+		e.ContactID,
+		e.Date,
+		e.Approved,
+	)
+
+	// 2) scan the returned row
+	var out domain.Entry
+	if err := row.Scan(
+		&out.ID,
+		&out.UserID,
+		&out.ContactID,
+		&out.Date,
+		&out.Approved,
+	); err != nil {
+		return domain.Entry{}, fmt.Errorf("insert entry: %w", err)
+	}
+
+	return out, nil
 }
 
 // Delete satisfies EntryRepository

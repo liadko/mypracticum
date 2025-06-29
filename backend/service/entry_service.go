@@ -14,11 +14,20 @@ func NewEntryService(repo repository.EntryRepository) *EntryService {
 	return &EntryService{repo: repo}
 }
 
-func (s *EntryService) AddEntry(ctx context.Context, e domain.Entry) (domain.Entry, error) {
-	if err := e.Validate(); err != nil {
+func (s *EntryService) AddEntry(
+	ctx context.Context,
+	userID string,
+	newEntry domain.NewEntry, // or just (contactID, dateStr string)
+) (domain.Entry, error) {
+
+	// create a validated domain.Entry
+	entry, err := domain.NewEntryFrom(userID, newEntry)
+	if err != nil {
 		return domain.Entry{}, err
 	}
-	return s.repo.Create(ctx, e)
+
+	// send to the repo
+	return s.repo.Create(ctx, entry)
 }
 
 func (s *EntryService) RemoveEntry(ctx context.Context, id, userID string) error {

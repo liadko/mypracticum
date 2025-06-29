@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
+	"mypracticum/backend/domain"
 	"mypracticum/backend/service"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +20,42 @@ func NewEntryHandler(
 	return &EntryHandler{svc: svc}
 }
 
+// Create handles Post /api/:studentId/entries
+func (h *EntryHandler) Create(c *gin.Context) {
+	// 1) get userID from the context
+	userID := c.GetString("userID")
+
+	// 2) bind JSON → DTO
+	var req CreateEntryRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("Create BindJSON error: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 3) call service
+	newEntry := domain.NewEntry{
+		ContactID: req.ContactID,
+		DateStr:   req.DateStr,
+	}
+	created, err := h.svc.AddEntry(c.Request.Context(), userID, newEntry)
+	if err != nil {
+		log.Printf("Create AddEntry error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 4) map domain.Entry → DTO
+	resp := EntryResponse{
+		ID:        created.ID,
+		ContactID: created.ContactID,
+		DateStr:   created.Date.Format("2006-01-02"),
+	}
+
+	// 5) Return JSON
+	c.JSON(http.StatusCreated, resp)
+}
+
 // List handles GET /api/:studentId/entries
 func (h *EntryHandler) List(c *gin.Context) {
 	// 1) get userID from the context
@@ -26,6 +64,7 @@ func (h *EntryHandler) List(c *gin.Context) {
 	// 2) Fetch entries
 	entries, err := h.svc.ListEntries(c.Request.Context(), userID)
 	if err != nil {
+		log.Printf("List ListEntries error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list entries"})
 		return
 	}
@@ -36,8 +75,8 @@ func (h *EntryHandler) List(c *gin.Context) {
 		resp[i] = EntryResponse{
 			ID:        d.ID,
 			ContactID: d.ContactID,
-			Date:      d.Date,
-			Approved:  d.Approved,
+			DateStr:   d.Date.Format("2006-01-02"),
+			//Approved:  d.Approved,
 		}
 	}
 
