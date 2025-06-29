@@ -7,7 +7,7 @@ import type { Entry } from '../../types';
 import Day from './Day';
 
 
-interface CalendarProps{
+interface CalendarProps {
     entries: Entry[];
     handleDayToggle: (date: string) => void;
     highlightedDate: string | undefined;
@@ -100,6 +100,7 @@ export default function Calendar({ entries, handleDayToggle, highlightedDate }: 
                     '& .MuiPickersSlideTransition-root.MuiDayCalendar-slideTransition': {
                         height: 400, // tweak this number based day size
                     },
+
 
 
                 }

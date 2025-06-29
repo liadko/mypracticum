@@ -89,7 +89,22 @@ func (r *PostgresEntryRepo) Create(
 }
 
 // Delete satisfies EntryRepository
-func (r *PostgresEntryRepo) Delete(ctx context.Context, id, userID string) error {
-	// DELETE FROM entries WHERE id=$1 AND user_id=$2
-	return fmt.Errorf("Delete Not Implemented Yet")
+func (r *PostgresEntryRepo) Delete(ctx context.Context, entryID, userID string) error {
+
+	const q = `
+    DELETE FROM entries
+    WHERE id = $1 AND user_id = $2
+    `
+	res, err := r.db.ExecContext(ctx, q, entryID, userID)
+	if err != nil {
+		return fmt.Errorf("delete entry: %w", err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("delete entry (rows affected): %w", err)
+	}
+	if n == 0 {
+		return fmt.Errorf("delete entry: no entry %q for user %q", entryID, userID)
+	}
+	return nil
 }

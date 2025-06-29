@@ -25,7 +25,7 @@
     flex-direction: column;
     align-items: center;
 
-    padding: 0.4em  0 0.3em 0;
+    padding: 0.4em 0 0.3em 0;
 }
 
 .signature-image {
@@ -82,9 +82,11 @@
 .nav-bar {
     display: flex;
     justify-content: center;
+    
+    padding-top: 0.8rem;
+    padding-bottom: 1.1rem;
+    
     background-color: #ffffff;
-    padding-top: 0.4rem;
-    padding-bottom: 0.65rem;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -113,14 +115,19 @@
 .client-page-theme {
     --highlight-color: #cbf8ef;
     --main-color: #00A495;
+    --dark-main-color: #008176;
+
 }
 
 .mentor-page-theme {
     --highlight-color: #a89eff;
     --main-color: #3A75C4;
+    --dark-main-color: #072f63;
 }
 
 .therapist-page-theme {
     --highlight-color: #fe8d8d;
     --main-color: #fc3d54;
+        --dark-main-color: #920919;
+
 }

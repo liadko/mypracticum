@@ -13,8 +13,8 @@ func RegisterRoutes(
 		// Entry routes
 		api.GET("/entries", entryH.List)
 		api.POST("/entries", entryH.Create)
+		api.DELETE("/entries/:entryId", entryH.Delete)
 		//api.PATCH("/entries/:entryId", entryH.Update)
-		//api.DELETE("/entries/:entryId", entryH.Delete)
 
 		// Contact routes
 		api.GET("/contacts", contactH.List)

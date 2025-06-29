@@ -56,16 +56,32 @@ func (h *EntryHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
+// Delete handles DELETE /api/:studentId/entries/:entryId
+func (h *EntryHandler) Delete(ctx *gin.Context) {
+	userID := ctx.GetString("userID")
+
+	entryID := ctx.Param("entryId")
+
+	err := h.svc.RemoveEntry(ctx, entryID, userID)
+
+	if err != nil {
+		log.Printf("Delete RemoveEntry error: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	ctx.Status(http.StatusNoContent)
+}
+
 // List handles GET /api/:studentId/entries
-func (h *EntryHandler) List(c *gin.Context) {
+func (h *EntryHandler) List(ctx *gin.Context) {
 	// 1) get userID from the context
-	userID := c.GetString("userID")
+	userID := ctx.GetString("userID")
 
 	// 2) Fetch entries
-	entries, err := h.svc.ListEntries(c.Request.Context(), userID)
+	entries, err := h.svc.ListEntries(ctx.Request.Context(), userID)
 	if err != nil {
 		log.Printf("List ListEntries error: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list entries"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list entries"})
 		return
 	}
 
@@ -81,5 +97,5 @@ func (h *EntryHandler) List(c *gin.Context) {
 	}
 
 	// 4) Return JSON
-	c.JSON(http.StatusOK, resp)
+	ctx.JSON(http.StatusOK, resp)
 }

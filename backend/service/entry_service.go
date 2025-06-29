@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
 )
@@ -20,18 +21,36 @@ func (s *EntryService) AddEntry(
 	newEntry domain.NewEntry, // or just (contactID, dateStr string)
 ) (domain.Entry, error) {
 
-	// create a validated domain.Entry
+	// build & validate in one shot
 	entry, err := domain.NewEntryFrom(userID, newEntry)
 	if err != nil {
 		return domain.Entry{}, err
 	}
 
 	// send to the repo
-	return s.repo.Create(ctx, entry)
+	createdEntry, err := s.repo.Create(ctx, entry)
+
+	if err != nil {
+		return domain.Entry{}, fmt.Errorf("creating entry: %w", err)
+	}
+
+	return createdEntry, nil
 }
 
-func (s *EntryService) RemoveEntry(ctx context.Context, id, userID string) error {
-	return s.repo.Delete(ctx, id, userID)
+func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID string) error {
+	if entryID == "" {
+		return fmt.Errorf("invalid entry id")
+	}
+	if userID == "" {
+		return fmt.Errorf("missing user")
+	}
+
+	// MAYBE TODO: check if the fetch some stuff and check if the entry is approved.
+
+	if err := s.repo.Delete(ctx, entryID, userID); err != nil {
+		return fmt.Errorf("deleting entry: %w", err)
+	}
+	return nil
 }
 
 func (s *EntryService) ListEntries(ctx context.Context, userID string) ([]domain.Entry, error) {

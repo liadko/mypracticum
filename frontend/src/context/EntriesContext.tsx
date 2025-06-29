@@ -22,7 +22,7 @@ const EntriesContext = createContext<EntriesContextType | null>(null)
 export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
     const [entries, setEntries] = useState<Entry[]>([])
     const [loading, setLoading] = useState<boolean>(true)
-    const [error, setError] = useState<Error | null>(null)
+    const [error, setError] = useState<Error | null>(null) // fatal error
     const [pending, setPending] = useState<Set<string>>(new Set())
 
     // 1️⃣ Initial load of all entries
@@ -37,7 +37,7 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
             .catch(err => {
                 if (!isMounted) return
                 console.error(err)
-                setError(err)
+                setError(Error(`Oops! Something happened: ${err}`))
             })
             .finally(() => {
                 if (isMounted) setLoading(false)
@@ -60,7 +60,7 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
             } catch (err: any) {
                 console.error(err)
                 setEntries(prev)
-                setError(err)
+                showError(`Couldn\'t Remove Entry`)
             }
 
         },
@@ -93,8 +93,7 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
             } catch (err: any) {
                 console.error(err)
                 setEntries(prev)
-                toast.error('Couldn\'t Add Entry')
-                //setError(err)
+                showError('Couldn\'t Add Entry')
             }
         },
         [entries]
@@ -129,6 +128,21 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
         },
         [entries, remove, create]
     )
+
+    function showError(msg: string) {
+        toast.error(msg, {
+            style: {
+                background: '#fff',
+                color: '#000',
+            },
+
+            iconTheme: {
+                primary: '#f55750',
+                secondary: '#fff',
+            },
+
+        })
+    }
 
     return (
         <EntriesContext.Provider value={{ entries, loading, error, pending, toggleEntry }}>
