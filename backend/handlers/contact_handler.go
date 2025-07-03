@@ -24,7 +24,7 @@ func (h *ContactHandler) List(c *gin.Context) {
 	userID := c.GetString("userID")
 
 	// 2) Fetch from service
-	domainContacts, err := h.svc.ListContacts(c, userID)
+	domainContacts, err := h.svc.ListContacts(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list contacts"})
 		return
@@ -49,48 +49,11 @@ func (h *ContactHandler) List(c *gin.Context) {
 
 }
 
-// List handles PUT /api/:studentID/contacts/:contactID
+// Update handles PUT /api/:studentID/contacts/:contactId
 func (h *ContactHandler) Update(c *gin.Context) {
-
-	// 1) get userID from the context
 	userID := c.GetString("userID")
 
-	contactID := c.Param("contactID")
-
-	if contactID == "" {
-		c.JSON(http.StatusNotFound, gin.H{"error": "no contactID detected"})
-		return
-	}
-
-	// 2) talk to service
-	domainContacts, err := h.svc.UpdateContact(c, userID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update contacts"})
-		return
-	}
-
-	// 3) Map to DTO
-	resp := make([]ContactResponse, len(domainContacts))
-	for i, d := range domainContacts {
-		resp[i] = ContactResponse{
-			ID:        d.ID,
-			UserID:    d.UserID,
-			Type:      string(d.Type),
-			Name:      d.Name,
-			Email:     d.Email,
-			Phone:     d.Phone,
-			Specialty: d.Specialty,
-		}
-	}
-
-	// 4) Return JSON
-	c.JSON(http.StatusOK, resp)
-
-}
-
-// Create handles POST /api/:studentID/contacts
-func (h *ContactHandler) Create(c *gin.Context) {
-	userID := c.GetString("userID")
+	contactID := c.Param("contactId")
 
 	var req NewContactDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -107,11 +70,73 @@ func (h *ContactHandler) Create(c *gin.Context) {
 		Specialty: req.Specialty,
 	}
 
-	saved, err := h.svc.AddContact(c.Request.Context(), userID, newContact)
+	saved, err := h.svc.UpdateContact(c.Request.Context(), userID, contactID, newContact)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		switch e := err.(type) {
+		case domain.ValidationError:
+			c.JSON(http.StatusBadRequest, gin.H{"error": e.Error()})
+		case service.NotFoundError:
+			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+		default:
+			// everything else is a 500
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		}
 		return
 	}
 
-	c.JSON(http.StatusCreated, saved)
+	// map domain.Contact → DTO
+	resp := ContactResponse{
+		ID:        saved.ID,
+		UserID:    saved.UserID,
+		Type:      string(saved.Type),
+		Name:      saved.Name,
+		Email:     saved.Email,
+		Phone:     saved.Phone,
+		Specialty: saved.Specialty,
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+// Create handles POST /api/:studentID/contacts
+func (h *ContactHandler) Create(c *gin.Context) {
+	userID := c.GetString("userID")
+
+	var req NewContactDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// build the temporary NewContact
+	nc := domain.NewContact{
+		Type:      req.Type,
+		Name:      req.Name,
+		Email:     req.Email,
+		Phone:     req.Phone,
+		Specialty: req.Specialty,
+	}
+
+	saved, err := h.svc.AddContact(c.Request.Context(), userID, nc)
+	if err != nil {
+		if ve, ok := err.(domain.ValidationError); ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		}
+		return
+	}
+
+	// map domain.Contact → DTO
+	resp := ContactResponse{
+		ID:        saved.ID,
+		UserID:    saved.UserID,
+		Type:      string(saved.Type),
+		Name:      saved.Name,
+		Email:     saved.Email,
+		Phone:     saved.Phone,
+		Specialty: saved.Specialty,
+	}
+
+	c.JSON(http.StatusCreated, resp)
 }

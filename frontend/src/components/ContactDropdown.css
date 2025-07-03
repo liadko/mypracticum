@@ -57,6 +57,7 @@
   z-index: 10;
   max-height: 240px;
   overflow-y: auto;
+  direction: ltr;
 }
 
 /* show panel when open */
@@ -90,8 +91,10 @@
   color: #000;
   background-color: #F8F8F8;
   cursor: pointer;
+  direction: rtl;
 }
 
 .contact-dropdown-footer:hover {
   background-color: #f0f0f0;
+
 }

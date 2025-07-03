@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -21,59 +20,50 @@ type NewEntry struct {
 	DateStr   string // "YYYY-MM-DD"
 }
 
-// Validate ensures business rules at the domain level.
+// Validate checks all business rules and returns a ValidationError if anything is wrong.
 func (e Entry) Validate() error {
 	var errs []string
 
-	if e.ID == "" {
-		errs = append(errs, "ID is required")
-	}
-	if e.UserID == "" {
-		errs = append(errs, "UserID is required")
-	}
-	if e.ContactID == "" {
-		errs = append(errs, "ContactID is required")
-	}
-
-	if e.Date.IsZero() {
-		errs = append(errs, "Date is required")
-	} else if e.Date.After(time.Now()) {
-		errs = append(errs, "Date cannot be in the future")
-	}
-
-	if len(errs) > 0 {
-		return fmt.Errorf("validation failed: %s", strings.Join(errs, "; "))
-	}
-	return nil
-}
-
-func NewEntryFrom(userID string, newEntry NewEntry) (Entry, error) {
-	var errs []string
-
-	if userID == "" {
+	if strings.TrimSpace(e.UserID) == "" {
 		errs = append(errs, "userID must be provided")
 	}
-	if newEntry.ContactID == "" {
+	if strings.TrimSpace(e.ContactID) == "" {
 		errs = append(errs, "contactID must be provided")
 	}
-
-	date, err := time.Parse("2006-01-02", newEntry.DateStr)
-	if err != nil {
-		errs = append(errs, "date must be in YYYY-MM-DD format")
-	} else if date.After(time.Now()) {
-		// disallow future dates
+	// the Date field is already a time.Time here, so just check
+	if e.Date.IsZero() {
+		errs = append(errs, "date must be provided")
+	}
+	if e.Date.After(time.Now()) {
 		errs = append(errs, "date cannot be in the future")
 	}
 
 	if len(errs) > 0 {
-		return Entry{}, fmt.Errorf("validation failed: %s", strings.Join(errs, "; "))
+		return ValidationError(strings.Join(errs, "; "))
+	}
+	return nil
+}
+
+func NewEntryFrom(userID string, ne NewEntry) (Entry, error) {
+	// 1) parse the date
+	date, err := time.Parse("2006-01-02", ne.DateStr)
+	if err != nil {
+		return Entry{}, ValidationError("date must be YYYY-MM-DD")
 	}
 
-	return Entry{
+	// 2) build the Entry
+	entry := Entry{
 		ID:        uuid.NewString(),
 		UserID:    userID,
-		ContactID: newEntry.ContactID,
+		ContactID: ne.ContactID,
 		Date:      date,
 		Approved:  false,
-	}, nil
+	}
+
+	// 3) then validate it
+	if err := entry.Validate(); err != nil {
+		return Entry{}, err
+	}
+
+	return entry, nil
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -31,7 +32,7 @@ func (s *EntryService) AddEntry(
 	createdEntry, err := s.repo.Create(ctx, entry)
 
 	if err != nil {
-		return domain.Entry{}, fmt.Errorf("creating entry: %w", err)
+		return domain.Entry{}, DBError{Err: err}
 	}
 
 	return createdEntry, nil
@@ -47,12 +48,23 @@ func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID string) 
 
 	// MAYBE TODO: check if the fetch some stuff and check if the entry is approved.
 
-	if err := s.repo.Delete(ctx, entryID, userID); err != nil {
-		return fmt.Errorf("deleting entry: %w", err)
+	err := s.repo.Delete(ctx, entryID, userID)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			// tell handler to return 404
+			return NotFoundError{"entry", entryID}
+		}
+		// wrap real DB errors into 500
+		return DBError{Err: err}
 	}
+
 	return nil
 }
 
 func (s *EntryService) ListEntries(ctx context.Context, userID string) ([]domain.Entry, error) {
-	return s.repo.ListByUser(ctx, userID)
+	list, err := s.repo.ListByUser(ctx, userID)
+	if err != nil {
+		return nil, DBError{Err: err}
+	}
+	return list, nil
 }

@@ -99,12 +99,13 @@ func (r *PostgresEntryRepo) Delete(ctx context.Context, entryID, userID string) 
 	if err != nil {
 		return fmt.Errorf("delete entry: %w", err)
 	}
+
 	n, err := res.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("delete entry (rows affected): %w", err)
 	}
 	if n == 0 {
-		return fmt.Errorf("delete entry: no entry %q for user %q", entryID, userID)
+		return repository.ErrNotFound
 	}
 	return nil
 }

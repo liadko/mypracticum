@@ -40,8 +40,11 @@ func (h *EntryHandler) Create(c *gin.Context) {
 	}
 	created, err := h.svc.AddEntry(c.Request.Context(), userID, newEntry)
 	if err != nil {
-		log.Printf("Create AddEntry error: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if ve, ok := err.(domain.ValidationError); ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		}
 		return
 	}
 
@@ -65,8 +68,13 @@ func (h *EntryHandler) Delete(ctx *gin.Context) {
 	err := h.svc.RemoveEntry(ctx, entryID, userID)
 
 	if err != nil {
-		log.Printf("Delete RemoveEntry error: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		switch err := err.(type) {
+		case service.NotFoundError:
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		}
+		return
 	}
 
 	ctx.Status(http.StatusNoContent)
@@ -80,7 +88,6 @@ func (h *EntryHandler) List(ctx *gin.Context) {
 	// 2) Fetch entries
 	entries, err := h.svc.ListEntries(ctx.Request.Context(), userID)
 	if err != nil {
-		log.Printf("List ListEntries error: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list entries"})
 		return
 	}

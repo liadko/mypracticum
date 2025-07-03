@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -51,53 +50,29 @@ type NewContact struct {
 	Specialty *string
 }
 
-// // Validate enforces all the business rules for Contact.
-// // It returns an error if any invariant is broken.
-// func (c Contact) Validate() error {
-// 	if c.UserID == "" {
-// 		return errors.New("userID is required")
-// 	}
-// 	if !IsValidContactType(c.Type) {
-// 		return fmt.Errorf("invalid contact type %q", c.Type)
-// 	}
-// 	if c.Name == "" {
-// 		return errors.New("name is required")
-// 	}
-// 	if c.Type == ContactTypeMentor {
-// 		if c.Email == nil || *c.Email == "" {
-// 			return errors.New("mentors must have an email")
-// 		}
-// 		if c.Phone == nil || *c.Phone == "" {
-// 			return errors.New("mentors must have a phone number")
-// 		}
-// 	}
-// 	if c.Specialty != nil && !IsValidSpecialty(*c.Specialty) {
-// 		return fmt.Errorf("invalid specialty %q", *c.Specialty)
-// 	}
-// 	return nil
-// }
-
-func NewContactFrom(userID string, nc NewContact) (Contact, error) {
+// Validate enforces all the business rules for Contact.
+// It returns an error if any invariant is broken.
+func (contact Contact) Validate() error {
 	var errs []string
 
-	if strings.TrimSpace(userID) == "" {
+	if strings.TrimSpace(contact.UserID) == "" {
 		errs = append(errs, "userID must be provided")
 	}
-	if strings.TrimSpace(nc.Name) == "" {
+	if strings.TrimSpace(contact.Name) == "" {
 		errs = append(errs, "name must be provided")
 	}
 
-	switch nc.Type {
+	switch contact.Type {
 	case Mentor:
-		if nc.Email == nil || strings.TrimSpace(*nc.Email) == "" {
+		if contact.Email == nil || strings.TrimSpace(*contact.Email) == "" {
 			errs = append(errs, "email is required for mentors")
 		}
 		fallthrough
 	case Therapist:
-		if nc.Phone == nil || strings.TrimSpace(*nc.Phone) == "" {
+		if contact.Phone == nil || strings.TrimSpace(*contact.Phone) == "" {
 			errs = append(errs, "phone is required for mentors and therapists")
 		}
-		if nc.Specialty != nil && strings.TrimSpace(*nc.Specialty) == "" {
+		if contact.Specialty != nil && strings.TrimSpace(*contact.Specialty) == "" {
 			errs = append(errs, "specialty, if provided, cannot be blank")
 		}
 	case Client:
@@ -106,13 +81,16 @@ func NewContactFrom(userID string, nc NewContact) (Contact, error) {
 		errs = append(errs, "invalid contact type")
 	}
 
-	// optional specialty: if present, must be non-empty
-
 	if len(errs) > 0 {
-		return Contact{}, fmt.Errorf("contact validation failed: %s", strings.Join(errs, "; "))
+		return ValidationError(strings.Join(errs, "; "))
 	}
 
-	return Contact{
+	return nil
+}
+
+func NewContactFrom(userID string, nc NewContact) (Contact, error) {
+
+	contact := Contact{
 		ID:        uuid.NewString(),
 		UserID:    userID,
 		Type:      nc.Type,
@@ -120,5 +98,28 @@ func NewContactFrom(userID string, nc NewContact) (Contact, error) {
 		Email:     nc.Email,
 		Phone:     nc.Phone,
 		Specialty: nc.Specialty,
-	}, nil
+	}
+	if err := contact.Validate(); err != nil {
+		return Contact{}, err
+	}
+
+	return contact, nil
+}
+
+func UpdatedContact(userID, contactID string, nc NewContact) (Contact, error) {
+
+	contact := Contact{
+		ID:        contactID,
+		UserID:    userID,
+		Type:      nc.Type,
+		Name:      nc.Name,
+		Email:     nc.Email,
+		Phone:     nc.Phone,
+		Specialty: nc.Specialty,
+	}
+	if err := contact.Validate(); err != nil {
+		return Contact{}, err
+	}
+
+	return contact, nil
 }

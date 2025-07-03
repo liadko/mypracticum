@@ -39,15 +39,59 @@ func (r *PostgresContactRepo) Create(ctx context.Context, userID string, c domai
 		&out.Phone,
 		&out.Specialty,
 	); err != nil {
-		return domain.Contact{}, fmt.Errorf("database insert failed: %w", err)
+		return domain.Contact{}, fmt.Errorf("creating contact: %w", err)
 	}
 
 	return out, nil
 }
 
 // Update implements repository.ContactRepository.
-func (r *PostgresContactRepo) Update(ctx context.Context, userID string, id string, c domain.Contact) (domain.Contact, error) {
-	panic("unimplemented")
+func (r *PostgresContactRepo) Update(
+	ctx context.Context,
+	userID string,
+	contactID string,
+	c domain.Contact,
+) (domain.Contact, error) {
+	const q = `
+        UPDATE contacts
+        SET type      = $1,
+            name      = $2,
+            email     = $3,
+            phone     = $4,
+            specialty = $5
+        WHERE user_id = $6
+          AND id      = $7
+        RETURNING id, user_id, type, name, email, phone, specialty
+    `
+	row := r.db.QueryRowContext(ctx, q,
+		c.Type,
+		c.Name,
+		c.Email,
+		c.Phone,
+		c.Specialty,
+		userID,
+		contactID,
+	)
+
+	var out domain.Contact
+	if err := row.Scan(
+		&out.ID,
+		&out.UserID,
+		&out.Type,
+		&out.Name,
+		&out.Email,
+		&out.Phone,
+		&out.Specialty,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			// Caller tried to update a non-existent contact
+			return domain.Contact{}, repository.ErrNotFound
+		}
+		// Some other DB error—bubble it up
+		return domain.Contact{}, fmt.Errorf("updating contact %s: %w", contactID, err)
+	}
+
+	return out, nil
 }
 
 // ListByUser satisfies ContactRepository
@@ -60,7 +104,7 @@ func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID string) ([]
 		`
 	rows, err := r.db.QueryContext(ctx, contactsQuery, userID)
 	if err != nil {
-		return nil, fmt.Errorf("list contacts for user %q: %w", userID, err)
+		return nil, err
 	}
 	defer rows.Close()
 

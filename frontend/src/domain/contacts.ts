@@ -3,6 +3,7 @@ import type { Contact, ContactType, NewContact } from '../types'
 // Pure helpers for in-memory contact list operations
 export function addContact(list: Contact[], contact: Contact): Contact[] {
   const newList = [...list, contact]
+  console.log(newList)
   return newList.sort((a, b) => a.name.localeCompare(b.name))
 }
 

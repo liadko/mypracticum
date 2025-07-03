@@ -4,14 +4,14 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
   border: 1px solid var(--main-color);
   border-radius: 12px;
   background: white;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 
+  direction: rtl;
   height: 125px;
-  width: 270px;
+  width: 100%;
 }
 
 .contact-row__details {

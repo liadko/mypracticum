@@ -18,8 +18,8 @@ func RegisterRoutes(
 
 		// Contact routes
 		api.GET("/contacts", contactH.List)
-		//api.POST("/contacts", contactH.Create)
-		//api.PATCH("/contacts/:contactId", contactH.Update)
+		api.POST("/contacts", contactH.Create)
+		api.PUT("/contacts/:contactId", contactH.Update)
 		//api.DELETE("/contacts/:contactId", contactH.Delete)
 	}
 }

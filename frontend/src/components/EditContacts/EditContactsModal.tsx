@@ -79,10 +79,10 @@ export function EditContactsModal({ initialType, onClose }: Props) {
                             onDelete={() => deleteContact(c.id)}
                         />
                     ))}
+                </div>
                     <button className="edit-modal__add-button" onClick={openAdd}>
                         לחצו להוספה
                     </button>
-                </div>
             </>
         )
     }

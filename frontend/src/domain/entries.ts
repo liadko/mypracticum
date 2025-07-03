@@ -15,7 +15,7 @@ export function removeEntry(entries: Entry[], entryId: string): Entry[] {
  * Uses Array.prototype.findIndex for clarity.
  */
 export function addEntry(entries: Entry[], entry: Entry): Entry[] {
-    const idx = entries.findIndex(e => e.date >= entry.date)
+    const idx = entries.findIndex(e => e.date <= entry.date)
 
     // new entry goes at the end
     if (idx === -1) { return [...entries, entry] }
