@@ -20,6 +20,36 @@ func NewPostgresContactRepo(db *sql.DB) repository.ContactRepository {
 	return &PostgresContactRepo{db: db}
 }
 
+// Create implements repository.ContactRepository.
+func (r *PostgresContactRepo) Create(ctx context.Context, userID string, c domain.Contact) (domain.Contact, error) {
+	query := `
+	INSERT INTO contacts (id, user_id, type, name, email, phone, specialty)
+	VALUES ($1, $2, $3, $4, $5, $6, $7)
+	RETURNING id, user_id, type, name, email, phone, specialty`
+
+	row := r.db.QueryRowContext(ctx, query, c.ID, c.UserID, c.Type, c.Name, c.Email, c.Phone, c.Specialty)
+
+	var out domain.Contact
+	if err := row.Scan(
+		&out.ID,
+		&out.UserID,
+		&out.Type,
+		&out.Name,
+		&out.Email,
+		&out.Phone,
+		&out.Specialty,
+	); err != nil {
+		return domain.Contact{}, fmt.Errorf("database insert failed: %w", err)
+	}
+
+	return out, nil
+}
+
+// Update implements repository.ContactRepository.
+func (r *PostgresContactRepo) Update(ctx context.Context, userID string, id string, c domain.Contact) (domain.Contact, error) {
+	panic("unimplemented")
+}
+
 // ListByUser satisfies ContactRepository
 func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID string) ([]domain.Contact, error) {
 	contactsQuery := `
@@ -70,11 +100,11 @@ func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID string) ([]
 	return contacts, nil
 }
 
-// Create satisfies ContactRepository
-func (r *PostgresContactRepo) Create(ctx context.Context, e domain.Contact) (domain.Contact, error) {
-	// INSERT … RETURNING id,contact_id,date,approved
-	return domain.Contact{}, fmt.Errorf("Create Not Implemented Yet")
-}
+// // Create satisfies ContactRepository
+// func (r *PostgresContactRepo) Create(ctx context.Context, e domain.Contact) (domain.Contact, error) {
+// 	// INSERT … RETURNING id,contact_id,date,approved
+// 	return domain.Contact{}, fmt.Errorf("Create Not Implemented Yet")
+// }
 
 // Delete satisfies ContactRepository
 func (r *PostgresContactRepo) Delete(ctx context.Context, id, userID string) error {

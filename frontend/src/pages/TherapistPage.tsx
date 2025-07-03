@@ -1,31 +1,44 @@
-import { CalendarWithList } from "../components/CalendarWithList";
-import { useEntries } from "../context/EntriesContext";
-import type { PersonalEntry } from "../types";
+import { useContacts } from '../context/ContactsContext'
+import { useEntries } from '../context/EntriesContext'
+import { CalendarWithList } from '../components/CalendarWithList'
+import { useMemo } from 'react'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 
 const theme = createTheme({
   palette: { primary: { main: '#fc3d54' } } // pink
 })
 
-// show the chosen external therapist’s name or a placeholder
-function renderPersonalExtra(entry: PersonalEntry) {
-  return entry.externalTherapist?.name ?? "<בחר מטפל חיצוני>";
-}
+export default function TherapistPage() {
+  // pull all therapist‐type contacts & entries from context
+  const { getContactsByType } = useContacts()
+  const { entries } = useEntries()
 
-export default function PersonalPage() {
-  const { personalEntries, toggleDay } = useEntries();
+  const contacts = useMemo(
+    () => getContactsByType('therapist'),
+    [getContactsByType]
+  )
+
+  const therapistEntries = useMemo(
+    () =>
+      entries.filter(e =>
+        contacts.some(c => c.id === e.contactId)
+      ),
+    [entries, contacts]
+  )
+
 
   return (
     <ThemeProvider theme={theme}>
-      <div className='personal-page'>
-        <CalendarWithList<PersonalEntry>
-          title="שעות טיפול אישי"
-          entries={personalEntries}
-          hoursNeeded={100}
-          onDayToggle={(date) => toggleDay("personal", date)}
-          renderExtra={renderPersonalExtra}
+      <div className='therapist-page-theme'>
+        <CalendarWithList
+          contacts={contacts}
+          entries={therapistEntries}
+          hoursNeeded={300}
+          contactType='therapist'
+          onEntryToggle={useEntries().toggleEntry}
+          renderExtra={e =>/* your old TherapistNameInput */null}
         />
       </div>
     </ThemeProvider>
-  );
+  )
 }

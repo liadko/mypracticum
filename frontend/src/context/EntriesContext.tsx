@@ -3,6 +3,7 @@ import type { Entry, NewEntry } from '../types'
 import * as D from '../domain/entries'         // pure helpers: addEntry, removeEntry (sorted)
 import * as S from '../services/entriesService' // I/O: fetchAllEntries, createEntry, deleteEntry
 import toast from 'react-hot-toast'
+import { showError } from '../utils/toast'
 
 interface EntriesProviderProps {
     studentId: string
@@ -52,15 +53,17 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
     const remove = useCallback(
         async (entryId: string) => {
 
-            const prev = entries
+            const deletedEntry = D.getEntry(entries, entryId);
+            if(!deletedEntry) return // nothing to remove 
+
             setEntries(curr => D.removeEntry(curr, entryId))
 
             try {
                 await S.deleteEntry(studentId, entryId)
             } catch (err: any) {
                 console.error(err)
-                setEntries(prev)
-                showError(`Couldn\'t Remove Entry`)
+                setEntries(curr => D.addEntry(curr, deletedEntry))
+                showError(`אי אפשר למחוק את השעה הזאת`)
             }
 
         },
@@ -80,8 +83,8 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
                 ...newEntry,
                 approved: false,        // or whatever default
             }
+
             // optimistic
-            const prev = entries
             setEntries(curr => D.addEntry(curr, tempEntry))
 
             try {
@@ -92,8 +95,8 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
                 })
             } catch (err: any) {
                 console.error(err)
-                setEntries(prev)
-                showError('Couldn\'t Add Entry')
+                setEntries(curr => D.removeEntry(curr, tempId))
+                showError(`אי אפשר להוסיף את השעה הזאת`)
             }
         },
         [entries]
@@ -106,7 +109,11 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
         async (contactId: string, date: string) => {
 
             // If a toggle is already in flight for this date, skip it:
-            if (pending.has(date)) return
+            if (pending.has(date)) {
+                console.log("toggle blocked.")
+                console.log(pending)
+                return
+            }
             setPending(prev => new Set(prev).add(date))
 
 
@@ -126,23 +133,9 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
                 return next
             })
         },
-        [entries, remove, create]
+        [entries, remove, create, pending]
     )
 
-    function showError(msg: string) {
-        toast.error(msg, {
-            style: {
-                background: '#fff',
-                color: '#000',
-            },
-
-            iconTheme: {
-                primary: '#f55750',
-                secondary: '#fff',
-            },
-
-        })
-    }
 
     return (
         <EntriesContext.Provider value={{ entries, loading, error, pending, toggleEntry }}>

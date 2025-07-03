@@ -11,14 +11,19 @@ export default function App() {
                     <DesktopApp userName='שגי קורן' />
                 </EntriesProvider>
             </ContactsProvider>
-            <Toaster
-                position="bottom-center"
-                toastOptions={{
-                    // sensible defaults
-                    success: { style: { background: 'var(--main-color)', color: '#fff' } },
-                    error: { style: { background: '#f44336', color: '#fff' } },
-                }}
-            />
+            <div dir="rtl">
+                <Toaster
+                    position="bottom-center"
+                    containerStyle={{ zIndex: 9999 }}          // ensure it sits above your dialog
+                    toastOptions={{
+                        // sensible defaults
+                        success: { style: { background: 'var(--main-color)', color: '#fff' } },
+                        error: { style: { background: '#f44336', color: '#fff' } },
+                        style: { zIndex: 9999 }
+                    }}
+
+                />
+            </div>
         </>
 
     );

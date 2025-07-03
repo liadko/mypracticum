@@ -1,5 +1,7 @@
 package handlers
 
+import "mypracticum/backend/domain"
+
 // ContactResponse is the JSON shape returned by the Contacts API.
 type ContactResponse struct {
 	ID        string  `json:"id"`
@@ -9,4 +11,12 @@ type ContactResponse struct {
 	Email     *string `json:"email,omitempty"`
 	Phone     *string `json:"phone,omitempty"`
 	Specialty *string `json:"specialty,omitempty"`
+}
+
+type NewContactDTO struct {
+	Type      domain.ContactType `json:"type" binding:"required,oneof=client mentor therapist"`
+	Name      string             `json:"name" binding:"required"`
+	Email     *string            `json:"email,omitempty"`
+	Phone     *string            `json:"phone,omitempty"`
+	Specialty *string            `json:"specialty,omitempty"`
 }

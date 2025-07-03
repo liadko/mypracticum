@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 
 const theme = createTheme({
-  palette: { primary: { main: '#00A495' } } // pink
+  palette: { primary: { main: '#00A495' } } // green
 })
 
 export default function ClientPage() {
@@ -34,7 +34,7 @@ export default function ClientPage() {
           contacts={contacts}
           entries={clientEntries}
           hoursNeeded={300}
-          titleText='שעות הטיפול עם'
+          contactType='client'
           onEntryToggle={useEntries().toggleEntry}
           renderExtra={e =>/* your old ClientNameInput */null}
         />

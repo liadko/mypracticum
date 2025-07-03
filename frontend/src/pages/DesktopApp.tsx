@@ -5,15 +5,16 @@ import ClientPage from './ClientPage'
 
 import { useEntries } from '../context/EntriesContext'
 import './DesktopApp.css'
+import { pageTitle } from '../i18n/he'
+import { contactTypes, type ContactType } from '../types'
 
 interface DesktopAppProps {
     userName: string
 }
 
-const pages = ['therapist', 'mentor', 'client']
 
 const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
-    const [activePage, setActivePage] = useState<string>(pages[2])
+    const [activePage, setActivePage] = useState<ContactType>("client")
 
 
     const {
@@ -52,38 +53,23 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
 
             {/* NAV BAR */}
             <nav className="nav-bar">
-                {pages.map((page) => (
+                {contactTypes.map((page) => (
                     <button
                         key={page}
                         className={`nav-button ${activePage === page ? 'active' : ''} ${activePage}-page-theme`}
                         onClick={() => setActivePage(page)}
                     >
-                        {translate(page)}
+                        {pageTitle[page]}
                     </button>
                 ))}
             </nav>
 
             {/* MAIN CONTENT */}
-            {/* {activePage === "therapist" && <TherapistPage />}
-            {activePage === "mentor" && <MentorPage />} */}
+            {activePage === "therapist" && <TherapistPage />}
+            {activePage === "mentor" && <MentorPage />}
             {activePage === "client" && <ClientPage />}
         </div>
     )
 }
 
 export default DesktopApp
-
-
-function translate(pageName: string) {
-    switch (pageName) {
-        case "mentor":
-            return "הדרכה"
-        case "therapist":
-            return "טיפול אישי"
-        case "client":
-            return "מטופלים פרטיים"
-        default:
-            return "לא הצלחתי לתרגם!"
-    }
-
-}

@@ -6,8 +6,8 @@ import type { Entry } from '../types'
  * Remove the entry with the given ID.
  * Returns a new array without mutating the original.
  */
-export function removeEntry(entries: Entry[], id: string): Entry[] {
-    return entries.filter(e => e.id !== id)
+export function removeEntry(entries: Entry[], entryId: string): Entry[] {
+    return entries.filter(e => e.id !== entryId)
 }
 
 /**
@@ -16,12 +16,16 @@ export function removeEntry(entries: Entry[], id: string): Entry[] {
  */
 export function addEntry(entries: Entry[], entry: Entry): Entry[] {
     const idx = entries.findIndex(e => e.date >= entry.date)
-    
+
     // new entry goes at the end
     if (idx === -1) { return [...entries, entry] }
 
     // insert before entries[idx]
     return [...entries.slice(0, idx), entry, ...entries.slice(idx),]
+}
+
+export function getEntry(entries: Entry[], entryId: string) {
+    return entries.find(e => e.id === entryId);
 }
 
 /**

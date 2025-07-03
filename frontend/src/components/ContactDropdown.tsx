@@ -1,14 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react'
-import type { Contact } from '../types'
+import { useState, useRef, useEffect } from 'react'
+import type { Contact, ContactType } from '../types'
+import { contactLabelPluralShort } from '../i18n/he'
 import './ContactDropdown.css'
 
 interface Props {
   contacts: Contact[]
   value: string
   onChange: (id: string) => void
+
+  contactType: ContactType // name displayed in "Edit Mentors/Therapists/Clients"
 }
 
-export function ContactDropdown({ contacts, value, onChange }: Props) {
+export function ContactDropdown({ contacts, value, onChange, contactType }: Props) {
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
 
@@ -61,7 +64,7 @@ export function ContactDropdown({ contacts, value, onChange }: Props) {
             setOpen(false)
           }}
         >
-          עריכת מטופלים &#9881;
+          &#9881; עריכת {contactLabelPluralShort[contactType]} 
         </div>
       </div>
     </div>

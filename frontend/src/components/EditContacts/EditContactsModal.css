@@ -1,0 +1,156 @@
+/* EditContactsModal.css */
+
+/* Dialog container */
+
+/* 1) Full‐screen semi‐transparent backdrop */
+.edit-modal-overlay {
+  position: fixed;
+  inset: 0;                      /* top/right/bottom/left = 0 */
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;                 /* behind your Toaster */
+}
+
+
+.edit-modal {
+  width: 500px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+
+  height: 600px;
+
+  border: 1px solid rgb(185, 185, 185);
+  border-radius: 16px;
+  padding: 0;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  font-family: sans-serif;
+  direction: rtl;
+
+  overflow: hidden;
+  /* Hebrew */
+}
+
+/* Header */
+.edit-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding-top: 1.6rem;
+  padding-bottom: 1rem;
+
+  background: #fafafa;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+
+}
+
+.edit-modal__header h2 {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 600;
+}
+
+.edit-modal__close {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 2.4rem;
+  line-height: 1;
+  color: #666;
+  cursor: pointer;
+}
+
+/* Tab navigation */
+.edit-modal__nav {
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+  user-select: none;
+}
+
+.edit-modal__nav-button {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 0.75rem 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  position: relative;
+}
+
+.edit-modal__nav-button.active {
+  color: var(--dark-main-color);
+  font-weight: 600;
+}
+
+.edit-modal__nav-button.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--main-color);
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+}
+
+/* Content scroll area */
+.edit-modal__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  max-height: 60vh;
+  flex: 1 1 auto;
+  overflow-y: auto;
+
+}
+
+/* Custom scrollbar */
+.edit-modal__content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.edit-modal__content::-webkit-scrollbar-thumb {
+  background: var(--main-color);
+  border-radius: 3px;
+}
+
+/* “Add new” button at bottom */
+.edit-modal__add-button {
+  box-sizing: border-box;
+  width: 270px;
+  margin: 0 2rem 1.5rem;
+  padding: 0.75rem;
+  text-align: center;
+  background: white;
+  border: 2px solid var(--main-color);
+  border-radius: 12px;
+  font-size: 1.2rem;
+
+  font-weight: 700;
+  color: var(--dark-main-color);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.edit-modal__add-button:hover {
+  background: var(--main-color);
+  color: #fff;
+}
+
+.edit-modal::backdrop {
+  background: rgba(228, 228, 228, 0.6);
+  z-index: 100;
+}

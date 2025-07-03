@@ -19,8 +19,9 @@ interface ContactsContextType {
   contacts: Contact[]
   contactsById: Record<string, Contact>
   getContactsByType: (type: ContactType) => Contact[]
+  getContactById: (id: string) => Contact | undefined
   addContact: (c: NewContact) => Promise<Contact>
-  updateContact: (c: Contact) => Promise<Contact>
+  updateContact: (id: string, newContact: NewContact) => Promise<Contact>
   deleteContact: (id: string) => Promise<void>
 }
 
@@ -37,18 +38,18 @@ export function ContactsProvider({ studentId, children }: ContactsProviderProps)
   }, [])
 
   const addContact = useCallback(async (newC: NewContact) => {
-    const created = await S.createContact(newC)
+    const created = await S.createContact(studentId, newC)
     setContacts(cs => D.addContact(cs, created))
     return created
   }, [])
 
-  const updateContact = useCallback(async (c: Contact) => {
-    const updated = await S.updateContact(c)
-    setContacts(cs => {
-      const without = D.removeContact(cs, updated.id)
-      return D.addContact(without, updated)
+  const updateContact = useCallback(async (id: string, newContact: NewContact) => {
+    const updatedContact = await S.updateContact(studentId, id, newContact)
+    setContacts(prev => {
+      const without = D.removeContact(prev, updatedContact.id)
+      return D.addContact(without, updatedContact)
     })
-    return updated
+    return updatedContact
   }, [])
 
   const deleteContact = useCallback(async (id: string) => {
@@ -67,11 +68,17 @@ export function ContactsProvider({ studentId, children }: ContactsProviderProps)
     [contacts]
   )
 
+  const getContactById = useCallback(
+    (id: string) => D.getContactById(contacts, id),
+    [contacts]
+  )
+
   return (
     <ContactsContext.Provider value={{
       contacts,
       contactsById,
       getContactsByType,
+      getContactById,
       addContact,
       updateContact,
       deleteContact

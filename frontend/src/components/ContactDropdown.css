@@ -4,6 +4,8 @@
   display: inline-block;
   position: relative;
   width: 200px;
+
+  flex-grow: 1;
   /* tweak to fit your layout */
 }
 
@@ -21,7 +23,7 @@
   border-radius: 17px;
   background: #fff;
   font-size: 1.4em;
-  font-weight: 700;
+  font-weight: 600;
 
   cursor: pointer;
   user-select: none;
@@ -78,14 +80,15 @@
 
 /* footer row */
 .contact-dropdown-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
   padding: 8px 12px;
   border-top: 1px solid #eee;
   font-style: italic;
   color: #000;
   background-color: #F8F8F8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
 }
 

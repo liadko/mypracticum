@@ -1,4 +1,6 @@
-export type ContactType = 'client' | 'mentor' | 'therapist'
+export const contactTypes = ['therapist', 'mentor', 'client'] as const
+export type ContactType = typeof contactTypes[number]
+
 
 export interface BaseContact {
     id: string
@@ -13,12 +15,15 @@ export interface ClientContact extends BaseContact {
 export interface MentorContact extends BaseContact {
     type: 'mentor'
     email: string
-    specialty: 'clinical' | 'dynamic' | 'skateboarder'
-    phone?: string
+    specialty: string
+    phone: string
 }
 
 export interface TherapistContact extends BaseContact {
     type: 'therapist'
+    specialty: string
+    phone: string
+
 }
 
 export type Contact =
@@ -27,8 +32,13 @@ export type Contact =
     | TherapistContact
 
 // You don’t want callers to pass `id` or `created_at` (the server assigns those),
-export type NewContact = Omit<Contact, 'id'>
-
+export interface NewContact {
+    type: ContactType
+    name: string
+    email?: string
+    phone?: string
+    specialty?: string
+}
 
 
 export interface Entry {
@@ -39,8 +49,13 @@ export interface Entry {
 }
 
 export interface NewEntry {
-  contactId: string
-  date: string       // "YYYY-MM-DD"
+    contactId: string
+    date: string       // "YYYY-MM-DD"
 }
 
 
+
+
+export type AddMode = { mode: 'add'; type: ContactType }
+export type EditMode = { mode: 'edit'; id: string }
+export type FormMode = AddMode | EditMode

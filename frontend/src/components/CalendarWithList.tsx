@@ -2,10 +2,12 @@
 import { useState, useMemo, useEffect } from 'react'
 import Calendar from './Calendar/Calendar'
 import { format, parseISO } from 'date-fns'
-import type { Contact, Entry } from '../types'
+import type { Contact, ContactType, Entry } from '../types'
 import { ContactDropdown } from './ContactDropdown'
 import './CalendarWithList.css'
 import { he } from 'date-fns/locale'
+import { EditContactsModal } from './EditContacts/EditContactsModal'
+import { pageHeaderText } from '../i18n/he'
 
 const hebrewWeekdays = [
     'ראשון', 'שני', 'שלישי',
@@ -17,7 +19,7 @@ export interface CalendarWithListProps {
     entries: Entry[]                    // all entries of this category
 
     hoursNeeded: number
-    titleText: string // text displayed before the nameDropdown
+    contactType: ContactType
 
     onEntryToggle: (contactId: string, date: string) => void
     renderExtra: (entry: Entry) => React.ReactNode
@@ -27,15 +29,17 @@ export function CalendarWithList({
     contacts,
     entries,
     hoursNeeded,
-    titleText,
+    contactType,
     onEntryToggle,
     renderExtra,
 }: CalendarWithListProps) {
     // selected contact UUID
     const [selectedContactId, setSelectedContactId] = useState<string>(
         () => contacts[0]?.id ?? ''
-        //() => ''
     )
+    const [isEditOpen, setEditOpen] = useState(false)
+
+
     // highlighted date for scrolling/focus
     const [highlightedDate, setHighlightedDate] = useState<string>('')
 
@@ -61,6 +65,15 @@ export function CalendarWithList({
     }, [filtered, highlightedDate])
 
 
+    // intercept the “edit” item
+    function handleContactChange(id: string) {
+        if (id === '__edit__') {
+            setEditOpen(true)
+        } else {
+            setSelectedContactId(id)
+        }
+    }
+
     return (
         <div className="calendar-with-list">
             <div className="calender-side">
@@ -79,11 +92,13 @@ export function CalendarWithList({
                 <div className="selected-list">
                     <div className="side-header">
                         {/* <span className="selected-list-counter">{filtered.length}/{hoursNeeded}</span> */}
-                        <span className='selected-list-header-text'>{titleText}</span>
+                        <span className='selected-list-header-text'>{pageHeaderText[contactType]}</span>
                         <ContactDropdown
                             contacts={contacts}
                             value={selectedContactId}
-                            onChange={setSelectedContactId}
+                            onChange={handleContactChange}
+
+                            contactType={contactType}
                         />
 
                     </div>
@@ -111,6 +126,14 @@ export function CalendarWithList({
                     </div>
                 </div>
             </div>
+            {/* render the modal when “edit” clicked */}
+            {isEditOpen && (
+                <EditContactsModal
+                    initialType={contactType}
+                    onClose={() => setEditOpen(false)}
+                />
+            )}
+
         </div>);
 
 }

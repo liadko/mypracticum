@@ -35,9 +35,10 @@
 
     gap: 10px;
     direction: rtl;
+    font-weight: 600;
 
     height: 45px;
-    margin-top: 1.75rem;
+    margin-top: 1.60rem;
 }
 
 
@@ -56,7 +57,6 @@
 
 
 .selected-list-header-text {
-    font-weight: 600;
     font-size: 1.6em;
     padding-bottom: 3px;
     white-space: nowrap;

@@ -1,21 +1,19 @@
-# Use an official Node.js image.
+# Dockerfile.alpine
 FROM node:20-alpine
 
-# Set the working directory inside the container.
+# If you still need musl→glibc compat for other modules
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
 
-# Copy package.json and lock files.
-COPY package*.json ./
+# 1) Copy only package.json
+COPY package.json ./
 
-# Install dependencies.
+# 2) Fresh install (will pull in @rollup/rollup-linux-x64-musl)
 RUN npm install
 
-# Copy the rest of your source code.
-# This ensures the container has the files if the volume mount is slow to initialize.
+# 3) Now copy the rest of your code
 COPY . .
 
-# Expose the port Vite runs on.
 EXPOSE 5173
-
-# The command to start the Vite development server.
 CMD ["npm", "run", "dev"]
