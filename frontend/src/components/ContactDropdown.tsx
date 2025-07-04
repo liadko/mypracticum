@@ -35,7 +35,9 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
       onClick={() => setOpen(o => !o)}
     >
       <div className="contact-dropdown-toggle">
-        {selected?.name ?? 'בחר…'}
+        <span className="contact-dropdown-label">
+          {selected?.name ?? 'בחר…'}
+        </span>
       </div>
 
       <div className="contact-dropdown-menu">
@@ -64,7 +66,7 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
             setOpen(false)
           }}
         >
-          &#9881; עריכת {contactLabelPluralShort[contactType]} 
+          &#9881; עריכת {contactLabelPluralShort[contactType]}
         </div>
       </div>
     </div>
