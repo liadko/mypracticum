@@ -27,24 +27,24 @@ interface ContactsContextType {
 
 const ContactsContext = createContext<ContactsContextType | undefined>(undefined)
 
-export function ContactsProvider({ studentId, children }: ContactsProviderProps) {
+export function ContactsProvider({ children }: ContactsProviderProps) {
   const [contacts, setContacts] = useState<Contact[]>([])
 
   // load on mount
   useEffect(() => {
-    S.fetchAllContacts(studentId)
+    S.fetchAllContacts()
       .then(setContacts)
       .catch(console.error)
   }, [])
 
   const addContact = useCallback(async (newC: NewContact) => {
-    const created = await S.createContact(studentId, newC)
+    const created = await S.createContact(newC)
     setContacts(cs => D.addContact(cs, created))
     return created
   }, [])
 
   const updateContact = useCallback(async (id: string, newContact: NewContact) => {
-    const updatedContact = await S.updateContact(studentId, id, newContact)
+    const updatedContact = await S.updateContact(id, newContact)
     setContacts(prev => {
       const without = D.removeContact(prev, updatedContact.id)
       return D.addContact(without, updatedContact)

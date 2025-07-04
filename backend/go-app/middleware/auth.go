@@ -1,30 +1,28 @@
 package middleware
 
 import (
-	"database/sql"
-	"errors"
-	"mypracticum/backend/service"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(authSvc *service.AuthService) gin.HandlerFunc {
+func JWTMiddleware(svc *TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		studentID := c.Param("studentId")
+		hdr := c.GetHeader("Authorization")
+		if !strings.HasPrefix(hdr, "Bearer ") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
+			return
+		}
+		tokenStr := strings.TrimPrefix(hdr, "Bearer ")
 
-		userID, err := authSvc.ResolveUserID(c.Request.Context(), studentID)
+		claims, err := svc.Parse(tokenStr)
 		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "student not found"})
-			} else {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "user lookup failed"})
-			}
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
 
-		// inject into context for handlers
-		c.Set("userID", userID)
+		c.Set("userID", claims.UserID)
 		c.Next()
 	}
 }

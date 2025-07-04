@@ -6,7 +6,6 @@ import toast from 'react-hot-toast'
 import { showError } from '../utils/toast'
 
 interface EntriesProviderProps {
-    studentId: string
     children: React.ReactNode
 }
 
@@ -20,7 +19,7 @@ interface EntriesContextType {
 
 const EntriesContext = createContext<EntriesContextType | null>(null)
 
-export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
+export function EntriesProvider({ children }: EntriesProviderProps) {
     const [entries, setEntries] = useState<Entry[]>([])
     const [loading, setLoading] = useState<boolean>(true)
     const [error, setError] = useState<Error | null>(null) // fatal error
@@ -30,7 +29,7 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
     useEffect(() => {
         let isMounted = true
         setLoading(true)
-        S.fetchAllEntries(studentId)
+        S.fetchAllEntries()
             .then(fetched => {
                 if (!isMounted) return
                 setEntries(fetched)
@@ -46,7 +45,7 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
         return () => {
             isMounted = false
         }
-    }, [studentId])
+    }, [])
 
 
     // 2️⃣ Helper: delete an existing entry
@@ -59,7 +58,7 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
             setEntries(curr => D.removeEntry(curr, entryId))
 
             try {
-                await S.deleteEntry(studentId, entryId)
+                await S.deleteEntry(entryId)
             } catch (err: any) {
                 console.error(err)
                 setEntries(curr => D.addEntry(curr, deletedEntry))
@@ -88,7 +87,7 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
             setEntries(curr => D.addEntry(curr, tempEntry))
 
             try {
-                const real = await S.createEntry(studentId, newEntry)
+                const real = await S.createEntry(newEntry)
                 setEntries(curr => {
                     const withoutTemp = D.removeEntry(curr, tempId)
                     return D.addEntry(withoutTemp, real)

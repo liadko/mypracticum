@@ -1,14 +1,11 @@
 import type { Entry, NewEntry } from '../types'
 
-const BASE_API_URL = import.meta.env.VITE_API_BASE_URL;
-
 /**
  * Fetch all entries for the given student.
  */
 export async function fetchAllEntries(
-    studentId: string
 ): Promise<Entry[]> {
-    const res = await fetch(`${BASE_API_URL}/${studentId}/entries`)
+    const res = await fetch(`/api/entries`)
 
     if (!res.ok) {
         throw new Error(`Failed to load entries: ${res.status} ${res.statusText}`)
@@ -23,9 +20,9 @@ export async function fetchAllEntries(
  * Returns the server‐generated Entry (with its real UUID).
  */
 export async function createEntry(
-    studentId: string, payload: NewEntry
+    payload: NewEntry
 ): Promise<Entry> {
-    const res = await fetch(`${BASE_API_URL}/${studentId}/entries`, {
+    const res = await fetch(`/api/entries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -41,9 +38,9 @@ export async function createEntry(
  * Delete an existing entry by its UUID.
  */
 export async function deleteEntry(
-    studentId: string, entryId: string
+    entryId: string
 ): Promise<void> {
-    const res = await fetch(`${BASE_API_URL}/${studentId}/entries/${encodeURIComponent(entryId)}`, {
+    const res = await fetch(`/api/entries/${encodeURIComponent(entryId)}`, {
         method: 'DELETE',
     })
     if (!res.ok) {
