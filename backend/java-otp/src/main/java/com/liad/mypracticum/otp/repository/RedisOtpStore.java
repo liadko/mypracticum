@@ -7,11 +7,11 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class OtpRepository {
+public class RedisOtpStore implements OtpStore {
 
 	private final StringRedisTemplate redis;
 
-	public OtpRepository(StringRedisTemplate redis) {
+	public RedisOtpStore(StringRedisTemplate redis) {
 		this.redis = redis;
 	}
 
@@ -22,6 +22,7 @@ public class OtpRepository {
 	/**
 	 * Store an OTP code for a user with a TTL.
 	 */
+	@Override
 	public void save(String userId, String code, Duration ttl) {
 		redis.opsForValue().set(key(userId), code, ttl);
 	}
@@ -29,6 +30,7 @@ public class OtpRepository {
 	/**
 	 * Retrieve the OTP code if it hasn’t expired.
 	 */
+	@Override
 	public Optional<String> find(String userId) {
 		String code = redis.opsForValue().get(key(userId));
 		return Optional.ofNullable(code);
@@ -37,6 +39,7 @@ public class OtpRepository {
 	/**
 	 * Delete the OTP (e.g. after successful verification).
 	 */
+	@Override
 	public void delete(String userId) {
 		redis.delete(key(userId));
 	}
