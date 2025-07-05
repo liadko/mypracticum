@@ -1,26 +1,21 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv, type ConfigEnv, type UserConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
+  const env = loadEnv(mode, process.cwd(), ''); // The third argument '' means load all prefixes, not just VITE_
 
-  server: {
-    host: true, // This tells Vite to listen on all network interfaces
-    port: 5173,  // You can explicitly set the port here too
-    // Add this watch object to enable polling
-    watch: {
-      usePolling: true,
-    },
-
-    proxy: {
-      '/api': {
-        target: 'http://host.docker.internal:8080',
-        changeOrigin: true,
+  return {
+    plugins: [react()],
+    server: {
+      host: true,
+      port: 5173,
+      watch: { usePolling: true },
+      proxy: {
+        '/api': {
+          target: env.VITE_PROXY_TARGET,
+          changeOrigin: true,
+        },
       },
     },
-
   }
-
 })
-
