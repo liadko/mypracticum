@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.Random;
 
+import com.liad.mypracticum.otp.client.OtpMailClient;
 import org.springframework.stereotype.Service;
 
 import com.liad.mypracticum.otp.repository.OtpStore;
@@ -11,22 +12,26 @@ import com.liad.mypracticum.otp.repository.OtpStore;
 @Service
 public class OtpService {
 
+	private final OtpMailClient otpMailClient;
+
 	private final OtpStore store;
 	private final Random random = new Random();
 
-	public OtpService(OtpStore store) {
+	public OtpService(OtpMailClient otpMailClient, OtpStore store) {
+		this.otpMailClient = otpMailClient;
 		this.store = store;
 	}
 
-	public String generateAndSend(String userId, Duration ttl) {
-		String code = String.format("%06d", random.nextInt(1_000_000));
-		store.save(userId, code, ttl);
-		return code;
+	public void generateAndSend(String email, Duration ttl) {
+		String code = String.format("%06d", random.nextInt(100_000,1_000_000));
+		store.save(email, code, ttl);
+
+		otpMailClient.send(email, code);
 	}
 
-	public boolean verify(String userId, String code) {
+	public boolean verify(String email, String code) {
 		// 1) Try to fetch the stored code
-		Optional<String> maybeStored = store.find(userId);
+		Optional<String> maybeStored = store.find(email);
 
 		// 2) If missing or expired, fail
 		if (maybeStored.isEmpty()) {
@@ -41,7 +46,7 @@ public class OtpService {
 		}
 
 		// 4) On success, delete and return true
-		store.delete(userId);
+		store.delete(email);
 		return true;
 	}
 }

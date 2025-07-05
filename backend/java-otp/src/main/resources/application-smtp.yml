@@ -1,0 +1,12 @@
+spring:
+  mail:
+    host: localhost       # → MailHog for dev; swap to smoove.smtp.server.com in prod
+    port: 1025            # → 587 or 465 for real SMTP
+    username:               # leave blank for MailHog; set to your SMTP user
+    password:               # leave blank for MailHog; set to your SMTP pass
+    properties:
+      mail:
+        smtp:
+          auth: false       # MailHog doesn’t require auth; switch to true in prod
+          starttls:
+            enable: false   # DEV only; enable TLS in production

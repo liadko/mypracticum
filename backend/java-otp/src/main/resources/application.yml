@@ -10,3 +10,11 @@ redis:
 spring:
     application:
         name: otp-service
+
+    profiles:
+        active: smtp
+
+
+server:
+    error:
+        include-binding-errors: always

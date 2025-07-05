@@ -5,6 +5,6 @@ import java.util.Optional;
 
 public interface OtpStore {
 	void save(String userId, String code, Duration ttl);
-	Optional<String> find(String userId);
-	void delete(String userId);
+	Optional<String> find(String email);
+	void delete(String email);
 }
