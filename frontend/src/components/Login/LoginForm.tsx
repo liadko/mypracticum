@@ -10,6 +10,6 @@ export interface LoginFormProps {
 export default function LoginForm({ onSubmit }: LoginFormProps) {
   // TODO: render an email input and submit button
   return <>
-  me bruddah
+  Dad's Login Page!
   </>
 }
