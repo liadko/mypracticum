@@ -1,21 +1,49 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import LoginForm from '../components/Login/LoginForm';
-import OtpForm from '../components/Login/OtpForm';
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import LoginForm from '../components/Login/LoginForm'
+import OtpForm from '../components/Login/OtpForm'
 
 export default function LoginPage() {
-  const { studentId, isOtpVerified } = useAuth();
+  const navigate = useNavigate()
+  const { isAuthenticated, user, login, verifyOtp } = useAuth()
 
-  // Step 1: show login form
-  if (!studentId) {
-    return <LoginForm />;
-  }
+  const [email, setEmail] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
 
-  // Step 2: show OTP form
-  if (!isOtpVerified) {
-    return <OtpForm studentId={studentId} />;
-  }
+  // as soon as we have a user, jump to their home
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const homePath = user.role === 'mentor'
+        ? '/mentor'    // future mentor dashboard
+        : '/'          // student desktop app
+      navigate(homePath, { replace: true })
+    }
+  }, [isAuthenticated, user, navigate])
 
-  // Already authenticated → go to main app
-  return <Navigate to="/" replace />;
+
+  return (
+    <div className='login-page'>
+      <div className='login-modal'>
+
+        {/* step 1: email entry */}
+
+        {!otpSent && <LoginForm
+          onSubmit={async (enteredEmail) => {
+            await login(enteredEmail)
+            setEmail(enteredEmail)
+            setOtpSent(true)
+          }}
+        />}
+
+        {/* step 2: OTP entry */}
+        {otpSent && <OtpForm
+          email={email}
+          onSubmit={async (code) => {
+            await verifyOtp(email, code)
+          }}
+        />}
+      </div>
+    </div>
+  )
 }

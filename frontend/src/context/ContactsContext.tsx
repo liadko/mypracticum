@@ -7,11 +7,10 @@ import React, {
   useMemo
 } from 'react'
 import type { Contact, ContactType, NewContact } from '../types'
-import * as D from '../domain/contacts'
-import * as S from '../services/contactsService'
+import * as domain from '../domain/contacts'
+import * as api from '../api/contactsApi'
 
 interface ContactsProviderProps {
-  studentId: string
   children: React.ReactNode
 }
 
@@ -32,29 +31,29 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
 
   // load on mount
   useEffect(() => {
-    S.fetchAllContacts()
+    api.fetchAllContacts()
       .then(setContacts)
       .catch(console.error)
   }, [])
 
   const addContact = useCallback(async (newC: NewContact) => {
-    const created = await S.createContact(newC)
-    setContacts(cs => D.addContact(cs, created))
+    const created = await api.createContact(newC)
+    setContacts(cs => domain.addContact(cs, created))
     return created
   }, [])
 
   const updateContact = useCallback(async (id: string, newContact: NewContact) => {
-    const updatedContact = await S.updateContact(id, newContact)
+    const updatedContact = await api.updateContact(id, newContact)
     setContacts(prev => {
-      const without = D.removeContact(prev, updatedContact.id)
-      return D.addContact(without, updatedContact)
+      const without = domain.removeContact(prev, updatedContact.id)
+      return domain.addContact(without, updatedContact)
     })
     return updatedContact
   }, [])
 
   const deleteContact = useCallback(async (id: string) => {
-    await S.deleteContact(id)
-    setContacts(cs => D.removeContact(cs, id))
+    await api.deleteContact(id)
+    setContacts(cs => domain.removeContact(cs, id))
   }, [])
 
   const contactsById = useMemo(() => {
@@ -64,12 +63,12 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
   }, [contacts])
 
   const getContactsByType = useCallback(
-    (type: ContactType) => D.getContactsByType(contacts, type),
+    (type: ContactType) => domain.getContactsByType(contacts, type),
     [contacts]
   )
 
   const getContactById = useCallback(
-    (id: string) => D.getContactById(contacts, id),
+    (id: string) => domain.getContactById(contacts, id),
     [contacts]
   )
 
