@@ -1,43 +1,50 @@
 .contact-row {
-  display: flex;
-  box-sizing: border-box;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--main-color);
-  border-radius: 12px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex;
+    box-sizing: border-box;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--main-color);
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
-  direction: rtl;
-  height: 125px;
-  width: 100%;
+    direction: rtl;
+    height: 125px;
+    width: 100%;
+
+
 }
 
 .contact-row__details {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
 }
 
 .contact-row__name {
-  font-weight: 600;
-  font-size: 1.3rem;
+    font-weight: 600;
+    font-size: 1.3rem;
+
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .contact-row__extras {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.9rem;
-  color: #555;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+    color: #555;
 }
 
 .icon-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  aspect-ratio: 1;
-  width: 1.2rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    aspect-ratio: 1;
+    width: 1.2rem;
 }

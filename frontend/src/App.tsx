@@ -1,31 +1,59 @@
+// src/App.tsx
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import LoginPage from './pages/LoginPage'
 import DesktopApp from './pages/DesktopApp'
-import { EntriesProvider } from './context/EntriesContext';
-import { ContactsProvider } from './context/ContactsContext';
-import { Toaster } from 'react-hot-toast';
+import { ContactsProvider } from './context/ContactsContext'
+import { EntriesProvider } from './context/EntriesContext'
+import { Toaster } from 'react-hot-toast'
+
+function AppRoutes() {
+  const { isAuthenticated, user } = useAuth()
+
+  return (
+    <Routes>
+      {/* OTP/login */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Protected app */}
+      <Route
+        path="/*"
+        element={
+          isAuthenticated ? (
+            <ContactsProvider>
+              <EntriesProvider>
+                <DesktopApp userName={user!.name} />
+              </EntriesProvider>
+            </ContactsProvider>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+    </Routes>
+  )
+}
 
 export default function App() {
     return (
-        <>
-            <ContactsProvider studentId='215671066'>
-                <EntriesProvider studentId='215671066'>
-                    <DesktopApp userName='שגי קורן' />
-                </EntriesProvider>
-            </ContactsProvider>
-            <div dir="rtl">
-                <Toaster
-                    position="bottom-center"
-                    containerStyle={{ zIndex: 9999 }}          // ensure it sits above your dialog
-                    toastOptions={{
-                        // sensible defaults
-                        success: { style: { background: 'var(--main-color)', color: '#fff' } },
-                        error: { style: { background: '#f44336', color: '#fff' } },
-                        style: { zIndex: 9999 }
-                    }}
+        <AuthProvider>
+            <BrowserRouter>
 
-                />
-            </div>
-        </>
+                <AppRoutes />
 
-    );
+
+                <div dir="rtl">
+                    <Toaster
+                        position="bottom-center"
+                        containerStyle={{ zIndex: 9999 }}
+                        toastOptions={{
+                            success: { style: { background: 'var(--main-color)', color: '#fff' } },
+                            error: { style: { background: '#f44336', color: '#fff' } },
+                            style: { zIndex: 9999 },
+                        }}
+                    />
+                </div>
+            </BrowserRouter>
+        </AuthProvider>
+    )
 }
-

@@ -1,12 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import type { Entry, NewEntry } from '../types'
-import * as D from '../domain/entries'         // pure helpers: addEntry, removeEntry (sorted)
-import * as S from '../services/entriesService' // I/O: fetchAllEntries, createEntry, deleteEntry
-import toast from 'react-hot-toast'
+import * as domain from '../domain/entries'         // pure helpers: addEntry, removeEntry (sorted)
+import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, deleteEntry
 import { showError } from '../utils/toast'
 
 interface EntriesProviderProps {
-    studentId: string
     children: React.ReactNode
 }
 
@@ -20,7 +18,7 @@ interface EntriesContextType {
 
 const EntriesContext = createContext<EntriesContextType | null>(null)
 
-export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
+export function EntriesProvider({ children }: EntriesProviderProps) {
     const [entries, setEntries] = useState<Entry[]>([])
     const [loading, setLoading] = useState<boolean>(true)
     const [error, setError] = useState<Error | null>(null) // fatal error
@@ -30,7 +28,7 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
     useEffect(() => {
         let isMounted = true
         setLoading(true)
-        S.fetchAllEntries(studentId)
+        api.fetchAllEntries()
             .then(fetched => {
                 if (!isMounted) return
                 setEntries(fetched)
@@ -46,23 +44,23 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
         return () => {
             isMounted = false
         }
-    }, [studentId])
+    }, [])
 
 
     // 2️⃣ Helper: delete an existing entry
     const remove = useCallback(
         async (entryId: string) => {
 
-            const deletedEntry = D.getEntry(entries, entryId);
+            const deletedEntry = domain.getEntry(entries, entryId);
             if(!deletedEntry) return // nothing to remove 
 
-            setEntries(curr => D.removeEntry(curr, entryId))
+            setEntries(curr => domain.removeEntry(curr, entryId))
 
             try {
-                await S.deleteEntry(studentId, entryId)
+                await api.deleteEntry(entryId)
             } catch (err: any) {
                 console.error(err)
-                setEntries(curr => D.addEntry(curr, deletedEntry))
+                setEntries(curr => domain.addEntry(curr, deletedEntry))
                 showError(`אי אפשר למחוק את השעה הזאת`)
             }
 
@@ -85,17 +83,17 @@ export function EntriesProvider({ studentId, children }: EntriesProviderProps) {
             }
 
             // optimistic
-            setEntries(curr => D.addEntry(curr, tempEntry))
+            setEntries(curr => domain.addEntry(curr, tempEntry))
 
             try {
-                const real = await S.createEntry(studentId, newEntry)
+                const real = await api.createEntry(newEntry)
                 setEntries(curr => {
-                    const withoutTemp = D.removeEntry(curr, tempId)
-                    return D.addEntry(withoutTemp, real)
+                    const withoutTemp = domain.removeEntry(curr, tempId)
+                    return domain.addEntry(withoutTemp, real)
                 })
             } catch (err: any) {
                 console.error(err)
-                setEntries(curr => D.removeEntry(curr, tempId))
+                setEntries(curr => domain.removeEntry(curr, tempId))
                 showError(`אי אפשר להוסיף את השעה הזאת`)
             }
         },

@@ -1,0 +1,22 @@
+# .air.toml (Windows Compatible)
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Build command with the Windows fix
+cmd = "go build -o ./tmp/main.exe -buildvcs=false ."
+# The binary to run (now with .exe)
+bin = "./tmp/main.exe"
+# We remove full_bin to avoid shell-specific commands
+
+include_ext = ["go"]
+delay = 1000 # ms
+
+[log]
+time = true
+
+[misc]
+# Polling is still highly recommended for reliability
+poll = true
+clean_on_exit = true

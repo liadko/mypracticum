@@ -1,0 +1,12 @@
+spring.application.name: otp
+
+# Redis connection (picked up by RedisConfig via @Value)
+redis:
+    host:localhost
+    port:6379
+
+
+# Default Spring Boot settings (you’ll add mail config later under profiles)
+spring:
+    application:
+        name: otp-service
