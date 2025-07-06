@@ -14,7 +14,17 @@ spring:
     profiles:
         active: smtp
 
+    jackson:
+        deserialization:
+            fail-on-unknown-properties: true
+
+springdoc:
+    swagger-ui:
+        path: /docs
 
 server:
     error:
-        include-binding-errors: always
+        include-exception: false      # don’t show exception class name
+        include-stacktrace: never     # never include a stack trace
+        include-message: always       # surface the top-level “message” field
+        include-binding-errors: never # hide the full ‘errors’ array

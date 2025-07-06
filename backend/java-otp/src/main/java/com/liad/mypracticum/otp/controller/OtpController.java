@@ -6,8 +6,10 @@ import com.liad.mypracticum.otp.dto.VerifyOtpRequest;
 import com.liad.mypracticum.otp.service.OtpService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
@@ -22,12 +24,13 @@ public class OtpController {
 	}
 
 	@PostMapping("/v1/otp")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void sendOtp(@RequestBody @Valid SendOtpRequest req) {
 		otpService.generateAndSend(req.email(), Duration.ofMinutes(5));
 	}
 
 	@PostMapping("/v1/verify")
-	public void sendOtp(@RequestBody @Valid VerifyOtpRequest req) {
-		otpService.verify(req.email(), req.code());
+	public void verify(@RequestBody @Valid VerifyOtpRequest req) {
+		otpService.verifyOrThrow(req.email(), req.code());
 	}
 }

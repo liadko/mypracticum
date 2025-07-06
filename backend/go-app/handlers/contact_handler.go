@@ -18,15 +18,15 @@ func NewContactHandler(svc *service.ContactService) *ContactHandler {
 }
 
 // List handles GET /api/:studentId/contacts
-func (h *ContactHandler) List(c *gin.Context) {
+func (h *ContactHandler) List(ctx *gin.Context) {
 
 	// 1) get userID from the context
-	userID := c.GetString("userID")
+	userID := ctx.GetString("userID")
 
 	// 2) Fetch from service
-	domainContacts, err := h.svc.ListContacts(c.Request.Context(), userID)
+	domainContacts, err := h.svc.ListContacts(ctx.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list contacts"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list contacts"})
 		return
 	}
 
@@ -45,19 +45,19 @@ func (h *ContactHandler) List(c *gin.Context) {
 	}
 
 	// 4) Return JSON
-	c.JSON(http.StatusOK, resp)
+	ctx.JSON(http.StatusOK, resp)
 
 }
 
 // Update handles PUT /api/:studentID/contacts/:contactId
-func (h *ContactHandler) Update(c *gin.Context) {
-	userID := c.GetString("userID")
+func (h *ContactHandler) Update(ctx *gin.Context) {
+	userID := ctx.GetString("userID")
 
-	contactID := c.Param("contactId")
+	contactID := ctx.Param("contactId")
 
 	var req NewContactDTO
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -70,16 +70,16 @@ func (h *ContactHandler) Update(c *gin.Context) {
 		Specialty: req.Specialty,
 	}
 
-	saved, err := h.svc.UpdateContact(c.Request.Context(), userID, contactID, newContact)
+	saved, err := h.svc.UpdateContact(ctx.Request.Context(), userID, contactID, newContact)
 	if err != nil {
 		switch e := err.(type) {
 		case domain.ValidationError:
-			c.JSON(http.StatusBadRequest, gin.H{"error": e.Error()})
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": e.Error()})
 		case service.NotFoundError:
-			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+			ctx.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
 		default:
 			// everything else is a 500
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return
 	}
@@ -95,16 +95,16 @@ func (h *ContactHandler) Update(c *gin.Context) {
 		Specialty: saved.Specialty,
 	}
 
-	c.JSON(http.StatusOK, resp)
+	ctx.JSON(http.StatusOK, resp)
 }
 
 // Create handles POST /api/:studentID/contacts
-func (h *ContactHandler) Create(c *gin.Context) {
-	userID := c.GetString("userID")
+func (h *ContactHandler) Create(ctx *gin.Context) {
+	userID := ctx.GetString("userID")
 
 	var req NewContactDTO
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -117,12 +117,12 @@ func (h *ContactHandler) Create(c *gin.Context) {
 		Specialty: req.Specialty,
 	}
 
-	saved, err := h.svc.AddContact(c.Request.Context(), userID, nc)
+	saved, err := h.svc.AddContact(ctx.Request.Context(), userID, nc)
 	if err != nil {
 		if ve, ok := err.(domain.ValidationError); ok {
-			c.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return
 	}
@@ -138,5 +138,5 @@ func (h *ContactHandler) Create(c *gin.Context) {
 		Specialty: saved.Specialty,
 	}
 
-	c.JSON(http.StatusCreated, resp)
+	ctx.JSON(http.StatusCreated, resp)
 }

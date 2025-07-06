@@ -2,24 +2,25 @@ package handlers
 
 import "github.com/gin-gonic/gin"
 
-// RegisterRoutes mounts all entry and contact endpoints under /api/:studentId
-func RegisterRoutes(
-	r *gin.Engine,
-	entryH *EntryHandler,
-	contactH *ContactHandler,
-) {
-	api := r.Group("/api/:studentId")
-	{
-		// Entry routes
-		api.GET("/entries", entryH.List)
-		api.POST("/entries", entryH.Create)
-		api.DELETE("/entries/:entryId", entryH.Delete)
-		//api.PATCH("/entries/:entryId", entryH.Update)
+// RegisterPublic mounts all public endpoints
+func RegisterPublic(r *gin.Engine, otpH *OtpHandler) {
+	pub := r.Group("/api/")
+	pub.POST("/otp", otpH.Send)
+	pub.POST("/otp/verify", otpH.Verify)
+}
 
-		// Contact routes
-		api.GET("/contacts", contactH.List)
-		api.POST("/contacts", contactH.Create)
-		api.PUT("/contacts/:contactId", contactH.Update)
-		//api.DELETE("/contacts/:contactId", contactH.Delete)
-	}
+// RegisterProtected mounts everything behind auth
+func RegisterProtected(r *gin.Engine, authMw gin.HandlerFunc, entryH *EntryHandler, contactH *ContactHandler) {
+	prot := r.Group("/api/")
+	prot.Use(authMw)
+
+	// entries
+	prot.GET("/entries", entryH.List)
+	prot.POST("/entries", entryH.Create)
+	prot.DELETE("/entries/:entryId", entryH.Delete)
+
+	// contacts
+	prot.GET("/contacts", contactH.List)
+	prot.POST("/contacts", contactH.Create)
+	prot.PUT("/contacts/:contactId", contactH.Update)
 }

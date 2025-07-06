@@ -21,15 +21,15 @@ func NewEntryHandler(
 }
 
 // Create handles Post /api/:studentId/entries
-func (h *EntryHandler) Create(c *gin.Context) {
+func (h *EntryHandler) Create(ctx *gin.Context) {
 	// 1) get userID from the context
-	userID := c.GetString("userID")
+	userID := ctx.GetString("userID")
 
 	// 2) bind JSON → DTO
 	var req CreateEntryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Printf("Create BindJSON error: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -38,12 +38,12 @@ func (h *EntryHandler) Create(c *gin.Context) {
 		ContactID: req.ContactID,
 		DateStr:   req.DateStr,
 	}
-	created, err := h.svc.AddEntry(c.Request.Context(), userID, newEntry)
+	created, err := h.svc.AddEntry(ctx.Request.Context(), userID, newEntry)
 	if err != nil {
 		if ve, ok := err.(domain.ValidationError); ok {
-			c.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return
 	}
@@ -56,7 +56,7 @@ func (h *EntryHandler) Create(c *gin.Context) {
 	}
 
 	// 5) Return JSON
-	c.JSON(http.StatusCreated, resp)
+	ctx.JSON(http.StatusCreated, resp)
 }
 
 // Delete handles DELETE /api/:studentId/entries/:entryId
