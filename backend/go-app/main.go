@@ -2,10 +2,17 @@ package main
 
 import (
 	"log"
+	"time"
 
+	"mypracticum/backend/config"
 	"mypracticum/backend/db"
 	"mypracticum/backend/handlers"
+	contactHandlerPkg "mypracticum/backend/handlers/contact"
+	entryHandlerPkg "mypracticum/backend/handlers/entry"
+	OTPHandlerPkg "mypracticum/backend/handlers/otp"
 	"mypracticum/backend/middleware"
+	"mypracticum/backend/pkg/jwt"
+	"mypracticum/backend/pkg/otp"
 	"mypracticum/backend/repository/postgres"
 	"mypracticum/backend/service"
 
@@ -16,25 +23,36 @@ import (
 func main() {
 	log.Print("------ [SERVER RESTARTING] ------")
 
+	cfg := config.LoadAuthConfig() // holds DatabaseURL, JWTSecret, JWTIssuer, JWTTTL
+
 	// 1. Connect to Postgres
-	connStr := "postgres://postgres:mypassword@localhost:5432/mypracticum?sslmode=disable"
-	dbConn, err := db.Connect(connStr)
+	db, err := db.Connect(cfg.DatabaseURL)
 	if err != nil {
-		log.Fatal("DB connect:", err)
+		log.Fatalf("failed to open DB: %v", err)
 	}
 	log.Println("Database connected successfully!")
 
-	// 2. Build repositories via factory
-	repoFactory := postgres.NewPostgresFactory(dbConn)
+	// 2. Build repositories and managers and clients
+	repoFactory := postgres.NewPostgresFactory(db)
+
+	jwtMgr := jwt.NewManager(
+		cfg.JWTSecret,
+		cfg.JWTIssuer,
+		cfg.JWTTTL*time.Second, // or however you parse TTL
+	)
+
+	otpHttpClient := otp.NewHttpOtpClient("localhost:8081")
 
 	// 3. Build services
-	authSvc := service.NewAuthService(repoFactory.UserRepo())
+	tokenSvc := service.NewTokenService(jwtMgr, repoFactory.UserRepo())
+	userSvc := service.NewUserService(repoFactory.UserRepo())
 	entrySvc := service.NewEntryService(repoFactory.EntryRepo())
 	contactSvc := service.NewContactService(repoFactory.ContactRepo())
 
 	// 4. Build handlers
-	entryH := handlers.NewEntryHandler(entrySvc)
-	contactH := handlers.NewContactHandler(contactSvc)
+	entryH := entryHandlerPkg.NewEntryHandler(entrySvc)
+	contactH := contactHandlerPkg.NewContactHandler(contactSvc)
+	otpH := OTPHandlerPkg.NewOTPHandler(otpHttpClient, tokenSvc, userSvc)
 
 	// 5. Configure Gin + CORS + auth middleware
 	r := gin.Default()
@@ -46,10 +64,11 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	r.Use(middleware.AuthMiddleware(authSvc))
-
 	// 6. Mount routes
-	handlers.RegisterRoutes(r, entryH, contactH)
+	handlers.RegisterPublic(r, otpH)
+
+	authMw := middleware.JWTMiddleware(tokenSvc)
+	handlers.RegisterProtected(r, entryH, contactH, authMw)
 
 	// 7. Start server
 	r.Run(":8080")

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
 )
 
@@ -15,15 +16,20 @@ func NewPostgresUserRepo(db *sql.DB) repository.UserRepository {
 	return &PostgresUserRepo{db: db}
 }
 
-func (r *PostgresUserRepo) GetByStudentID(ctx context.Context, studentID string) (string, error) {
+func (r *PostgresUserRepo) FindByEmail(ctx context.Context, email string) (domain.User, error) {
 	const q = `
-    SELECT id
+    SELECT id, email
       FROM users
-     WHERE student_id = $1
-  `
-	var userID string
-	if err := r.db.QueryRowContext(ctx, q, studentID).Scan(&userID); err != nil {
-		return "", err
+     WHERE email = $1
+    `
+	var u domain.User
+	err := r.db.QueryRowContext(ctx, q, email).
+		Scan(&u.ID, &u.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return domain.User{}, repository.ErrNotFound
+		}
+		return domain.User{}, err
 	}
-	return userID, nil
+	return u, nil
 }

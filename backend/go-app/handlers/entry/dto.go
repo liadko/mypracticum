@@ -1,4 +1,4 @@
-package handlers
+package entry
 
 // CreateEntryRequest is the JSON payload for POST /api/:studentId/entries
 type CreateEntryRequest struct {

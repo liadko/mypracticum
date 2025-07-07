@@ -15,11 +15,11 @@ public class OtpExceptionHandler {
 	public record ApiError(int status, String error, String message, String path) {}
 
 	@ExceptionHandler(InvalidOtpException.class)
-	@ResponseStatus(HttpStatus.NOT_FOUND)
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
 	public ApiError handleNotFound(InvalidOtpException ex, HttpServletRequest req) {
 		return new ApiError(
-				HttpStatus.NOT_FOUND.value(),
-				HttpStatus.NOT_FOUND.getReasonPhrase(),
+				HttpStatus.UNAUTHORIZED.value(),
+				HttpStatus.UNAUTHORIZED.getReasonPhrase(),
 				ex.getMessage(),
 				req.getRequestURI()
 		);

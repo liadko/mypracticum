@@ -3,20 +3,27 @@ package service
 import "fmt"
 
 // NotFoundError indicates that the requested resource wasn't found.
-type NotFoundError struct {
-	Resource string
-	ID       string
-}
+type NotFoundError struct{ Resource, ID string }
 
 func (e NotFoundError) Error() string {
 	return fmt.Sprintf("%s with ID %q not found", e.Resource, e.ID)
 }
 
 // DBError wraps unexpected database errors.
-type DBError struct {
-	Err error
-}
+type DBError struct{ Err error }
 
 func (e DBError) Error() string {
 	return e.Err.Error()
+}
+
+type TokenGenerationError struct{ Err error }
+
+func (e TokenGenerationError) Error() string {
+	return fmt.Sprintf("token generation error: %v", e.Err)
+}
+
+type TokenValidationError struct{ Err error }
+
+func (e TokenValidationError) Error() string {
+	return fmt.Sprintf("token validation error: %v", e.Err)
 }

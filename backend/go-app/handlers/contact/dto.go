@@ -1,4 +1,4 @@
-package handlers
+package contact
 
 import "mypracticum/backend/domain"
 
