@@ -1,7 +1,9 @@
 package otp
 
+import "context"
+
 // Client knows how to Send and Verify OTPs.
 type Client interface {
-	Send(email string) error
-	Verify(email, code string) error
+	Send(ctx context.Context, email string) error
+	Verify(ctx context.Context, email, code string) error
 }

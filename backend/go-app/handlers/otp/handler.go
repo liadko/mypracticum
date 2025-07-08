@@ -42,7 +42,7 @@ func (h *OTPHandler) Send(ctx *gin.Context) {
 	}
 
 	// 3) Delegate to the OTP client
-	err := h.client.Send(req.Email)
+	err := h.client.Send(ctx, req.Email)
 	switch {
 	case err == nil:
 		ctx.Status(http.StatusNoContent)
@@ -65,10 +65,11 @@ func (h *OTPHandler) Verify(ctx *gin.Context) {
 	}
 
 	// 2) Verify OTP; handle all error cases first
-	if err := h.client.Verify(req.Email, req.Code); err != nil {
+	if err := h.client.Verify(ctx, req.Email, req.Code); err != nil {
 		switch {
 		case errors.Is(err, otp.ErrInvalidRequest):
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		case errors.Is(err, otp.ErrInvalidCode):
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid code"})
 		case errors.Is(err, otp.ErrServiceUnavailable):

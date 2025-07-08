@@ -2,6 +2,7 @@ package otp
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -21,49 +22,66 @@ func NewHttpOtpClient(baseURL string) Client {
 	}
 }
 
-func (c *httpOtpClient) Send(email string) error {
-	body, _ := json.Marshal(map[string]string{"email": email})
-	resp, err := c.client.Post(c.url+"/v1/otp", "application/json", bytes.NewReader(body))
+func (c *httpOtpClient) Send(ctx context.Context, email string) error {
+
+	payload := map[string]string{"email": email}
+	body, _ := json.Marshal(payload)
+
+	// create the HTTP request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url+"/v1/otp", bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrServiceUnavailable, err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrServiceUnavailable, err)
 	}
 	defer resp.Body.Close()
+
 	switch {
 	case resp.StatusCode >= 200 && resp.StatusCode < 300:
 		return nil
+
 	case resp.StatusCode == http.StatusBadRequest:
-		// invalid email format, etc.
 		return ErrInvalidRequest
+
 	case resp.StatusCode >= 500:
-		// upstream server error
 		return ErrServiceUnavailable
+
 	default:
-		// anything else (e.g. 418, 302 redirects, etc.)
 		return fmt.Errorf("otp service returned status %d", resp.StatusCode)
 	}
 }
 
-func (c *httpOtpClient) Verify(email, code string) error {
+func (c *httpOtpClient) Verify(ctx context.Context, email, code string) error {
 	body, _ := json.Marshal(map[string]string{"email": email, "code": code})
-	resp, err := c.client.Post(c.url+"/v1/otp/verify", "application/json", bytes.NewReader(body))
+	resp, err := c.client.Post(c.url+"/v1/verify", "application/json", bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrServiceUnavailable, err)
 	}
 	defer resp.Body.Close()
 
-	switch {
-	case resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent:
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusNoContent:
 		return nil
 
-	case resp.StatusCode == http.StatusBadRequest:
+	case http.StatusBadRequest:
 		// malformed request
 		return ErrInvalidRequest
 
-	case resp.StatusCode == http.StatusUnauthorized:
+	case http.StatusNotFound:
+		// treat as invalid request or define a new ErrNotFound if you prefer
+		return ErrInvalidRequest
+
+	case http.StatusUnauthorized:
 		// wrong or expired code
 		return ErrInvalidCode
 
-	case resp.StatusCode >= 500:
+	case http.StatusInternalServerError,
+		http.StatusBadGateway,
+		http.StatusServiceUnavailable:
 		// service error
 		return ErrServiceUnavailable
 

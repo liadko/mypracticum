@@ -20,7 +20,7 @@ func NewEntryHandler(
 	return &EntryHandler{svc: svc}
 }
 
-// Create handles Post /api/:studentId/entries
+// Create handles Post /:studentId/entries
 func (h *EntryHandler) Create(ctx *gin.Context) {
 	// 1) get userID from the context
 	userID := ctx.GetString("userID")
@@ -59,7 +59,7 @@ func (h *EntryHandler) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, resp)
 }
 
-// Delete handles DELETE /api/:studentId/entries/:entryId
+// Delete handles DELETE /entries/:entryId
 func (h *EntryHandler) Delete(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 
@@ -80,7 +80,7 @@ func (h *EntryHandler) Delete(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-// List handles GET /api/:studentId/entries
+// List handles GET /entries
 func (h *EntryHandler) List(ctx *gin.Context) {
 	// 1) get userID from the context
 	userID := ctx.GetString("userID")

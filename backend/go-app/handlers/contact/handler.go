@@ -17,7 +17,7 @@ func NewContactHandler(svc *service.ContactService) *ContactHandler {
 	return &ContactHandler{svc: svc}
 }
 
-// List handles GET /api/:studentId/contacts
+// List handles GET /contacts
 func (h *ContactHandler) List(ctx *gin.Context) {
 
 	// 1) get userID from the context
@@ -49,7 +49,7 @@ func (h *ContactHandler) List(ctx *gin.Context) {
 
 }
 
-// Update handles PUT /api/:studentID/contacts/:contactId
+// Update handles PUT /contacts/:contactId
 func (h *ContactHandler) Update(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 
@@ -98,7 +98,7 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
-// Create handles POST /api/:studentID/contacts
+// Create handles POST /contacts
 func (h *ContactHandler) Create(ctx *gin.Context) {
 	userID := ctx.GetString("userID")
 

@@ -25,7 +25,7 @@ func main() {
 
 	cfg := config.LoadAuthConfig() // holds DatabaseURL, JWTSecret, JWTIssuer, JWTTTL
 
-	// 1. Connect to Postgres
+	// 1. Connect to Postgres, and Logger
 	db, err := db.Connect(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("failed to open DB: %v", err)
@@ -41,7 +41,7 @@ func main() {
 		cfg.JWTTTL*time.Second, // or however you parse TTL
 	)
 
-	otpHttpClient := otp.NewHttpOtpClient("localhost:8081")
+	otpHttpClient := otp.NewHttpOtpClient(cfg.OtpServiceURL)
 
 	// 3. Build services
 	tokenSvc := service.NewTokenService(jwtMgr, repoFactory.UserRepo())
@@ -54,7 +54,7 @@ func main() {
 	contactH := contactHandlerPkg.NewContactHandler(contactSvc)
 	otpH := OTPHandlerPkg.NewOTPHandler(otpHttpClient, tokenSvc, userSvc)
 
-	// 5. Configure Gin + CORS + auth middleware
+	// 5. Configure CORS
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{

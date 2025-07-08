@@ -36,7 +36,7 @@ func JWTMiddleware(svc *service.TokenService) gin.HandlerFunc {
 		}
 
 		// 3) Inject into Gin context and continue
-		c.Set("UserID", userID)
+		c.Set("userID", userID)
 		c.Next()
 	}
 }

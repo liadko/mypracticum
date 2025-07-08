@@ -21,6 +21,9 @@ type AuthConfig struct {
 
 	// how long tokens live, parsed from a duration string (e.g. "15m", "1h")
 	JWTTTL time.Duration
+
+	// Java Otp Service URL
+	OtpServiceURL string
 }
 
 // LoadAuthConfig reads auth settings from environment variables and fatal-logs on error.
@@ -29,13 +32,14 @@ func LoadAuthConfig() AuthConfig {
 	_ = godotenv.Load()
 
 	cfg := AuthConfig{
-		DatabaseURL: os.Getenv("DATABASE_URL"),
-		JWTSecret:   os.Getenv("JWT_SECRET"),
-		JWTIssuer:   os.Getenv("JWT_ISSUER"),
+		DatabaseURL:   os.Getenv("DATABASE_URL"),
+		JWTSecret:     os.Getenv("JWT_SECRET"),
+		JWTIssuer:     os.Getenv("JWT_ISSUER"),
+		OtpServiceURL: os.Getenv("OTP_SERVICE_URL"),
 	}
 
 	ttlStr := os.Getenv("JWT_TTL")
-	if cfg.DatabaseURL == "" || cfg.JWTSecret == "" || cfg.JWTIssuer == "" || ttlStr == "" {
+	if cfg.DatabaseURL == "" || cfg.JWTSecret == "" || cfg.JWTIssuer == "" || cfg.OtpServiceURL == "" || ttlStr == "" {
 		log.Fatal("env vars required: DATABASE_URL, JWT_SECRET, JWT_ISSUER, JWT_TTL")
 	}
 
