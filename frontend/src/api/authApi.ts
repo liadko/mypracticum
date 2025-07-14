@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from "../utils/fetchWithTimeout"
+import { apiFetch } from "./client"
 import { AuthError } from "./errors"
 
 export interface User {
@@ -51,11 +52,10 @@ export async function verifyOtp(
 /**
  * Fetch the current user’s profile.
  */
-export async function fetchProfile(token: string): Promise<User> {
-  const res = await fetch('/api/users/me', {
-    headers: { Authorization: `Bearer ${token}` },
-  })
+export async function fetchProfile(): Promise<User> {
+  const res = await apiFetch('/api/users/me')
   if (!res.ok) {
+    console.error(`got this: ${res}`)
     throw new Error(`fetchProfile failed: ${res.status}`)
   }
   return await res.json()

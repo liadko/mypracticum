@@ -62,6 +62,8 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 		return fmt.Errorf("cache.Set OTP: %w", err)
 	}
 
+	log.Printf("SHHHHH.... %s", otpEnt.Code)
+
 	// 4) send (email/SMS)
 	if err := s.notifier.Send(ctx, email, otpEnt.Code); err != nil {
 		// cleanup so no orphaned code

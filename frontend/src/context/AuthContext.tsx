@@ -14,7 +14,8 @@ interface AuthProviderProps {
 interface AuthContextType {
   token: string | null
   user: User | null
-  isAuthenticated: boolean
+  isLoading: boolean
+
   submitEmail: (email: string) => Promise<void>
   verifyOtp: (code: string) => Promise<void>
   logout: () => void
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: AuthProviderProps) {
   const [token, setToken] = useState<string | null>(null)
   const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)    // ← start “loading”
   const OTP_TIMEOUT = 2 * 60 * 1000  // 2 minutes in ms
 
   // load any previous timestamp
@@ -49,14 +51,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     () => localStorage.getItem('submittedEmail')
   )
 
+
+
   useEffect(() => {
     const t = localStorage.getItem('token')
     if (t) {
       setToken(t)
-      authApi.fetchProfile(t).then(setUser).catch(logout)
     }
   }, [])
 
+  // ② Whenever token changes, fetch (or clear) the user
+  useEffect(() => {
+    if (!token) {
+      setUser(null)
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    authApi.fetchProfile()
+      .then(u => setUser(u))
+      .catch((e) => {
+        // invalid or expired token
+        console.error(e)
+        localStorage.removeItem('token')
+        setToken(null)
+        setUser(null)
+      })
+      .finally(() => setIsLoading(false))
+  }, [token])
+
+  // COUNTDOWN
   useEffect(() => {
     if (!otpSentAt || secondsLeft <= 0) return
 
@@ -109,14 +134,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { token: newToken } = await authApi.verifyOtp(submittedEmail, code)
     localStorage.setItem('token', newToken)
     setToken(newToken)
-    const profile = await authApi.fetchProfile(newToken)
-    setUser(profile)
   }
 
   function logout() {
-    setToken(null)
-    setUser(null)
     localStorage.removeItem('token')
+    setToken(null)
   }
 
   return (
@@ -124,7 +146,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       value={{
         token,
         user,
-        isAuthenticated: Boolean(token && user),
+        isLoading,
         submitEmail,
         verifyOtp,
         logout,

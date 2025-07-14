@@ -10,34 +10,26 @@ import { AuthError } from '../api/errors'
 
 
 export default function LoginPage() {
-  const navigate = useNavigate()
-  const { isAuthenticated, user, submitEmail, verifyOtp, secondsLeft, submittedEmail } = useAuth()
+  //const navigate = useNavigate()
+  const { user, submitEmail, verifyOtp, secondsLeft, submittedEmail } = useAuth()
 
-  const [otpSent, setOtpSent] = useState<boolean>(false)
+  const [otpPage, setOtpPage] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
 
   // Redirect on successful auth
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const homePath = user.role === 'mentor' ? '/mentor' : '/'
-      navigate(homePath, { replace: true })
-    }
-  }, [isAuthenticated, user, navigate])
-
-
-  useEffect(() => {
-    if (secondsLeft == 0 || !submittedEmail) {
-      setOtpSent(false)
-      console.log("kicking user out to main screen")
-    }
-  }, [secondsLeft, submittedEmail, otpSent])
+  // useEffect(() => {
+  //   if (user) {
+  //     const homePath = user.role === 'mentor' ? '/mentor' : '/'
+  //     navigate(homePath, { replace: true })
+  //   }
+  // }, [user, navigate])
 
 
   // Handle email submission
   const handleEmailSubmit = async (enteredEmail: string) => {
     // if they just re-submit the same email, jump straight to OTP step
     if (enteredEmail === submittedEmail) {
-      setOtpSent(true)
+      setOtpPage(true)
       return
     }
 
@@ -56,7 +48,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await submitEmail(enteredEmail)
-      setOtpSent(true)
+      setOtpPage(true)
       showSuccess("קוד נשלח בהצלחה", 4000)
     } catch (err: unknown) {
       if (err instanceof AuthError) {
@@ -76,7 +68,8 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await verifyOtp(code)
-    } catch {
+    } catch (error) {
+      console.error(error)
       showError('קוד שגוי. בדוק ונסה שוב', 2000)
       setLoading(false)
     }
@@ -93,10 +86,10 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-modal">
         <div className="login-modal__header">
-          {otpSent && (
+          {otpPage && (
             <button
               className="login-modal__close"
-              onClick={() => setOtpSent(false)}
+              onClick={() => setOtpPage(false)}
               aria-label="Close"
             >
               ×
@@ -104,12 +97,12 @@ export default function LoginPage() {
           )}
           <img src="/logo.png" alt="לוגו" className="login-modal__logo" />
           <h1 className="login-modal__title">
-            {otpSent ? 'הכנס קוד אימות' : 'ברוכים הבאים לתמורות פרקטיקום'}
+            {otpPage ? 'הכנס קוד אימות' : 'ברוכים הבאים לתמורות פרקטיקום'}
           </h1>
         </div>
 
         <div className="login-modal__body">
-          {!otpSent ? (
+          {!otpPage ? (
             <LoginForm onSubmit={handleEmailSubmit} disabled={loading} previouslySubmittedEmail={submittedEmail ?? ""} />
           ) : (
             <OtpForm

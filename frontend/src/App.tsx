@@ -9,56 +9,47 @@ import { Toaster } from 'react-hot-toast'
 import { ToastLimiter } from './components/Toast/ToastLimiter'
 
 function AppRoutes() {
-  const { isAuthenticated, user } = useAuth()
+  const { isLoading, user } = useAuth()
+
+  // While loading, don’t even decide about login vs app
+  if (isLoading) {
+    return <div>Loading authentication…</div>
+  }
+
+  if (!user)
+    return <LoginPage />
 
   return (
-    <Routes>
-      {/* OTP/login */}
-      <Route path="/login" element={<LoginPage />} />
-
-      {/* Protected app */}
-      <Route
-        path="/*"
-        element={
-          isAuthenticated ? (
-            <ContactsProvider>
-              <EntriesProvider>
-                <DesktopApp userName={user!.name} />
-              </EntriesProvider>
-            </ContactsProvider>
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
-    </Routes>
-  )
+    <ContactsProvider>
+      <EntriesProvider>
+        <DesktopApp />
+      </EntriesProvider>
+    </ContactsProvider>
+  );
 }
 
 export default function App() {
-    return (
-        <AuthProvider>
-            <BrowserRouter>
+  return (
+    <AuthProvider>
 
-                <AppRoutes />
+      <AppRoutes />
 
 
-                <div dir="rtl">
-                    <Toaster
-                        position="bottom-center"
-                        containerStyle={{ zIndex: 9999 }}
-                        
-                        toastOptions={{
-                            success: { style: { background: 'var(--main-color)', color: '#fff' } },
-                            error: { style: { background: '#f44336', color: '#fff' } },
-                            style: { zIndex: 9999 },
-                        }}
+      <div dir="rtl">
+        <Toaster
+          position="bottom-center"
+          containerStyle={{ zIndex: 9999 }}
 
-                        
-                    />
-                    <ToastLimiter/>
-                </div>
-            </BrowserRouter>
-        </AuthProvider>
-    )
+          toastOptions={{
+            success: { style: { background: 'var(--main-color)', color: '#fff' } },
+            error: { style: { background: '#f44336', color: '#fff' } },
+            style: { zIndex: 9999 },
+          }}
+
+
+        />
+        <ToastLimiter />
+      </div>
+    </AuthProvider>
+  )
 }

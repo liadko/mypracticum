@@ -53,9 +53,26 @@ export interface NewEntry {
     date: string       // "YYYY-MM-DD"
 }
 
-
-
-
+// For Editing Contacts
 export type AddMode = { mode: 'add'; type: ContactType }
 export type EditMode = { mode: 'edit'; id: string }
 export type FormMode = AddMode | EditMode
+
+
+
+export type UserRole = 'student' | 'mentor' | 'therapist' | 'admin'
+
+export interface User {
+  /** UUIDv4 */
+  id: string
+
+  firstName: string
+
+  lastName: string
+
+  email: string
+
+  roles: UserRole[]
+}
+
+

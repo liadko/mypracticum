@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -42,8 +41,6 @@ func (m *Manager) Generate(userID uuid.UUID) (string, error) {
 // Parse takes a raw JWT string, verifies its signature and expiration,
 // and returns the custom Claims if valid.
 func (m *Manager) Parse(tokenStr string) (*Claims, error) {
-	fmt.Println("manager.duration: " + m.ttl.String())
-	fmt.Println("manager.duration: " + m.ttl.String())
 	// 1) Parse the token into our custom Claims type
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		// 1a) Reject any token not signed with HMAC-SHA256

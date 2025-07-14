@@ -8,20 +8,16 @@ import './DesktopApp.css'
 import { pageTitle } from '../i18n/he'
 import { contactTypes, type ContactType } from '../types'
 
-interface DesktopAppProps {
-    userName: string
-}
 
-
-const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
+export default function DesktopApp(){
     const [activePage, setActivePage] = useState<ContactType>("client")
-
 
     const {
         loading,
         error,
     } = useEntries()
-
+    const userName = "miguel"
+    
     if (loading) return <div>Loading your personal hours…</div>
     if (error) return <div>Oops, something went wrong: {error.message}</div>
 
@@ -72,4 +68,3 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
     )
 }
 
-export default DesktopApp

@@ -21,7 +21,7 @@ interface ContactsContextType {
   getContactById: (id: string) => Contact | undefined
   addContact: (c: NewContact) => Promise<Contact>
   updateContact: (id: string, newContact: NewContact) => Promise<Contact>
-  deleteContact: (id: string) => Promise<void>
+  //deleteContact: (id: string) => Promise<void>
 }
 
 const ContactsContext = createContext<ContactsContextType | undefined>(undefined)
@@ -51,10 +51,10 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     return updatedContact
   }, [])
 
-  const deleteContact = useCallback(async (id: string) => {
-    await api.deleteContact(id)
-    setContacts(cs => domain.removeContact(cs, id))
-  }, [])
+  // const deleteContact = useCallback(async (id: string) => {
+  //   await api.deleteContact(id)
+  //   setContacts(cs => domain.removeContact(cs, id))
+  // }, [])
 
   const contactsById = useMemo(() => {
     const map: Record<string, Contact> = {}
@@ -80,7 +80,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
       getContactById,
       addContact,
       updateContact,
-      deleteContact
+      //deleteContact
     }}>
       {children}
     </ContactsContext.Provider>

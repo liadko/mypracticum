@@ -1,11 +1,12 @@
 import type { Entry, NewEntry } from '../types'
+import { apiFetch } from './client'
 
 /**
  * Fetch all entries for the given student.
  */
 export async function fetchAllEntries(
 ): Promise<Entry[]> {
-    const res = await fetch(`/entries`)
+    const res = await apiFetch(`/api/entries`)
 
     if (!res.ok) {
         throw new Error(`Failed to load entries: ${res.status} ${res.statusText}`)
@@ -22,7 +23,7 @@ export async function fetchAllEntries(
 export async function createEntry(
     payload: NewEntry
 ): Promise<Entry> {
-    const res = await fetch(`/entries`, {
+    const res = await apiFetch(`/api/entries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -40,7 +41,7 @@ export async function createEntry(
 export async function deleteEntry(
     entryId: string
 ): Promise<void> {
-    const res = await fetch(`/entries/${encodeURIComponent(entryId)}`, {
+    const res = await apiFetch(`/api/entries/${encodeURIComponent(entryId)}`, {
         method: 'DELETE',
     })
     if (!res.ok) {
