@@ -25,6 +25,6 @@ func (f *PostgresFactory) UserRepo() repository.UserRepo {
 	return NewPostgresUserRepo(f.db)
 }
 
-func (f *PostgresFactory) OTPRepo() repository.OTPRepo {
-	return NewPostgresOTPRepo(f.db)
-}
+// func (f *PostgresFactory) OTPRepo() repository.OTPRepo {
+// 	return NewPostgresOTPRepo(f.db)
+// }

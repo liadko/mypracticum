@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"mypracticum/backend/config"
 	"mypracticum/backend/db"
@@ -11,6 +12,7 @@ import (
 	OTPHandlerPkg "mypracticum/backend/handlers/otp"
 	userHandlerPkg "mypracticum/backend/handlers/user"
 	"mypracticum/backend/middleware"
+	"mypracticum/backend/pkg/cache/inmem"
 	"mypracticum/backend/pkg/jwt"
 	smoovePkg "mypracticum/backend/pkg/smoove"
 	"mypracticum/backend/repository/postgres"
@@ -34,6 +36,8 @@ func main() {
 
 	// 2. Build repositories and managers and clients
 	repoFactory := postgres.NewPostgresFactory(db)
+	store := inmem.NewStore()
+	sendOTPLimiter := inmem.NewLimiter(store, 2*time.Minute)
 
 	jwtMgr := jwt.NewManager(
 		cfg.JWTSecret,
@@ -48,7 +52,7 @@ func main() {
 	userSvc := service.NewUserService(repoFactory.UserRepo())
 	entrySvc := service.NewEntryService(repoFactory.EntryRepo())
 	contactSvc := service.NewContactService(repoFactory.ContactRepo())
-	otpSvc := service.NewOTPService(repoFactory.UserRepo(), repoFactory.OTPRepo(), smooveNotifier)
+	otpSvc := service.NewOTPService(repoFactory.UserRepo(), store, smooveNotifier, 5*time.Minute)
 
 	// 4. Build handlers
 	entryH := entryHandlerPkg.NewEntryHandler(entrySvc)
@@ -67,7 +71,8 @@ func main() {
 	}))
 
 	// 6. Mount routes
-	handlers.RegisterPublic(r, otpH)
+	limiterMw := middleware.OTPRateLimit(sendOTPLimiter)
+	handlers.RegisterPublic(r, otpH, limiterMw)
 
 	authMw := middleware.JWTMiddleware(tokenSvc)
 	handlers.RegisterProtected(r, entryH, contactH, userH, authMw)

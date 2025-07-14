@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"mypracticum/backend/domain"
+	"mypracticum/backend/pkg/cache"
 	"mypracticum/backend/pkg/otp"    // Notifier interface
 	"mypracticum/backend/repository" // UserRepo + OTPRepo + ErrNotFound
 
@@ -17,18 +18,18 @@ import (
 // OTPService orchestrates user lookup, OTP generation, persistence and notification.
 type OTPService struct {
 	userRepo   repository.UserRepo
-	otpRepo    repository.OTPRepo
+	otpStore   cache.Store
 	notifier   otp.Notifier
 	codeExpire time.Duration
 }
 
 // NewOTPService wires in your repositories and notifier (email/SMS client).
-func NewOTPService(u repository.UserRepo, o repository.OTPRepo, n otp.Notifier) *OTPService {
+func NewOTPService(u repository.UserRepo, s cache.Store, n otp.Notifier, codeExpire time.Duration) *OTPService {
 	return &OTPService{
 		userRepo:   u,
-		otpRepo:    o,
+		otpStore:   s,
 		notifier:   n,
-		codeExpire: 5 * time.Minute,
+		codeExpire: codeExpire,
 	}
 }
 
@@ -49,21 +50,22 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 		return fmt.Errorf("lookup user: %w", err)
 	}
 
-	// 2) generate code + expiry
-	otpEnt, err := domain.NewOTP(user.ID, s.codeExpire)
+	// 2) generate code
+	otpEnt, err := domain.NewOTP(user.ID)
 	if err != nil {
 		return fmt.Errorf("generate OTP: %w", err)
 	}
 
-	// 3) persist
-	if err := s.otpRepo.Save(ctx, otpEnt); err != nil {
-		return fmt.Errorf("save OTP: %w", err)
+	// 3) persist in cache with TTL
+	key := fmt.Sprintf("otp:%s:%s", user.ID, otpEnt.Code)
+	if err := s.otpStore.Set(key, []byte(otpEnt.Code), s.codeExpire); err != nil {
+		return fmt.Errorf("cache.Set OTP: %w", err)
 	}
 
 	// 4) send (email/SMS)
 	if err := s.notifier.Send(ctx, email, otpEnt.Code); err != nil {
 		// cleanup so no orphaned code
-		if delErr := s.otpRepo.Delete(ctx, user.ID, otpEnt.Code); delErr != nil {
+		if delErr := s.otpStore.Delete(key); delErr != nil {
 			log.Printf("cleanup OTP failed: %v", delErr)
 		}
 		return fmt.Errorf("notify OTP: %w", err)
@@ -92,22 +94,15 @@ func (s *OTPService) VerifyOTP(
 		return uuid.Nil, fmt.Errorf("lookup user: %w", err)
 	}
 
-	// 2) fetch stored OTP (missing code → validation failure)
-	stored, err := s.otpRepo.Get(ctx, user.ID, code)
+	// 2) fetch from cache (will only exist if unexpired)
+	key := fmt.Sprintf("otp:%s:%s", user.ID, code)
+	_, err = s.otpStore.Get(key)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			return uuid.Nil, domain.ValidationError("invalid credentials")
-		}
-		return uuid.Nil, fmt.Errorf("fetch OTP: %w", err)
-	}
-
-	// 3) check expiry or mismatch (expired or wrong → validation failure)
-	if err := stored.Validate(code); err != nil {
 		return uuid.Nil, domain.ValidationError("invalid credentials")
 	}
 
-	// 4) consume it (DB error → service failure)
-	if err := s.otpRepo.Delete(ctx, user.ID, code); err != nil {
+	// 3) consume it (DB error → service failure)
+	if err := s.otpStore.Delete(key); err != nil {
 		return uuid.Nil, fmt.Errorf("consume OTP: %w", err)
 	}
 

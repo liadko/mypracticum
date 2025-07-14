@@ -36,8 +36,8 @@ export default function OtpForm({
           id="otp_form_input"
           type="text"
           className="login-form__input otp-input"
-          placeholder="_  _  _  _"
-          maxLength={4}
+          placeholder="_  _  _  _  _  _"
+          maxLength={6}
           value={code}
           onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
           disabled={disabled}
@@ -46,7 +46,7 @@ export default function OtpForm({
         <button
           type="submit"
           className="login-form__button"
-          disabled={disabled || code.length < 4}
+          disabled={disabled || code.length < 6}
         >
           אשרו את הקוד
         </button>
