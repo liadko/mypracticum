@@ -12,7 +12,7 @@ spring:
         name: otp-service
 
     profiles:
-        active: smtp
+        active: smoove
 
     jackson:
         deserialization:
