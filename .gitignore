@@ -1,1 +1,11 @@
 /backend/tmp/
+/backend/go-app/tmp/
+
+# keep API-keys out of git
+.env
+.env.local
+
+/backend/java-otp/src/main/resources/application-smoove.yml
+
+backend/go-app/tmp/build-errors.log
+backend/go-app/tmp/main.exe

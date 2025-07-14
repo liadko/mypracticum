@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from "../utils/fetchWithTimeout"
+import { AuthError } from "./errors"
 
 export interface User {
   id: string
@@ -10,14 +12,22 @@ export interface User {
  * Trigger sending an OTP to the given email.
  */
 export async function login(email: string): Promise<void> {
-  const res = await fetch('/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
-  })
-  if (!res.ok) {
-    throw new Error(`login failed: ${res.status}`)
+  let res: Response
+  try {
+    res = await fetchWithTimeout('/api/otp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }, 3000)
+  } catch {
+    throw new AuthError('network', 'יש בעיה ברשת')
   }
+  if (!res.ok) {
+    if (res.status === 400) throw new AuthError('invalid-email', 'כתובת מייל לא תקינה')
+    if (res.status === 429) throw new AuthError('too-many-requests', 'נא להמתין, נסו שוב בקרוב')
+    throw new AuthError('network', `login failed: ${res.status}`)
+  }
+
 }
 
 /**
@@ -27,7 +37,7 @@ export async function verifyOtp(
   email: string,
   code: string
 ): Promise<{ token: string }> {
-  const res = await fetch('/auth/verify-otp', {
+  const res = await fetch('/api/otp/verify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, code }),

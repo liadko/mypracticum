@@ -47,7 +47,7 @@ const DesktopApp: React.FC<DesktopAppProps> = ({ userName }) => {
                     <span className="status">
                         {false ? '...שומר שינויים' : 'כל השינויים שמורים'}
                     </span>
-                    <img src="/logo.png" alt="Logo" className="header-logo" />
+                    <img src="/logo-text.png" alt="Logo" className="header-logo" />
                 </div>
             </header>
 

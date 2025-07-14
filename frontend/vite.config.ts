@@ -14,6 +14,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         '/api': {
           target: env.VITE_PROXY_TARGET,
           changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),  // <-- drop the "/api"
         },
       },
     },

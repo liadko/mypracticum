@@ -1,17 +1,56 @@
-
+import { useState, type FormEvent } from 'react'
 import './LoginPage.css'
-
 
 export interface OtpFormProps {
   /** The email address we sent the code to */
   email: string
   /** Called with the OTP code when the form is submitted */
-  onSubmit: (code: string) => Promise<void>
+  onSubmitOtp: (code: string) => Promise<void>
+  /** Disable input and button while verifying */
+  disabled?: boolean
 }
 
-export default function OtpForm({ email, onSubmit }: OtpFormProps) {
-  // TODO: render a code input and submit button
-  return <>
-    me bruddah
-  </>
+export default function OtpForm({
+  email,
+  onSubmitOtp,
+  disabled = false,
+}: OtpFormProps) {
+  const [code, setCode] = useState('')
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (code.length < 4) return
+    await onSubmitOtp(code)
+  }
+
+  return (
+    <>
+
+
+      <form className="login-form" onSubmit={handleSubmit} noValidate>
+
+        <p className="login-form__info" dir="rtl">
+          הכניסו כאן את קוד האימות שנשלח אל <br /> {email}
+        </p>
+        <input
+          id="otp_form_input"
+          type="text"
+          className="login-form__input otp-input"
+          placeholder="_  _  _  _"
+          maxLength={4}
+          value={code}
+          onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
+          disabled={disabled}
+        />
+
+        <button
+          type="submit"
+          className="login-form__button"
+          disabled={disabled || code.length < 4}
+        >
+          אשרו את הקוד
+        </button>
+      </form>
+    </>
+  )
 }
