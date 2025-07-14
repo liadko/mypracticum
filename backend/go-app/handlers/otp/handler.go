@@ -1,10 +1,9 @@
-// handlers/otp/handler.go
 package otp
 
 import (
 	"errors"
-	"net/http"
-
+	"log"
+	"mypracticum/backend/domain"
 	"mypracticum/backend/pkg/otp"
 	"mypracticum/backend/service"
 
@@ -12,84 +11,68 @@ import (
 )
 
 type OTPHandler struct {
-	client   otp.Client
+	notifier otp.Notifier
 	tokenSvc *service.TokenService
 	userSvc  *service.UserService
+	otpSvc   *service.OTPService
 }
 
-func NewOTPHandler(client otp.Client, tokenSvc *service.TokenService, userSvc *service.UserService) *OTPHandler {
-	return &OTPHandler{client: client, tokenSvc: tokenSvc, userSvc: userSvc}
+func NewOTPHandler(notifier otp.Notifier, otpSvc *service.OTPService, tokenSvc *service.TokenService, userSvc *service.UserService) *OTPHandler {
+	return &OTPHandler{notifier: notifier, tokenSvc: tokenSvc, userSvc: userSvc, otpSvc: otpSvc}
 }
 
-// Send handles POST on '/otp'
+// Send handles POST on '/otp/send'
 func (h *OTPHandler) Send(ctx *gin.Context) {
-	// 1) Bind and validate the incoming JSON payload
 	var req SendOTPRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(400, gin.H{"error": "invalid request"})
 		return
 	}
 
-	// 2) Ensure a user with this email actually exists
-	if _, err := h.userSvc.GetUserByEmail(ctx.Request.Context(), req.Email); err != nil {
-		var notFound service.NotFoundError
-		if errors.As(err, &notFound) {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+	if err := h.otpSvc.SendOTP(ctx.Request.Context(), req.Email); err != nil {
+		// 1) business “not found” (no user with that email)
+		var nf service.NotFoundError
+		if errors.As(err, &nf) {
+			ctx.JSON(404, gin.H{"error": nf.Error()})
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+		// 2) external service failures (SMTP, Smoove, etc.)
+		log.Printf("ERROR: SendOTP failed for %q: %v", req.Email, err)
+		ctx.JSON(503, gin.H{"error": "could not send OTP, please try again later"})
 		return
 	}
 
-	// 3) Delegate to the OTP client
-	err := h.client.Send(ctx, req.Email)
-	switch {
-	case err == nil:
-		ctx.Status(http.StatusNoContent)
-	case errors.Is(err, otp.ErrInvalidRequest):
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	case errors.Is(err, otp.ErrServiceUnavailable):
-		ctx.JSON(http.StatusServiceUnavailable, gin.H{"error": "OTP service unavailable"})
-	default:
-		ctx.JSON(http.StatusBadGateway, gin.H{"error": "failed to send OTP"})
-	}
+	ctx.Status(204)
 }
 
 // Verify handles POST on '/otp/verify'
 func (h *OTPHandler) Verify(ctx *gin.Context) {
-	// 1) Bind & validate
 	var req VerifyOTPRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(400, gin.H{"error": "invalid request payload"})
 		return
 	}
 
-	// 2) Verify OTP; handle all error cases first
-	if err := h.client.Verify(ctx, req.Email, req.Code); err != nil {
-		switch {
-		case errors.Is(err, otp.ErrInvalidRequest):
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
-		case errors.Is(err, otp.ErrInvalidCode):
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid code"})
-		case errors.Is(err, otp.ErrServiceUnavailable):
-			ctx.JSON(http.StatusServiceUnavailable, gin.H{"error": "OTP service unavailable"})
-		default:
-			ctx.JSON(http.StatusBadGateway, gin.H{"error": "verification failed"})
+	userID, err := h.otpSvc.VerifyOTP(ctx.Request.Context(), req.Email, req.Code)
+	if err != nil {
+		// combine wrong code & unknown user into “unauthorized”
+		var ve domain.ValidationError
+		var nf service.NotFoundError
+		if errors.As(err, &ve) || errors.As(err, &nf) {
+			ctx.JSON(401, gin.H{"error": "invalid credentials"})
+			return
 		}
+
+		// all other errors are service outages
+		ctx.JSON(503, gin.H{"error": "verification failed, please try again later"})
 		return
 	}
 
-	// 3) Success path: look up user and issue token
-	user, svcErr := h.userSvc.GetUserByEmail(ctx.Request.Context(), req.Email)
-	if svcErr != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": svcErr.Error()})
+	token, err := h.tokenSvc.GenerateToken(ctx.Request.Context(), userID)
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": "token generation failed"})
 		return
 	}
-	token, genErr := h.tokenSvc.GenerateToken(ctx.Request.Context(), user.ID)
-	if genErr != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": genErr.Error()})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{"token": token})
+	ctx.JSON(200, gin.H{"token": token})
 }

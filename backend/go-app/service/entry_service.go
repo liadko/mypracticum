@@ -6,19 +6,21 @@ import (
 	"fmt"
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
+
+	"github.com/google/uuid"
 )
 
 type EntryService struct {
-	repo repository.EntryRepository
+	repo repository.EntryRepo
 }
 
-func NewEntryService(repo repository.EntryRepository) *EntryService {
+func NewEntryService(repo repository.EntryRepo) *EntryService {
 	return &EntryService{repo: repo}
 }
 
 func (s *EntryService) AddEntry(
 	ctx context.Context,
-	userID string,
+	userID uuid.UUID,
 	newEntry domain.NewEntry, // or just (contactID, dateStr string)
 ) (domain.Entry, error) {
 
@@ -38,11 +40,11 @@ func (s *EntryService) AddEntry(
 	return createdEntry, nil
 }
 
-func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID string) error {
-	if entryID == "" {
+func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID uuid.UUID) error {
+	if entryID == uuid.Nil {
 		return fmt.Errorf("invalid entry id")
 	}
-	if userID == "" {
+	if userID == uuid.Nil {
 		return fmt.Errorf("missing user")
 	}
 
@@ -52,7 +54,7 @@ func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID string) 
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			// tell handler to return 404
-			return NotFoundError{"entry", entryID}
+			return NotFoundError{"entry", entryID.String()}
 		}
 		// wrap real DB errors into 500
 		return DBError{Err: err}
@@ -61,7 +63,7 @@ func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID string) 
 	return nil
 }
 
-func (s *EntryService) ListEntries(ctx context.Context, userID string) ([]domain.Entry, error) {
+func (s *EntryService) ListEntries(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error) {
 	list, err := s.repo.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, DBError{Err: err}

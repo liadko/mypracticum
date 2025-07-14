@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"mypracticum/backend/config"
 	"mypracticum/backend/db"
@@ -10,9 +9,10 @@ import (
 	contactHandlerPkg "mypracticum/backend/handlers/contact"
 	entryHandlerPkg "mypracticum/backend/handlers/entry"
 	OTPHandlerPkg "mypracticum/backend/handlers/otp"
+	userHandlerPkg "mypracticum/backend/handlers/user"
 	"mypracticum/backend/middleware"
 	"mypracticum/backend/pkg/jwt"
-	"mypracticum/backend/pkg/otp"
+	smoovePkg "mypracticum/backend/pkg/smoove"
 	"mypracticum/backend/repository/postgres"
 	"mypracticum/backend/service"
 
@@ -38,21 +38,23 @@ func main() {
 	jwtMgr := jwt.NewManager(
 		cfg.JWTSecret,
 		cfg.JWTIssuer,
-		cfg.JWTTTL*time.Second, // or however you parse TTL
+		cfg.JWTTTL,
 	)
 
-	otpHttpClient := otp.NewHttpOtpClient(cfg.OtpServiceURL)
+	smooveNotifier := smoovePkg.NewSmooveClient(cfg.SmooveBaseURL, cfg.SmooveAPIKey)
 
 	// 3. Build services
 	tokenSvc := service.NewTokenService(jwtMgr, repoFactory.UserRepo())
 	userSvc := service.NewUserService(repoFactory.UserRepo())
 	entrySvc := service.NewEntryService(repoFactory.EntryRepo())
 	contactSvc := service.NewContactService(repoFactory.ContactRepo())
+	otpSvc := service.NewOTPService(repoFactory.UserRepo(), repoFactory.OTPRepo(), smooveNotifier)
 
 	// 4. Build handlers
 	entryH := entryHandlerPkg.NewEntryHandler(entrySvc)
 	contactH := contactHandlerPkg.NewContactHandler(contactSvc)
-	otpH := OTPHandlerPkg.NewOTPHandler(otpHttpClient, tokenSvc, userSvc)
+	userH := userHandlerPkg.NewUserHandler(userSvc)
+	otpH := OTPHandlerPkg.NewOTPHandler(smooveNotifier, otpSvc, tokenSvc, userSvc)
 
 	// 5. Configure CORS
 	r := gin.Default()
@@ -68,7 +70,7 @@ func main() {
 	handlers.RegisterPublic(r, otpH)
 
 	authMw := middleware.JWTMiddleware(tokenSvc)
-	handlers.RegisterProtected(r, entryH, contactH, authMw)
+	handlers.RegisterProtected(r, entryH, contactH, userH, authMw)
 
 	// 7. Start server
 	r.Run(":8080")

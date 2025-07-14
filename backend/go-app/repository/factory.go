@@ -1,7 +1,8 @@
 package repository
 
 type Factory interface {
-	EntryRepo() EntryRepository
-	ContactRepo() ContactRepository
-	UserRepo() UserRepository
+	EntryRepo() EntryRepo
+	ContactRepo() ContactRepo
+	UserRepo() UserRepo
+	OTPRepo() OTPRepo
 }

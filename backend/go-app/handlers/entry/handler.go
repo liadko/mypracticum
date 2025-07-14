@@ -8,6 +8,7 @@ import (
 	"mypracticum/backend/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type EntryHandler struct {
@@ -23,7 +24,7 @@ func NewEntryHandler(
 // Create handles Post /:studentId/entries
 func (h *EntryHandler) Create(ctx *gin.Context) {
 	// 1) get userID from the context
-	userID := ctx.GetString("userID")
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	// 2) bind JSON → DTO
 	var req CreateEntryRequest
@@ -61,11 +62,16 @@ func (h *EntryHandler) Create(ctx *gin.Context) {
 
 // Delete handles DELETE /entries/:entryId
 func (h *EntryHandler) Delete(ctx *gin.Context) {
-	userID := ctx.GetString("userID")
+	// 1) get userID from the context
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
-	entryID := ctx.Param("entryId")
+	entryID, err := uuid.Parse(ctx.Param("entryId"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid contact ID"})
+		return
+	}
 
-	err := h.svc.RemoveEntry(ctx, entryID, userID)
+	err = h.svc.RemoveEntry(ctx, entryID, userID)
 
 	if err != nil {
 		switch err := err.(type) {
@@ -83,7 +89,7 @@ func (h *EntryHandler) Delete(ctx *gin.Context) {
 // List handles GET /entries
 func (h *EntryHandler) List(ctx *gin.Context) {
 	// 1) get userID from the context
-	userID := ctx.GetString("userID")
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	// 2) Fetch entries
 	entries, err := h.svc.ListEntries(ctx.Request.Context(), userID)

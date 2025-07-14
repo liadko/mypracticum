@@ -1,9 +1,14 @@
 package service
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // NotFoundError indicates that the requested resource wasn't found.
-type NotFoundError struct{ Resource, ID string }
+type NotFoundError struct {
+	Resource string
+	ID       string
+}
 
 func (e NotFoundError) Error() string {
 	return fmt.Sprintf("%s with ID %q not found", e.Resource, e.ID)

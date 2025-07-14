@@ -6,15 +6,17 @@ import (
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
+
+	"github.com/google/uuid"
 )
 
 // UserService provides user-related business logic.
 type UserService struct {
-	userRepo repository.UserRepository
+	userRepo repository.UserRepo
 }
 
 // NewUserService constructs a UserService.
-func NewUserService(userRepo repository.UserRepository) *UserService {
+func NewUserService(userRepo repository.UserRepo) *UserService {
 	return &UserService{userRepo: userRepo}
 }
 
@@ -26,6 +28,17 @@ func (s *UserService) GetUserByEmail(ctx context.Context, email string) (domain.
 			return domain.User{}, NotFoundError{"user", email}
 		}
 		return domain.User{}, DBError{err}
+	}
+	return user, nil
+}
+
+func (s *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
+	user, err := s.userRepo.FindByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return domain.User{}, NotFoundError{"user", id.String()}
+		}
+		return domain.User{}, DBError{Err: err}
 	}
 	return user, nil
 }

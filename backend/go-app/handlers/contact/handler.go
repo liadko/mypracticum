@@ -7,6 +7,7 @@ import (
 	"mypracticum/backend/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type ContactHandler struct {
@@ -21,7 +22,7 @@ func NewContactHandler(svc *service.ContactService) *ContactHandler {
 func (h *ContactHandler) List(ctx *gin.Context) {
 
 	// 1) get userID from the context
-	userID := ctx.GetString("userID")
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	// 2) Fetch from service
 	domainContacts, err := h.svc.ListContacts(ctx.Request.Context(), userID)
@@ -51,9 +52,14 @@ func (h *ContactHandler) List(ctx *gin.Context) {
 
 // Update handles PUT /contacts/:contactId
 func (h *ContactHandler) Update(ctx *gin.Context) {
-	userID := ctx.GetString("userID")
+	// 1) get userID from the context
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
-	contactID := ctx.Param("contactId")
+	contactID, err := uuid.Parse(ctx.Param("contactId"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid contact ID"})
+		return
+	}
 
 	var req NewContactDTO
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -100,7 +106,8 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 
 // Create handles POST /contacts
 func (h *ContactHandler) Create(ctx *gin.Context) {
-	userID := ctx.GetString("userID")
+	// 1) get userID from the context
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	var req NewContactDTO
 	if err := ctx.ShouldBindJSON(&req); err != nil {

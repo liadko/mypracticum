@@ -10,22 +10,24 @@ import (
 	"mypracticum/backend/service"
 )
 
-// JWTMiddleware validates a JWT from the Authorization header and injects the userID.
+// JWTMiddleware validates a JWT and aborts with JSON on any failure.
+// On success it injects a uuid.UUID under "userID" and calls Next().
 func JWTMiddleware(svc *service.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 1) Extract and validate the Authorization header
+		// Always respond as JSON
+		c.Writer.Header().Set("Content-Type", "application/json")
+
+		// 1) Bearer header
 		hdr := c.GetHeader("Authorization")
 		parts := strings.SplitN(hdr, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or malformed token"})
 			return
 		}
-		tokenStr := parts[1]
 
-		// 2) Validate the token and get the userID
-		userID, err := svc.ValidateToken(tokenStr)
+		// 2) Validate token
+		uid, err := svc.ValidateToken(parts[1])
 		if err != nil {
-			// Distinguish between invalid/expired tokens vs. internal failures
 			var valErr service.TokenValidationError
 			if errors.As(err, &valErr) {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": valErr.Error()})
@@ -35,8 +37,8 @@ func JWTMiddleware(svc *service.TokenService) gin.HandlerFunc {
 			return
 		}
 
-		// 3) Inject into Gin context and continue
-		c.Set("userID", userID)
+		// 3) Authenticated! stash the UUID and move on.
+		c.Set("userID", uid)
 		c.Next()
 	}
 }

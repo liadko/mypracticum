@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -33,8 +34,8 @@ func IsValidContactType(t ContactType) bool {
 
 // Contact holds the core data for a person you can log hours against.
 type Contact struct {
-	ID        string // UUID
-	UserID    string // FK to the owning user (your mom)
+	ID        uuid.UUID // UUID
+	UserID    uuid.UUID // FK to the owning user (your mom)
 	Type      ContactType
 	Name      string
 	Email     *string // only required for mentors
@@ -55,7 +56,7 @@ type NewContact struct {
 func (contact Contact) Validate() error {
 	var errs []string
 
-	if strings.TrimSpace(contact.UserID) == "" {
+	if contact.UserID == uuid.Nil {
 		errs = append(errs, "userID must be provided")
 	}
 	if strings.TrimSpace(contact.Name) == "" {
@@ -88,10 +89,13 @@ func (contact Contact) Validate() error {
 	return nil
 }
 
-func NewContactFrom(userID string, nc NewContact) (Contact, error) {
-
+func NewContactFrom(userID uuid.UUID, nc NewContact) (Contact, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return Contact{}, fmt.Errorf("generate contact ID: %w", err)
+	}
 	contact := Contact{
-		ID:        uuid.NewString(),
+		ID:        id,
 		UserID:    userID,
 		Type:      nc.Type,
 		Name:      nc.Name,
@@ -106,7 +110,7 @@ func NewContactFrom(userID string, nc NewContact) (Contact, error) {
 	return contact, nil
 }
 
-func UpdatedContact(userID, contactID string, nc NewContact) (Contact, error) {
+func UpdatedContact(userID uuid.UUID, contactID uuid.UUID, nc NewContact) (Contact, error) {
 
 	contact := Contact{
 		ID:        contactID,

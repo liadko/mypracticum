@@ -3,12 +3,14 @@ package repository
 import (
 	"context"
 	"mypracticum/backend/domain"
+
+	"github.com/google/uuid"
 )
 
-// ContactRepository defines how the service reads/writes contacts.
-type ContactRepository interface {
-	ListByUser(ctx context.Context, userID string) ([]domain.Contact, error)
-	Create(ctx context.Context, userID string, c domain.Contact) (domain.Contact, error)
-	Update(ctx context.Context, userID, contactID string, c domain.Contact) (domain.Contact, error)
-	Delete(ctx context.Context, userID, contactID string) error
+// ContactRepo defines how the service reads/writes contacts.
+type ContactRepo interface {
+	ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Contact, error)
+	Create(ctx context.Context, userID uuid.UUID, c domain.Contact) (domain.Contact, error)
+	Update(ctx context.Context, userID, contactID uuid.UUID, c domain.Contact) (domain.Contact, error)
+	//Delete(ctx context.Context, userID, contactID uuid.UUID) error
 }

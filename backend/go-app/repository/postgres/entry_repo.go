@@ -8,6 +8,8 @@ import (
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
+
+	"github.com/google/uuid"
 )
 
 // PostgresEntryRepo “implements” EntryRepository
@@ -16,12 +18,12 @@ type PostgresEntryRepo struct {
 }
 
 // Constructor returns the interface, not the concrete type
-func NewPostgresEntryRepo(db *sql.DB) repository.EntryRepository {
+func NewPostgresEntryRepo(db *sql.DB) repository.EntryRepo {
 	return &PostgresEntryRepo{db: db}
 }
 
 // ListByUser satisfies EntryRepository
-func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID string) ([]domain.Entry, error) {
+func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error) {
 	entriesQuery := `
 			SELECT id, contact_id, date, approved  
 			FROM entries 
@@ -89,7 +91,7 @@ func (r *PostgresEntryRepo) Create(
 }
 
 // Delete satisfies EntryRepository
-func (r *PostgresEntryRepo) Delete(ctx context.Context, entryID, userID string) error {
+func (r *PostgresEntryRepo) Delete(ctx context.Context, entryID, userID uuid.UUID) error {
 
 	const q = `
     DELETE FROM entries

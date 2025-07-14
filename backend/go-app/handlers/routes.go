@@ -6,6 +6,7 @@ import (
 	contactPkg "mypracticum/backend/handlers/contact"
 	entryPkg "mypracticum/backend/handlers/entry"
 	otpPkg "mypracticum/backend/handlers/otp"
+	userPkg "mypracticum/backend/handlers/user"
 )
 
 // RegisterPublic mounts all public endpoints
@@ -13,7 +14,7 @@ import (
 func RegisterPublic(r *gin.Engine, otpH *otpPkg.OTPHandler) {
 	pub := r.Group("")
 
-	pub.POST("/otp", otpH.Send)
+	pub.POST("/otp/send", otpH.Send)
 	pub.POST("/otp/verify", otpH.Verify)
 
 	//pub.GET("/login/google", oauthH.LoginGoogle)
@@ -21,7 +22,7 @@ func RegisterPublic(r *gin.Engine, otpH *otpPkg.OTPHandler) {
 }
 
 // RegisterProtected mounts everything behind auth
-func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *contactPkg.ContactHandler, mws ...gin.HandlerFunc) {
+func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *contactPkg.ContactHandler, userH *userPkg.UserHandler, mws ...gin.HandlerFunc) {
 	prot := r.Group("")
 	prot.Use(mws...)
 
@@ -34,4 +35,8 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 	prot.GET("/contacts", contactH.List)
 	prot.POST("/contacts", contactH.Create)
 	prot.PUT("/contacts/:contactId", contactH.Update)
+
+	// users
+	prot.GET("/users/me", userH.GetMe)
+
 }

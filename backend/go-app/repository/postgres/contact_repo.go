@@ -8,6 +8,8 @@ import (
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
+
+	"github.com/google/uuid"
 )
 
 // PostgresContactRepo “implements” ContactRepository
@@ -16,12 +18,12 @@ type PostgresContactRepo struct {
 }
 
 // Constructor returns the interface, not the concrete type
-func NewPostgresContactRepo(db *sql.DB) repository.ContactRepository {
+func NewPostgresContactRepo(db *sql.DB) repository.ContactRepo {
 	return &PostgresContactRepo{db: db}
 }
 
 // Create implements repository.ContactRepository.
-func (r *PostgresContactRepo) Create(ctx context.Context, userID string, c domain.Contact) (domain.Contact, error) {
+func (r *PostgresContactRepo) Create(ctx context.Context, userID uuid.UUID, c domain.Contact) (domain.Contact, error) {
 	query := `
 	INSERT INTO contacts (id, user_id, type, name, email, phone, specialty)
 	VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -48,8 +50,8 @@ func (r *PostgresContactRepo) Create(ctx context.Context, userID string, c domai
 // Update implements repository.ContactRepository.
 func (r *PostgresContactRepo) Update(
 	ctx context.Context,
-	userID string,
-	contactID string,
+	userID uuid.UUID,
+	contactID uuid.UUID,
 	c domain.Contact,
 ) (domain.Contact, error) {
 	const q = `
@@ -95,7 +97,7 @@ func (r *PostgresContactRepo) Update(
 }
 
 // ListByUser satisfies ContactRepository
-func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID string) ([]domain.Contact, error) {
+func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Contact, error) {
 	contactsQuery := `
         SELECT id, user_id, type, name, email, phone, specialty
 			FROM contacts 
@@ -144,14 +146,8 @@ func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID string) ([]
 	return contacts, nil
 }
 
-// // Create satisfies ContactRepository
-// func (r *PostgresContactRepo) Create(ctx context.Context, e domain.Contact) (domain.Contact, error) {
-// 	// INSERT … RETURNING id,contact_id,date,approved
-// 	return domain.Contact{}, fmt.Errorf("Create Not Implemented Yet")
+// // Delete satisfies ContactRepository
+// func (r *PostgresContactRepo) Delete(ctx context.Context, id, userID uuid.UUID) error {
+// 	// DELETE FROM contacts WHERE id=$1 AND user_id=$2
+// 	return fmt.Errorf("Delete Not Implemented Yet")
 // }
-
-// Delete satisfies ContactRepository
-func (r *PostgresContactRepo) Delete(ctx context.Context, id, userID string) error {
-	// DELETE FROM contacts WHERE id=$1 AND user_id=$2
-	return fmt.Errorf("Delete Not Implemented Yet")
-}
