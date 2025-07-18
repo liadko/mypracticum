@@ -20,15 +20,18 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	log.Print("------ [SERVER RESTARTING] ------")
 
-	cfg := config.LoadAuthConfig() // holds DatabaseURL, JWTSecret, JWTIssuer, JWTTTL
+	// 1) Load config (app.yaml for defaults and .env for secretes+overrides)
+	_ = godotenv.Load() // loads .env into os.Env --- for development only
+	cfg := config.Load()
 
 	// 1. Connect to Postgres, and Logger
-	db, err := db.Connect(cfg.DatabaseURL)
+	db, err := db.Connect(cfg.Auth.DatabaseURL)
 	if err != nil {
 		log.Fatalf("failed to open DB: %v", err)
 	}
@@ -40,20 +43,16 @@ func main() {
 	globalOTPLimiter := inmem.NewLimiter(store, 3*time.Second)
 	sendOTPLimiter := inmem.NewLimiter(store, 2*time.Minute)
 
-	jwtMgr := jwt.NewManager(
-		cfg.JWTSecret,
-		cfg.JWTIssuer,
-		cfg.JWTTTL,
-	)
+	jwtMgr := jwt.NewManager(cfg.Auth)
 
-	smooveNotifier := smoovePkg.NewSmooveClient(cfg.SmooveBaseURL, cfg.SmooveAPIKey)
+	smooveNotifier := smoovePkg.NewSmooveClient(cfg.Smoove.BaseURL, cfg.Smoove.APIKey)
 
 	// 3. Build services
 	tokenSvc := service.NewTokenService(jwtMgr, repoFactory.UserRepo())
 	userSvc := service.NewUserService(repoFactory.UserRepo())
 	entrySvc := service.NewEntryService(repoFactory.EntryRepo())
 	contactSvc := service.NewContactService(repoFactory.ContactRepo())
-	otpSvc := service.NewOTPService(repoFactory.UserRepo(), store, smooveNotifier, sendOTPLimiter, 5*time.Minute)
+	otpSvc := service.NewOTPService(repoFactory.UserRepo(), store, smooveNotifier, sendOTPLimiter, cfg.OTP)
 
 	// 4. Build handlers
 	entryH := entryHandlerPkg.NewEntryHandler(entrySvc)

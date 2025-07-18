@@ -1,0 +1,10 @@
+auth:
+  # non-sensitive defaults
+  jwtIssuer:      "mypracticum"
+  jwtTTL:         "1h"               # Go-duration string
+smoove:
+  baseURL:        "https://rest.smoove.io/v1/"
+otp:
+  codeLength:     6
+  expiry:         "5m"
+  rateWindow:     "1h"
