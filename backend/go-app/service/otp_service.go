@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"log"
 	"time"
 
+	"mypracticum/backend/config"
 	"mypracticum/backend/domain"
 	"mypracticum/backend/pkg/cache"
 	"mypracticum/backend/pkg/otp"    // Notifier interface
@@ -21,17 +23,20 @@ type OTPService struct {
 	otpStore    cache.Store
 	sendLimiter cache.Limiter
 	notifier    otp.Notifier
-	OTPExpire   time.Duration
+
+	codeLength int
+	expire     time.Duration
 }
 
 // NewOTPService wires in your repositories and notifier (email/SMS client).
-func NewOTPService(u repository.UserRepo, s cache.Store, n otp.Notifier, l cache.Limiter, e time.Duration) *OTPService {
+func NewOTPService(u repository.UserRepo, s cache.Store, n otp.Notifier, l cache.Limiter, cfg config.OTPConfig) *OTPService {
 	return &OTPService{
 		userRepo:    u,
 		otpStore:    s,
 		notifier:    n,
 		sendLimiter: l,
-		OTPExpire:   e,
+		codeLength:  cfg.CodeLength,
+		expire:      cfg.Expiry,
 	}
 }
 
@@ -63,21 +68,21 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 	}
 
 	// 2) generate code
-	otpEnt, err := domain.NewOTP(user.ID)
+	code, err := generateCode(s.codeLength)
 	if err != nil {
-		return fmt.Errorf("generate OTP: %w", err)
+		return fmt.Errorf("otp code generation failed: %w", err)
 	}
 
 	// 3) persist in cache with TTL
-	otpKey := fmt.Sprintf("otp:%s:%s", user.ID, otpEnt.Code)
-	if err := s.otpStore.Set(otpKey, []byte(otpEnt.Code), s.OTPExpire); err != nil {
+	otpKey := fmt.Sprintf("otp:%s:%s", user.ID, code)
+	if err := s.otpStore.Set(otpKey, []byte(code), s.expire); err != nil {
 		return fmt.Errorf("cache.Set OTP: %w", err)
 	}
 
-	log.Printf("SHHHHH.... %s", otpEnt.Code)
+	log.Printf("SHHHHH.... %s", code)
 
 	// 4) send (email/SMS)
-	if err := s.notifier.Send(ctx, email, otpEnt.Code); err != nil {
+	if err := s.notifier.Send(ctx, email, code); err != nil {
 		// cleanup so no orphaned code
 		if delErr := s.otpStore.Delete(otpKey); delErr != nil {
 			log.Printf("cleanup OTP failed: %v", delErr)
@@ -121,4 +126,18 @@ func (s *OTPService) VerifyOTP(
 	}
 
 	return user.ID, nil
+}
+
+// generateCode generates a {length}-digit code
+func generateCode(length int) (string, error) {
+	buf := make([]byte, length)
+	if _, err := rand.Read(buf); err != nil {
+		return "", fmt.Errorf("generate code: %w", err)
+	}
+	code := ""
+	for _, b := range buf {
+		code += fmt.Sprint(int(b) % 10)
+	}
+
+	return code, nil
 }

@@ -9,3 +9,4 @@
 
 backend/go-app/tmp/build-errors.log
 backend/go-app/tmp/main.exe
+backend/go-app/.env

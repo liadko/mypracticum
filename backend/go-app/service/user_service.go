@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -41,4 +43,37 @@ func (s *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (domain.Use
 		return domain.User{}, DBError{Err: err}
 	}
 	return user, nil
+}
+
+// UpdateSignature updates a user’s signature SVG in the database.
+//
+// Returns:
+//
+//	– the svg string
+//
+// Errors:
+//
+//	– ValidationError if the SVG payload is missing or doesn’t begin with "<svg".
+//	– NotFoundError   if no user exists for the given ID.
+//	– any other error wraps a repository or internal failure.
+func (s *UserService) UpdateSignature(
+	ctx context.Context,
+	userID uuid.UUID,
+	svg string,
+) (string, error) {
+	svg = strings.TrimSpace(svg)
+	if !strings.HasPrefix(svg, "<svg") {
+		return "", ValidationError("invalid svg content")
+	}
+
+	data := []byte(svg)
+	if err := s.userRepo.UpdateSignature(ctx, userID, data); err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return "", NotFoundError{"user", userID.String()}
+		}
+		return "", fmt.Errorf("update signature: %w", err)
+	}
+
+	// Return exactly what we stored
+	return svg, nil
 }

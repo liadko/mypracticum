@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"net/http"
 
 	"mypracticum/backend/service"
@@ -49,4 +50,36 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, resp)
+}
+
+// UpdateSignature handles PATCH /users/me/signature
+func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
+	var req SignatureUpdateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		return
+	}
+
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
+	svg, err := h.svc.UpdateSignature(ctx.Request.Context(), userID, req.SignatureSVG)
+	if err != nil {
+		var ve service.ValidationError
+		var nf service.NotFoundError
+
+		switch {
+		case errors.As(err, &ve):
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
+		case errors.As(err, &nf):
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		}
+		return
+	}
+
+	resp := SignatureUpdateResponse{
+		SignatureSVG: svg,
+	}
+	ctx.JSON(http.StatusOK, resp)
+
 }

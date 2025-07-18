@@ -14,6 +14,11 @@ func (e NotFoundError) Error() string {
 	return fmt.Sprintf("%s with ID %q not found", e.Resource, e.ID)
 }
 
+// ValidationError indicates the input was invalid.
+type ValidationError string
+
+func (e ValidationError) Error() string { return string(e) }
+
 // DBError wraps unexpected database errors.
 type DBError struct{ Err error }
 
@@ -31,4 +36,12 @@ type TokenValidationError struct{ Err error }
 
 func (e TokenValidationError) Error() string {
 	return fmt.Sprintf("token validation error: %v", e.Err)
+}
+
+type TooManyRequestsError struct {
+	Msg string // e.g. "Please wait 2 minutes before trying again"
+}
+
+func (e TooManyRequestsError) Error() string {
+	return e.Msg
 }

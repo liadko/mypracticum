@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"mypracticum/backend/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -15,11 +16,11 @@ type Manager struct {
 }
 
 // NewManager creates a Manager with HMAC-SHA256, a TTL, and an issuer name.
-func NewManager(secret, issuer string, ttl time.Duration) *Manager {
+func NewManager(cfg config.AuthConfig) *Manager {
 	return &Manager{
-		secret: []byte(secret),
-		issuer: issuer,
-		ttl:    ttl,
+		secret: []byte(cfg.JWTSecret),
+		issuer: cfg.JWTIssuer,
+		ttl:    cfg.JWTTTL,
 	}
 }
 
