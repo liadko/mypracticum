@@ -12,12 +12,11 @@ import (
 
 type OTPHandler struct {
 	tokenSvc *service.TokenService
-	userSvc  *service.UserService
 	otpSvc   *service.OTPService
 }
 
-func NewOTPHandler(otpSvc *service.OTPService, tokenSvc *service.TokenService, userSvc *service.UserService) *OTPHandler {
-	return &OTPHandler{tokenSvc: tokenSvc, userSvc: userSvc, otpSvc: otpSvc}
+func NewOTPHandler(otpSvc *service.OTPService, tokenSvc *service.TokenService) *OTPHandler {
+	return &OTPHandler{tokenSvc: tokenSvc, otpSvc: otpSvc}
 }
 
 // Send handles POST on '/otp/send'

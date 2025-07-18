@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -11,15 +10,15 @@ import (
 	"mypracticum/backend/config"
 	"mypracticum/backend/domain"
 	"mypracticum/backend/pkg/cache"
-	"mypracticum/backend/pkg/otp"    // Notifier interface
-	"mypracticum/backend/repository" // UserRepo + OTPRepo + ErrNotFound
+	"mypracticum/backend/pkg/otp" // Notifier interface
 
+	// UserRepo + OTPRepo + ErrNotFound
 	"github.com/google/uuid"
 )
 
 // OTPService orchestrates user lookup, OTP generation, persistence and notification.
 type OTPService struct {
-	userRepo    repository.UserRepo
+	userSvc     *UserService
 	otpStore    cache.Store
 	sendLimiter cache.Limiter
 	notifier    otp.Notifier
@@ -29,9 +28,9 @@ type OTPService struct {
 }
 
 // NewOTPService wires in your repositories and notifier (email/SMS client).
-func NewOTPService(u repository.UserRepo, s cache.Store, n otp.Notifier, l cache.Limiter, cfg config.OTPConfig) *OTPService {
+func NewOTPService(u *UserService, s cache.Store, n otp.Notifier, l cache.Limiter, cfg config.OTPConfig) *OTPService {
 	return &OTPService{
-		userRepo:    u,
+		userSvc:     u,
 		otpStore:    s,
 		notifier:    n,
 		sendLimiter: l,
@@ -49,15 +48,12 @@ func NewOTPService(u repository.UserRepo, s cache.Store, n otp.Notifier, l cache
 //	– MiscError  for any database or notification failures.
 func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 	// 1) find user
-	user, err := s.userRepo.FindByEmail(ctx, email)
+	user, err := s.userSvc.GetUserByEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			return NotFoundError{"user", email}
-		}
-		return fmt.Errorf("lookup user: %w", err)
+		return err // good service errors already come out of UserService
 	}
 
-	// before generatinga new code, check limiter
+	// before generating a new code, check limiter
 	limitKey := fmt.Sprintf("rl:otpSend:%s", email)
 	ok, err := s.sendLimiter.Allow(limitKey)
 	if err != nil {
@@ -104,13 +100,10 @@ func (s *OTPService) VerifyOTP(
 	ctx context.Context,
 	email, code string,
 ) (uuid.UUID, error) {
-	// 1) find user (unknown email → validation failure)
-	user, err := s.userRepo.FindByEmail(ctx, email)
+	// 1) find user(unknown email → validation failure)
+	user, err := s.userSvc.GetUserByEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
-			return uuid.Nil, domain.ValidationError("invalid credentials")
-		}
-		return uuid.Nil, fmt.Errorf("lookup user: %w", err)
+		return uuid.Nil, err // good service errors already come out of UserService
 	}
 
 	// 2) fetch from cache (will only exist if unexpired)

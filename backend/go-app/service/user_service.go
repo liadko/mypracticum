@@ -22,7 +22,14 @@ func NewUserService(userRepo repository.UserRepo) *UserService {
 	return &UserService{userRepo: userRepo}
 }
 
-// GetUserByEmail looks up a user by email, returning a domain.User or a service error.
+// GetUserByEmail looks up a user by their email address.
+//
+// Returns:
+//   - the matching domain.User
+//
+// Errors:
+//   - NotFoundError if no user exists with the given email
+//   - DBError        for any underlying database failure
 func (s *UserService) GetUserByEmail(ctx context.Context, email string) (domain.User, error) {
 	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
@@ -34,6 +41,14 @@ func (s *UserService) GetUserByEmail(ctx context.Context, email string) (domain.
 	return user, nil
 }
 
+// GetUserByID retrieves a user by their UUID.
+//
+// Returns:
+//   - the matching domain.User
+//
+// Errors:
+//   - NotFoundError if no user exists with the given ID
+//   - DBError        for any underlying database failure
 func (s *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {

@@ -5,6 +5,7 @@ auth:
 smoove:
   baseURL:        "https://rest.smoove.io/v1/"
 otp:
-  codeLength:     6
-  expiry:         "5m"
-  rateWindow:     "1h"
+  codeLength:          6
+  expiry:             "5m"
+  sendWindow:         "2m"
+  globalOTPWindow:    "3s"
