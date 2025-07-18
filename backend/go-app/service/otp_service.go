@@ -17,19 +17,21 @@ import (
 
 // OTPService orchestrates user lookup, OTP generation, persistence and notification.
 type OTPService struct {
-	userRepo   repository.UserRepo
-	otpStore   cache.Store
-	notifier   otp.Notifier
-	codeExpire time.Duration
+	userRepo    repository.UserRepo
+	otpStore    cache.Store
+	sendLimiter cache.Limiter
+	notifier    otp.Notifier
+	OTPExpire   time.Duration
 }
 
 // NewOTPService wires in your repositories and notifier (email/SMS client).
-func NewOTPService(u repository.UserRepo, s cache.Store, n otp.Notifier, codeExpire time.Duration) *OTPService {
+func NewOTPService(u repository.UserRepo, s cache.Store, n otp.Notifier, l cache.Limiter, e time.Duration) *OTPService {
 	return &OTPService{
-		userRepo:   u,
-		otpStore:   s,
-		notifier:   n,
-		codeExpire: codeExpire,
+		userRepo:    u,
+		otpStore:    s,
+		notifier:    n,
+		sendLimiter: l,
+		OTPExpire:   e,
 	}
 }
 
@@ -50,6 +52,16 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 		return fmt.Errorf("lookup user: %w", err)
 	}
 
+	// before generatinga new code, check limiter
+	limitKey := fmt.Sprintf("rl:otpSend:%s", email)
+	ok, err := s.sendLimiter.Allow(limitKey)
+	if err != nil {
+		return fmt.Errorf("rate-limiter failed: %w", err)
+	}
+	if !ok {
+		return TooManyRequestsError{"please wait before resending"}
+	}
+
 	// 2) generate code
 	otpEnt, err := domain.NewOTP(user.ID)
 	if err != nil {
@@ -57,8 +69,8 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 	}
 
 	// 3) persist in cache with TTL
-	key := fmt.Sprintf("otp:%s:%s", user.ID, otpEnt.Code)
-	if err := s.otpStore.Set(key, []byte(otpEnt.Code), s.codeExpire); err != nil {
+	otpKey := fmt.Sprintf("otp:%s:%s", user.ID, otpEnt.Code)
+	if err := s.otpStore.Set(otpKey, []byte(otpEnt.Code), s.OTPExpire); err != nil {
 		return fmt.Errorf("cache.Set OTP: %w", err)
 	}
 
@@ -67,7 +79,7 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 	// 4) send (email/SMS)
 	if err := s.notifier.Send(ctx, email, otpEnt.Code); err != nil {
 		// cleanup so no orphaned code
-		if delErr := s.otpStore.Delete(key); delErr != nil {
+		if delErr := s.otpStore.Delete(otpKey); delErr != nil {
 			log.Printf("cleanup OTP failed: %v", delErr)
 		}
 		return fmt.Errorf("notify OTP: %w", err)

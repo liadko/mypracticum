@@ -11,10 +11,11 @@ import (
 
 // RegisterPublic mounts all public endpoints
 // ADD parameter oauthH *oauthPkg.OAuthHandler
-func RegisterPublic(r *gin.Engine, otpH *otpPkg.OTPHandler, sendLimiter gin.HandlerFunc) {
+func RegisterPublic(r *gin.Engine, otpH *otpPkg.OTPHandler, otpLimiter gin.HandlerFunc) {
 	pub := r.Group("")
+	pub.Use(otpLimiter)
 
-	pub.POST("/otp/send", sendLimiter, otpH.Send)
+	pub.POST("/otp/send", otpH.Send)
 	pub.POST("/otp/verify", otpH.Verify)
 
 	//pub.GET("/login/google", oauthH.LoginGoogle)

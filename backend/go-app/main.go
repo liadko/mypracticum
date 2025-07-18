@@ -37,6 +37,7 @@ func main() {
 	// 2. Build repositories and managers and clients
 	repoFactory := postgres.NewPostgresFactory(db)
 	store := inmem.NewStore()
+	globalOTPLimiter := inmem.NewLimiter(store, 3*time.Second)
 	sendOTPLimiter := inmem.NewLimiter(store, 2*time.Minute)
 
 	jwtMgr := jwt.NewManager(
@@ -52,13 +53,13 @@ func main() {
 	userSvc := service.NewUserService(repoFactory.UserRepo())
 	entrySvc := service.NewEntryService(repoFactory.EntryRepo())
 	contactSvc := service.NewContactService(repoFactory.ContactRepo())
-	otpSvc := service.NewOTPService(repoFactory.UserRepo(), store, smooveNotifier, 5*time.Minute)
+	otpSvc := service.NewOTPService(repoFactory.UserRepo(), store, smooveNotifier, sendOTPLimiter, 5*time.Minute)
 
 	// 4. Build handlers
 	entryH := entryHandlerPkg.NewEntryHandler(entrySvc)
 	contactH := contactHandlerPkg.NewContactHandler(contactSvc)
 	userH := userHandlerPkg.NewUserHandler(userSvc)
-	otpH := OTPHandlerPkg.NewOTPHandler(smooveNotifier, otpSvc, tokenSvc, userSvc)
+	otpH := OTPHandlerPkg.NewOTPHandler(otpSvc, tokenSvc, userSvc)
 
 	// 5. Configure CORS
 	r := gin.Default()
@@ -71,7 +72,7 @@ func main() {
 	}))
 
 	// 6. Mount routes
-	limiterMw := middleware.OTPRateLimit(sendOTPLimiter)
+	limiterMw := middleware.OTPRateLimit(globalOTPLimiter)
 	handlers.RegisterPublic(r, otpH, limiterMw)
 
 	authMw := middleware.JWTMiddleware(tokenSvc)

@@ -4,21 +4,20 @@ import (
 	"errors"
 	"log"
 	"mypracticum/backend/domain"
-	"mypracticum/backend/pkg/otp"
 	"mypracticum/backend/service"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type OTPHandler struct {
-	notifier otp.Notifier
 	tokenSvc *service.TokenService
 	userSvc  *service.UserService
 	otpSvc   *service.OTPService
 }
 
-func NewOTPHandler(notifier otp.Notifier, otpSvc *service.OTPService, tokenSvc *service.TokenService, userSvc *service.UserService) *OTPHandler {
-	return &OTPHandler{notifier: notifier, tokenSvc: tokenSvc, userSvc: userSvc, otpSvc: otpSvc}
+func NewOTPHandler(otpSvc *service.OTPService, tokenSvc *service.TokenService, userSvc *service.UserService) *OTPHandler {
+	return &OTPHandler{tokenSvc: tokenSvc, userSvc: userSvc, otpSvc: otpSvc}
 }
 
 // Send handles POST on '/otp/send'
@@ -34,6 +33,12 @@ func (h *OTPHandler) Send(ctx *gin.Context) {
 		var nf service.NotFoundError
 		if errors.As(err, &nf) {
 			ctx.JSON(404, gin.H{"error": nf.Error()})
+			return
+		}
+
+		var rl service.TooManyRequestsError
+		if errors.As(err, &rl) {
+			ctx.JSON(http.StatusTooManyRequests, gin.H{"error": rl.Error()})
 			return
 		}
 

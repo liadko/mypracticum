@@ -23,7 +23,7 @@ func OTPRateLimit(limiter cache.Limiter) gin.HandlerFunc {
 		}
 		if !ok {
 			c.JSON(http.StatusTooManyRequests, gin.H{
-				"error": "please wait 2 minutes before requesting a new code",
+				"error": "please wait a couple of seconds before requesting a new code",
 			})
 			c.Abort()
 			return
