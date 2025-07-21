@@ -3,11 +3,11 @@ import { useState, useMemo, useEffect } from 'react'
 import Calendar from './Calendar/Calendar'
 import { format, parseISO } from 'date-fns'
 import type { Contact, ContactType, Entry } from '../types'
-import { ContactDropdown } from './ContactDropdown'
 import './CalendarWithList.css'
 import { he } from 'date-fns/locale'
-import { EditContactsModal } from './EditContacts/EditContactsModal'
+import { EditContactsModal } from './Contacts/EditContactsModal'
 import { pageHeaderText } from '../i18n/he'
+import { ContactDropdown } from './Contacts/ContactDropdown'
 
 const hebrewWeekdays = [
     'ראשון', 'שני', 'שלישי',

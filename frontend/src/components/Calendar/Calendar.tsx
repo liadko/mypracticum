@@ -73,9 +73,9 @@ export default function Calendar({ entries, handleDayToggle, highlightedDate }: 
                     },
 
 
-                    '& .Mui-selected.MuiButtonBase-root.Mui-focusVisible': {
-                        backgroundColor: '#00A495',
-                    },
+                    // '& .Mui-selected.MuiButtonBase-root.Mui-focusVisible': {
+                    //     backgroundColor: '#00A495',
+                    // },
 
                     // June 2025 Header
                     "& .MuiPickersCalendarHeader-labelContainer": {

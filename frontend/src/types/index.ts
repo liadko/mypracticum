@@ -72,7 +72,7 @@ export interface User {
 
     email: string
 
-    signature?: string  // Base64 blob
+    signature?: string  // Base64 jpeg
 
     roles: UserRole[]
 }

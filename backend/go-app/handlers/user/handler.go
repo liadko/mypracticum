@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/base64"
 	"errors"
 	"net/http"
 
@@ -43,6 +44,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
+		Signature: user.Signature,
 	}
 	// flatten roles
 	for _, r := range user.Roles {
@@ -52,23 +54,28 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
-// UpdateSignature handles PATCH /users/me/signature
+// UpdateSignature handles PATCH /users/me
 func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
+
 	var req SignatureUpdateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		ctx.JSON(400, gin.H{"error": "invalid payload"})
 		return
 	}
 
-	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
-	svg, err := h.svc.UpdateSignature(ctx.Request.Context(), userID, req.SignatureSVG)
+	// decode base64 → raw []byte
+	data, err := base64.StdEncoding.DecodeString(req.Signature)
 	if err != nil {
-		var ve service.ValidationError
+		ctx.JSON(400, gin.H{"error": "bad base64"})
+		return
+	}
+
+	saved, err := h.svc.UpdateSignature(ctx.Request.Context(), userID, data)
+	if err != nil {
 		var nf service.NotFoundError
 
 		switch {
-		case errors.As(err, &ve):
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
 		case errors.As(err, &nf):
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		default:
@@ -77,9 +84,7 @@ func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 		return
 	}
 
-	resp := SignatureUpdateResponse{
-		SignatureSVG: svg,
-	}
-	ctx.JSON(http.StatusOK, resp)
-
+	// encode raw bytes back to Base64 and return
+	encoded := base64.StdEncoding.EncodeToString(saved)
+	ctx.JSON(http.StatusOK, SignatureUpdateResponse{Signature: encoded})
 }

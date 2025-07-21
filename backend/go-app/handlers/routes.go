@@ -39,5 +39,6 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 
 	// users
 	prot.GET("/users/me", userH.GetMe)
+	prot.PATCH("/users/me", userH.UpdateSignature)
 
 }

@@ -22,7 +22,6 @@ export function EditContactsModal({ initialType, onClose }: Props) {
 
     const {
         getContactsByType,
-        deleteContact,
     } = useContacts()
 
     // open the outer dialog
@@ -76,7 +75,7 @@ export function EditContactsModal({ initialType, onClose }: Props) {
                             key={c.id}
                             contact={c}
                             onEdit={openEdit}
-                            onDelete={() => deleteContact(c.id)}
+                            //onDelete={() => deleteContact(c.id)}
                         />
                     ))}
                 </div>

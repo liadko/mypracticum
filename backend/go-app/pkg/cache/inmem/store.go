@@ -11,6 +11,8 @@ import (
 type Store struct {
 	mu   sync.Mutex
 	data map[string]entry
+
+	done chan struct{}
 }
 
 type entry struct {
@@ -20,7 +22,10 @@ type entry struct {
 
 // NewStore returns a Store you can inject anywhere you need cache.Store
 func NewStore() cache.Store {
-	s := &Store{data: make(map[string]entry)}
+	s := &Store{
+		data: make(map[string]entry),
+		done: make(chan struct{}),
+	}
 
 	// launch janitor
 	go s.gcLoop(1 * time.Hour)
@@ -58,17 +63,30 @@ func (s *Store) Delete(key string) error {
 	return nil
 }
 
+// Close stops the background janitor.
+func (s *Store) Close() {
+	close(s.done)
+}
+
 // gcLoop is a good janitor
 func (s *Store) gcLoop(interval time.Duration) {
 	ticker := time.NewTicker(interval)
-	for range ticker.C {
-		now := time.Now()
-		s.mu.Lock()
-		for k, e := range s.data {
-			if now.After(e.expiresAt) {
-				delete(s.data, k)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			now := time.Now()
+			s.mu.Lock()
+			for k, e := range s.data {
+				if now.After(e.expiresAt) {
+					delete(s.data, k)
+				}
 			}
+			s.mu.Unlock()
+		case <-s.done:
+			return
 		}
-		s.mu.Unlock()
 	}
+
 }

@@ -99,18 +99,22 @@ func (r *PostgresUserRepo) UpdateSignature(
 	ctx context.Context,
 	userID uuid.UUID,
 	sig []byte,
-) error {
+) ([]byte, error) {
 	const q = `
     UPDATE users
        SET signature = $1
      WHERE id = $2
+    RETURNING signature
     `
-	res, err := r.db.ExecContext(ctx, q, sig, userID)
+	var storedSig []byte
+	err := r.db.
+		QueryRowContext(ctx, q, sig, userID).
+		Scan(&storedSig)
 	if err != nil {
-		return err
+		if err == sql.ErrNoRows {
+			return nil, repository.ErrNotFound
+		}
+		return nil, err
 	}
-	if n, _ := res.RowsAffected(); n == 0 {
-		return repository.ErrNotFound
-	}
-	return nil
+	return storedSig, nil
 }

@@ -21,6 +21,10 @@ interface ContactsContextType {
   getContactById: (id: string) => Contact | undefined
   addContact: (c: NewContact) => Promise<Contact>
   updateContact: (id: string, newContact: NewContact) => Promise<Contact>
+
+
+  loadingC: boolean
+  errorC: Error | null
   //deleteContact: (id: string) => Promise<void>
 }
 
@@ -28,13 +32,32 @@ const ContactsContext = createContext<ContactsContextType | undefined>(undefined
 
 export function ContactsProvider({ children }: ContactsProviderProps) {
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<Error | null>(null) // fatal error
+
 
   // load on mount
   useEffect(() => {
+    let isMounted = true
+    setLoading(true)
     api.fetchAllContacts()
-      .then(setContacts)
-      .catch(console.error)
+      .then(fetched => {
+        if (!isMounted) return
+        setContacts(fetched)
+      })
+      .catch(err => {
+        if (!isMounted) return
+        console.error(err)
+        setError(Error(`Oops! Something happened: ${err}`))
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
+    }
   }, [])
+
 
   const addContact = useCallback(async (newC: NewContact) => {
     const created = await api.createContact(newC)
@@ -80,6 +103,9 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
       getContactById,
       addContact,
       updateContact,
+
+      loadingC: loading,
+      errorC: error,
       //deleteContact
     }}>
       {children}

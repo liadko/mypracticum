@@ -23,7 +23,8 @@ interface AuthContextType {
   secondsLeft: number
   submittedEmail: string | null
 
-  updateSignature: (dataUrl: string) => Promise<void>
+  
+  updateSignature: (sig: string) => Promise<void>
 
 
 }
@@ -66,13 +67,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // ② Whenever token changes, fetch (or clear) the user
   useEffect(() => {
+    setIsLoading(true)
     if (!token) {
       setUser(null)
       setIsLoading(false)
       return
     }
 
-    setIsLoading(true)
     authApi.fetchProfile()
       .then(u => {
         console.log(u)
@@ -149,13 +150,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
 
-  async function updateSignature(dataUrl: string) {
-    // call your API to save the signature
-    await authApi.saveSignature(dataUrl)
-    // re-fetch the user (or merge)
-    const refreshed = await authApi.fetchProfile()
-    setUser(refreshed)
+  async function updateSignature(base64: string) {
+    if (!user) return
+    const { signature } = await authApi.updateSignature(base64)
+    setUser({ ...user, signature })  // now holds base64 JPEG
   }
+
 
 
   return (

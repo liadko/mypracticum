@@ -10,8 +10,8 @@ interface EntriesProviderProps {
 
 interface EntriesContextType {
     entries: Entry[]
-    loading: boolean
-    error: Error | null
+    loadingE: boolean
+    errorE: Error | null
     pending: Set<string>       // set of entry‐ids currently being toggled
     toggleEntry: (contactId: string, date: string) => Promise<void>
 }
@@ -136,7 +136,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
 
     return (
-        <EntriesContext.Provider value={{ entries, loading, error, pending, toggleEntry }}>
+        <EntriesContext.Provider value={{ entries, loadingE: loading, errorE: error, pending, toggleEntry }}>
             {children}
         </EntriesContext.Provider>
     )

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import type { Contact, ContactType } from '../types'
-import { contactLabelPluralShort } from '../i18n/he'
+import type { Contact, ContactType } from '../../types'
+import { contactLabelPluralShort } from '../../i18n/he'
 import './ContactDropdown.css'
 
 interface Props {

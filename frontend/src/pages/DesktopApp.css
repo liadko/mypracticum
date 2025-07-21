@@ -31,6 +31,9 @@
 .signature-image {
     height: 70px;
     width: auto;
+    object-fit: contain;
+    overflow: visible;
+
 }
 
 .agreement {
@@ -58,8 +61,10 @@
 }
 
 .header-right {
+    justify-self: flex-end;
     display: flex;
     align-items: flex-end;
+    margin-left: auto;
     padding: 0.5em 0;
 }
 
@@ -134,11 +139,11 @@
 }
 
 #react-hot-toast {
-  z-index: 9999 !important;
+    z-index: 9999 !important;
 }
 
 .react-hot-toast .toast,
 .react-hot-toast .toast-error,
 .react-hot-toast .toast-success {
-  z-index: 9999 !important;
+    z-index: 9999 !important;
 }

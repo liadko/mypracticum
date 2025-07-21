@@ -1,7 +1,7 @@
 auth:
   # non-sensitive defaults
   jwtIssuer:      "mypracticum"
-  jwtTTL:         "1h"               # Go-duration string
+  jwtTTL:         "168h"               
 smoove:
   baseURL:        "https://rest.smoove.io/v1/"
 otp:

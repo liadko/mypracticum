@@ -4,10 +4,10 @@ import './ContactRow.css'
 interface Props {
   contact: Contact
   onEdit: (id : string) => void
-  onDelete: (id: string) => void
+  //onDelete: (id: string) => void
 }
 
-export function ContactRow({ contact, onEdit, onDelete }: Props) {
+export function ContactRow({ contact, onEdit }: Props) {
   return (
     <div className="contact-row">
       <div className="contact-row__details">

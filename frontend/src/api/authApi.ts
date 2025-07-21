@@ -57,3 +57,27 @@ export async function fetchProfile(): Promise<User> {
   }
   return await res.json()
 }
+
+/**
+ * updateSignature
+ *
+ * Sends a PATCH to `/api/users/me` with a JSON body containing
+ * a Base64-encoded JPEG (no “data:” prefix). The server decodes
+ * and stores the raw bytes, then echoes back the same Base64 string.
+ *
+ * @param base64JPEG  Base64 JPEG string (e.g. "iVBORw0KGgoAAAANS…"), without data URL header
+ * @returns            Promise resolving to `{ signature: string }` where `signature`
+ *                     is the saved Base64 JPEG
+ * @throws             Error if the network call fails or the response is not OK
+ */
+export async function updateSignature(
+  base64Jpeg: string
+): Promise<{ signature: string }> {
+  const res = await apiFetch('/api/users/me', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ signature: base64Jpeg }),
+  })
+  if (!res.ok) throw new Error(`update failed: ${res.status}`)
+  return res.json()  // { signature: "<base64-string>" }
+}
