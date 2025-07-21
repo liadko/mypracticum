@@ -63,16 +63,18 @@ export type FormMode = AddMode | EditMode
 export type UserRole = 'student' | 'mentor' | 'therapist' | 'admin'
 
 export interface User {
-  /** UUIDv4 */
-  id: string
+    /** UUIDv4 */
+    id: string
 
-  firstName: string
+    firstName: string
 
-  lastName: string
+    lastName: string
 
-  email: string
+    email: string
 
-  roles: UserRole[]
+    signature?: string  // Base64 blob
+
+    roles: UserRole[]
 }
 
 

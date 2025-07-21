@@ -22,7 +22,8 @@ function AppRoutes() {
   return (
     <ContactsProvider>
       <EntriesProvider>
-        <DesktopApp />
+        <DesktopApp user={user}
+        />
       </EntriesProvider>
     </ContactsProvider>
   );

@@ -113,8 +113,8 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
 
             <div className="contact-form__field">
                 <label className="contact-form__label">
-                    שם
-                    <input
+                    {type === 'client' ? 'שם המטופל בראשי תיבות' : 'שם מלא'}
+                    < input
                         ref={nameRef}
                         type="text"
                         className="contact-form__input"
@@ -158,7 +158,7 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
                     </div>
                     <div className="contact-form__field">
                         <label className="contact-form__label">
-                            התמחות
+                            הכשרה
                             <input
                                 type="text"
                                 className="contact-form__input"

@@ -68,9 +68,11 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await verifyOtp(code)
-    } catch (error) {
-      console.error(error)
-      showError('קוד שגוי. בדוק ונסה שוב', 2000)
+    } catch (err : unknown) {
+      if(err instanceof AuthError)
+        showError(err.message, 2000)
+      else
+        showError('בדיקות הקוד נכשלה. צרו קשר אם הבעיה מתמשכת')
       setLoading(false)
     }
   }
@@ -103,7 +105,7 @@ export default function LoginPage() {
 
         <div className="login-modal__body">
           {!otpPage ? (
-            <LoginForm onSubmit={handleEmailSubmit} disabled={loading} previouslySubmittedEmail={submittedEmail ?? ""} />
+            <LoginForm onSubmit={handleEmailSubmit} disabled={loading} previouslySubmittedEmail={submittedEmail ?? ""} secondsLeft={secondsLeft}/>
           ) : (
             <OtpForm
               email={submittedEmail!}

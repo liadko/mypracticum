@@ -5,7 +5,8 @@ import {
   useEffect,
 } from 'react'
 import * as authApi from '../api/authApi'
-import type { User } from '../api/authApi'
+import type { User } from '../types'
+
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -21,6 +22,9 @@ interface AuthContextType {
   logout: () => void
   secondsLeft: number
   submittedEmail: string | null
+
+  updateSignature: (dataUrl: string) => Promise<void>
+
 
 }
 
@@ -70,7 +74,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     setIsLoading(true)
     authApi.fetchProfile()
-      .then(u => setUser(u))
+      .then(u => {
+        console.log(u)
+        setUser(u)
+      })
       .catch((e) => {
         // invalid or expired token
         console.error(e)
@@ -94,7 +101,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setOtpSentAt(0)
           localStorage.removeItem('otpSentAt')
 
-          setSubmittedEmail(null)
+          //setSubmittedEmail(null)
           localStorage.removeItem('submittedEmail')
 
 
@@ -141,6 +148,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setToken(null)
   }
 
+
+  async function updateSignature(dataUrl: string) {
+    // call your API to save the signature
+    await authApi.saveSignature(dataUrl)
+    // re-fetch the user (or merge)
+    const refreshed = await authApi.fetchProfile()
+    setUser(refreshed)
+  }
+
+
   return (
     <AuthContext.Provider
       value={{
@@ -151,7 +168,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         verifyOtp,
         logout,
         secondsLeft,
-        submittedEmail
+        submittedEmail,
+
+        updateSignature
       }}
     >
       {children}

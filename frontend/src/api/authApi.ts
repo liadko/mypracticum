@@ -1,13 +1,7 @@
+import type { User } from "../types"
 import { fetchWithTimeout } from "../utils/fetchWithTimeout"
 import { apiFetch } from "./client"
 import { AuthError } from "./errors"
-
-export interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-}
 
 /**
  * Trigger sending an OTP to the given email.
@@ -25,6 +19,7 @@ export async function login(email: string): Promise<void> {
   }
   if (!res.ok) {
     if (res.status === 400) throw new AuthError('invalid-email', 'כתובת מייל לא תקינה')
+    if (res.status === 404) throw new AuthError('invalid-email', 'המייל אינו קיים במערכת')
     if (res.status === 429) throw new AuthError('too-many-requests', 'נא להמתין, נסו שוב בקרוב')
     throw new AuthError('network', `login failed: ${res.status}`)
   }
@@ -44,7 +39,9 @@ export async function verifyOtp(
     body: JSON.stringify({ email, code }),
   })
   if (!res.ok) {
-    throw new Error(`OTP verification failed: ${res.status}`)
+    if (res.status === 429) throw new AuthError('too-many-requests', 'נא להמתין בין בדיקות')
+    if (res.status === 401) throw new AuthError('invalid-code', 'קוד שגוי, נסו שנית')
+    throw new AuthError('network', `OTP verification failed: ${res.status}`)
   }
   return await res.json()
 }

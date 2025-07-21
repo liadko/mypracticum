@@ -6,9 +6,10 @@ export interface LoginFormProps {
   onSubmit: (email: string) => void
   disabled?: boolean
   previouslySubmittedEmail: string
+  secondsLeft: number
 }
 
-export default function LoginForm({ onSubmit, disabled = false, previouslySubmittedEmail = '' }: LoginFormProps) {
+export default function LoginForm({ onSubmit, disabled = false, previouslySubmittedEmail = '', secondsLeft=0 }: LoginFormProps) {
   const [email, setEmail] = useState(previouslySubmittedEmail)
   const [touched, setTouched] = useState(false)
 
@@ -19,10 +20,10 @@ export default function LoginForm({ onSubmit, disabled = false, previouslySubmit
     onSubmit(email)
   }
 
-  // if parent changes it (e.g. after refresh), keep in sync:
-  useEffect(() => {
-    setEmail(previouslySubmittedEmail)
-  }, [previouslySubmittedEmail])
+  // // if parent changes it (e.g. after refresh), keep in sync:
+  // useEffect(() => {
+  //   setEmail(previouslySubmittedEmail)
+  // }, [previouslySubmittedEmail])
 
   return (
     <form className="login-form" onSubmit={handleSubmit} noValidate>
@@ -43,7 +44,7 @@ export default function LoginForm({ onSubmit, disabled = false, previouslySubmit
         className="login-form__button"
         disabled={!email.trim()}
       >
-        {previouslySubmittedEmail && email == previouslySubmittedEmail
+        {previouslySubmittedEmail && email == previouslySubmittedEmail && secondsLeft > 0
           ? "הכנסת הקוד"
           : "שלחו לי קוד אימות"}
 

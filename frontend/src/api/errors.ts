@@ -1,5 +1,6 @@
 export type AuthErrorCode = 
   | 'invalid-email'
+  | 'invalid-code'
   | 'too-many-requests'
   | 'network'
 

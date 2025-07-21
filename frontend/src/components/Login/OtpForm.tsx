@@ -19,7 +19,7 @@ export default function OtpForm({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (code.length < 4) return
+    if (code.length < 6) return
     await onSubmitOtp(code)
   }
 
