@@ -1,12 +1,11 @@
 // EditContactsModal.tsx
 import { useRef, useEffect, useState } from 'react'
 import { useContacts } from '../../context/ContactsContext'
-import type { Contact, ContactType, FormMode } from '../../types'
+import type { ContactType, FormMode } from '../../types'
 import { ContactRow } from './ContactRow'
 import { ContactForm } from './ContactForm'
 import './EditContactsModal.css'
 import { contactLabelSingular } from '../../i18n/he'
-import { Toaster } from 'react-hot-toast'
 
 interface Props {
     initialType: ContactType

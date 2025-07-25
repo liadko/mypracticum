@@ -33,10 +33,10 @@ export default function MentorPage() {
         <CalendarWithList
           contacts={contacts}
           entries={mentorEntries}
-          hoursNeeded={150}
+          //hoursNeeded={150}
           contactType='mentor'
           onEntryToggle={useEntries().toggleEntry}
-          renderExtra={e =>/* your old MentorNameInput */null}
+          //renderExtra={e =>/* your old MentorNameInput */null}
         />
       </div>
     </ThemeProvider>

@@ -1,21 +1,20 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import './LoginPage.css'
 
 export interface LoginFormProps {
   /** Called with the user’s email when the form is submitted */
   onSubmit: (email: string) => void
-  disabled?: boolean
   previouslySubmittedEmail: string
   secondsLeft: number
 }
 
-export default function LoginForm({ onSubmit, disabled = false, previouslySubmittedEmail = '', secondsLeft=0 }: LoginFormProps) {
+export default function LoginForm({ onSubmit, previouslySubmittedEmail = '', secondsLeft=0 }: LoginFormProps) {
   const [email, setEmail] = useState(previouslySubmittedEmail)
-  const [touched, setTouched] = useState(false)
+  //const [touched, setTouched] = useState(false)
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    setTouched(true)
+    //setTouched(true)
     if (!email) return
     onSubmit(email)
   }
@@ -36,7 +35,7 @@ export default function LoginForm({ onSubmit, disabled = false, previouslySubmit
         placeholder="Email"
         value={email}
         onChange={e => setEmail(e.target.value)}
-        onBlur={() => setTouched(true)}
+        //onBlur={() => setTouched(true)}
         required
       />
       <button

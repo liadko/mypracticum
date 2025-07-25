@@ -1,0 +1,19 @@
+# Binaries, build artifacts
+/tmp
+*.exe
+build-errors.log
+
+# Git
+.git
+.gitignore
+
+# Local env files
+.env
+.env.*
+
+# IDE files
+*.idea
+*.vscode
+
+# Vendor (if ever used)
+vendor

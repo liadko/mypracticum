@@ -4,7 +4,6 @@ import Calendar from './Calendar/Calendar'
 import { format, parseISO } from 'date-fns'
 import type { Contact, ContactType, Entry } from '../types'
 import './CalendarWithList.css'
-import { he } from 'date-fns/locale'
 import { EditContactsModal } from './Contacts/EditContactsModal'
 import { pageHeaderText } from '../i18n/he'
 import { ContactDropdown } from './Contacts/ContactDropdown'
@@ -18,20 +17,20 @@ export interface CalendarWithListProps {
     contacts: Contact[]             // all contacts of this category
     entries: Entry[]                    // all entries of this category
 
-    hoursNeeded: number
+    //hoursNeeded: number
     contactType: ContactType
 
     onEntryToggle: (contactId: string, date: string) => void
-    renderExtra: (entry: Entry) => React.ReactNode
+    //renderExtra: (entry: Entry) => React.ReactNode
 }
 
 export function CalendarWithList({
     contacts,
     entries,
-    hoursNeeded,
+    //hoursNeeded,
     contactType,
     onEntryToggle,
-    renderExtra,
+    //renderExtra,
 }: CalendarWithListProps) {
     // selected contact UUID
     const [selectedContactId, setSelectedContactId] = useState<string>(

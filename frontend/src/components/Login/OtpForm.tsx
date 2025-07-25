@@ -7,13 +7,11 @@ export interface OtpFormProps {
   /** Called with the OTP code when the form is submitted */
   onSubmitOtp: (code: string) => Promise<void>
   /** Disable input and button while verifying */
-  disabled?: boolean
 }
 
 export default function OtpForm({
   email,
   onSubmitOtp,
-  disabled = false,
 }: OtpFormProps) {
   const [code, setCode] = useState('')
 
@@ -40,13 +38,13 @@ export default function OtpForm({
           maxLength={6}
           value={code}
           onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-          disabled={disabled}
+          //disabled={disabled}
         />
 
         <button
           type="submit"
           className="login-form__button"
-          disabled={disabled || code.length < 6}
+          disabled={code.length < 6}
         >
           אשרו את הקוד
         </button>

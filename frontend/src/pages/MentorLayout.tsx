@@ -1,10 +1,12 @@
-import type { User } from "../types"
+//import type { User } from "../types"
 
 interface StudentLayoutProps {
-    user: User
+    //user: User
 }
 
-export default function StudentLayout({ user }: StudentLayoutProps) {
+export default function StudentLayout({
+     //user 
+    }: StudentLayoutProps) {
 
     return <span>Bruh</span>;
 }

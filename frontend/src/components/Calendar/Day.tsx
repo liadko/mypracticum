@@ -1,5 +1,4 @@
 import { PickersDay, type PickersDayProps } from '@mui/x-date-pickers/PickersDay';
-import { useEffect, useRef } from 'react';
 
 interface DayProps extends PickersDayProps {
     isSelected: boolean;

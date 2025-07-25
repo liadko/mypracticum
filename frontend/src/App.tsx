@@ -45,7 +45,9 @@ function AppRoutes() {
         />
         <Route
           path="/mentor"
-          element={<MentorLayout user={user!} />}
+          element={<MentorLayout 
+            //user={user!}
+             />}
         />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

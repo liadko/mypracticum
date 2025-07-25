@@ -33,10 +33,10 @@ export default function ClientPage() {
         <CalendarWithList
           contacts={contacts}
           entries={clientEntries}
-          hoursNeeded={300}
+          //hoursNeeded={300}
           contactType='client'
           onEntryToggle={useEntries().toggleEntry}
-          renderExtra={e =>/* your old ClientNameInput */null}
+          //renderExtra={e =>/* your old ClientNameInput */null}
         />
       </div>
     </ThemeProvider>

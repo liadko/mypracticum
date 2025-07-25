@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import SignaturePad from 'react-signature-canvas'
 import './SignatureModal.css'
-import { updateSignature } from '../../api/authApi'
 
 interface SignatureModalProps {
   onSave: (sig: string) => Promise<void>
@@ -12,7 +11,7 @@ export default function SignatureModal({
 }: SignatureModalProps) {
   const sigPadRef = useRef<SignaturePad>(null)
   const [isSigned, setIsSigned] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  //const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
 
   const handleEnd = () => setIsSigned(true)
@@ -51,12 +50,12 @@ export default function SignatureModal({
         <h2 className="signature-modal__header">
           צרפו את החתימה שלכם
         </h2>
-        {
+        {/* {
           previewUrl && <img
             src={`${previewUrl}`}
             onClick={handleClear}
           ></img>
-        }
+        } */}
         <p className="signature-modal__text">
           האתר מיועד לדיווח על שעות הדרכה מעשית
           <br />

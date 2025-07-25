@@ -33,10 +33,10 @@ export default function TherapistPage() {
         <CalendarWithList
           contacts={contacts}
           entries={therapistEntries}
-          hoursNeeded={300}
+          //hoursNeeded={300}
           contactType='therapist'
           onEntryToggle={useEntries().toggleEntry}
-          renderExtra={e =>/* your old TherapistNameInput */null}
+          //renderExtra={e =>/* your old TherapistNameInput */null}
         />
       </div>
     </ThemeProvider>

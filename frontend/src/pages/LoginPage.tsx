@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import LoginForm from '../components/Login/LoginForm'
 import OtpForm from '../components/Login/OtpForm'
@@ -11,10 +10,10 @@ import { AuthError } from '../api/errors'
 
 export default function LoginPage() {
   //const navigate = useNavigate()
-  const { user, submitEmail, verifyOtp, secondsLeft, submittedEmail } = useAuth()
+  const { submitEmail, verifyOtp, secondsLeft, submittedEmail } = useAuth()
 
   const [otpPage, setOtpPage] = useState<boolean>(false)
-  const [loading, setLoading] = useState<boolean>(false)
+  //const [loading, setLoading] = useState<boolean>(false)
 
   // Redirect on successful auth
   // useEffect(() => {
@@ -45,7 +44,7 @@ export default function LoginPage() {
     }
 
 
-    setLoading(true)
+    //setLoading(true)
     try {
       await submitEmail(enteredEmail)
       setOtpPage(true)
@@ -59,13 +58,13 @@ export default function LoginPage() {
         showError('שליחת הקוד נכשלה. נסה שוב')
       }
     } finally {
-      setLoading(false)
+      //setLoading(false)
     }
   }
 
   // Handle OTP verification
   const handleOtpSubmit = async (code: string) => {
-    setLoading(true)
+    //setLoading(true)
     try {
       await verifyOtp(code)
     } catch (err : unknown) {
@@ -73,7 +72,7 @@ export default function LoginPage() {
         showError(err.message, 2000)
       else
         showError('בדיקות הקוד נכשלה. צרו קשר אם הבעיה מתמשכת')
-      setLoading(false)
+      //setLoading(false)
     }
   }
 
@@ -105,12 +104,11 @@ export default function LoginPage() {
 
         <div className="login-modal__body">
           {!otpPage ? (
-            <LoginForm onSubmit={handleEmailSubmit} disabled={loading} previouslySubmittedEmail={submittedEmail ?? ""} secondsLeft={secondsLeft}/>
+            <LoginForm onSubmit={handleEmailSubmit}  previouslySubmittedEmail={submittedEmail ?? ""} secondsLeft={secondsLeft}/>
           ) : (
             <OtpForm
               email={submittedEmail!}
               onSubmitOtp={handleOtpSubmit}
-              disabled={loading}
             />
           )}
 
