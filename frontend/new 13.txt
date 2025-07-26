@@ -2,3 +2,22 @@ gcloud run deploy go-app \
   --image gcr.io/$GOOGLE_CLOUD_PROJECT/go-app:latest \
   --allow-unauthenticated \
   --env-vars-file .env.yaml
+  
+  
+  
+  gcloud run deploy go-app --image gcr.io/mypracticum-dev/go-app:latest
+  
+
+BEGIN;
+
+WITH new_user AS (
+  INSERT INTO users (first_name, last_name, email)
+  VALUES ('אייל', 'זיו', 'ayalziv42@gmail.com')
+  RETURNING id
+)
+INSERT INTO user_roles (user_id, role_id)
+SELECT new_user.id, r.id
+FROM new_user
+JOIN roles r ON r.name = 'student';
+
+COMMIT;

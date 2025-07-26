@@ -1,12 +1,33 @@
-/backend/tmp/
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node / frontend
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.env*
+/frontend/.env.local
+
+# Go backend
+/backend/go-app/bin/
 /backend/go-app/tmp/
+/backend/go-app/*.exe
+/backend/go-app/*.log
+/backend/go-app/.env
 
-# keep API-keys out of git
+# Neon / test data
+/backend/tmp/
+
+# Build artifacts
+*.o
+*.out
+
+# Environment
 .env
-.env.local
+.env.*
+!.env.example    # keep a sample
 
-/backend/java-otp/src/main/resources/application-smoove.yml
-
-backend/go-app/tmp/build-errors.log
-backend/go-app/tmp/main.exe
-backend/go-app/.env
+# General
+*.log
