@@ -9,7 +9,7 @@ import { AuthError } from "./errors"
 export async function login(email: string): Promise<void> {
   let res: Response
   try {
-    res = await fetchWithTimeout('/api/otp/send', {
+    res = await fetchWithTimeout('/api/v1/otp/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
@@ -33,7 +33,7 @@ export async function verifyOtp(
   email: string,
   code: string
 ): Promise<{ token: string }> {
-  const res = await fetch('/api/otp/verify', {
+  const res = await fetch('/api/v1/otp/verify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, code }),
@@ -50,7 +50,7 @@ export async function verifyOtp(
  * Fetch the current user’s profile.
  */
 export async function fetchProfile(): Promise<User> {
-  const res = await apiFetch('/api/users/me')
+  const res = await apiFetch('/api/v1/users/me')
   if (!res.ok) {
     console.error(`got this: ${res}`)
     throw new Error(`fetchProfile failed: ${res.status}`)
@@ -73,7 +73,7 @@ export async function fetchProfile(): Promise<User> {
 export async function updateSignature(
   base64Jpeg: string
 ): Promise<{ signature: string }> {
-  const res = await apiFetch('/api/users/me', {
+  const res = await apiFetch('/api/v1/users/me', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ signature: base64Jpeg }),

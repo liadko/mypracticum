@@ -4,10 +4,10 @@
     "ignore": ["firebase.json","**/.*","**/node_modules/**"],
     "rewrites": [
       {
-        "source": "/api/**",
+        "source": "/api/v1/**",
         "run": {
-          "serviceId": "your-go-service",      
-          "region":    "us-central1"           
+          "serviceId": "go-app",      
+          "region":    "me-west1"           
         }
       },
       {

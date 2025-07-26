@@ -28,6 +28,7 @@ func main() {
 	// 1) Load config (app.yaml for defaults and .env for secretes+overrides)
 	_ = godotenv.Load() // loads .env into os.Env --- for development only
 	cfg := config.Load()
+	cfg.Validate()
 
 	// 1. Connect to Postgres, and Logger
 	db, err := db.Connect(cfg.Auth.DatabaseURL)
@@ -62,12 +63,14 @@ func main() {
 	// 5. Configure CORS
 	r := gin.Default()
 
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		AllowCredentials: true,
-	}))
+	// r.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     []string{"http://localhost:5173"},
+	// 	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	// 	AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+	// 	AllowCredentials: true,
+	// }))
+
+	r.Use(cors.Default()) // temporary: allow all origins until you have a stable domain
 
 	// 6. Mount routes
 	limiterMw := middleware.OTPRateLimit(globalOTPLimiter)
@@ -77,5 +80,5 @@ func main() {
 	handlers.RegisterProtected(r, entryH, contactH, userH, authMw)
 
 	// 7. Start server
-	r.Run(":8080")
+	r.Run(":" + cfg.Port)
 }

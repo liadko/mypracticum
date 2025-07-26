@@ -6,7 +6,7 @@ import { apiFetch } from './client'
  */
 export async function fetchAllEntries(
 ): Promise<Entry[]> {
-    const res = await apiFetch(`/api/entries`)
+    const res = await apiFetch(`/api/v1/entries`)
 
     if (!res.ok) {
         throw new Error(`Failed to load entries: ${res.status} ${res.statusText}`)
@@ -23,7 +23,7 @@ export async function fetchAllEntries(
 export async function createEntry(
     payload: NewEntry
 ): Promise<Entry> {
-    const res = await apiFetch(`/api/entries`, {
+    const res = await apiFetch(`/api/v1/entries`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -41,7 +41,7 @@ export async function createEntry(
 export async function deleteEntry(
     entryId: string
 ): Promise<void> {
-    const res = await apiFetch(`/api/entries/${encodeURIComponent(entryId)}`, {
+    const res = await apiFetch(`/api/v1/entries/${encodeURIComponent(entryId)}`, {
         method: 'DELETE',
     })
     if (!res.ok) {

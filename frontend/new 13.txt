@@ -1,0 +1,4 @@
+gcloud run deploy go-app \
+  --image gcr.io/$GOOGLE_CLOUD_PROJECT/go-app:latest \
+  --allow-unauthenticated \
+  --env-vars-file .env.yaml

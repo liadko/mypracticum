@@ -54,7 +54,7 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 	}
 
 	// before generating a new code, check limiter
-	limitKey := fmt.Sprintf("rl:otpSend:%s", email)
+	limitKey := fmt.Sprintf("rl:otpSend:%s", user.Email)
 	ok, err := s.sendLimiter.Allow(limitKey)
 	if err != nil {
 		return fmt.Errorf("rate-limiter failed: %w", err)
@@ -78,7 +78,7 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 	log.Printf("SHHHHH.... %s", code)
 
 	// 4) send (email/SMS)
-	if err := s.notifier.Send(ctx, email, code); err != nil {
+	if err := s.notifier.Send(ctx, user.Email, code); err != nil {
 		// cleanup so no orphaned code
 		if delErr := s.otpStore.Delete(otpKey); delErr != nil {
 			log.Printf("cleanup OTP failed: %v", delErr)

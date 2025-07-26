@@ -12,7 +12,7 @@ import (
 // RegisterPublic mounts all public endpoints
 // ADD parameter oauthH *oauthPkg.OAuthHandler
 func RegisterPublic(r *gin.Engine, otpH *otpPkg.OTPHandler, otpLimiter gin.HandlerFunc) {
-	pub := r.Group("")
+	pub := r.Group("/api/v1")
 	pub.Use(otpLimiter)
 
 	pub.POST("/otp/send", otpH.Send)
@@ -24,7 +24,7 @@ func RegisterPublic(r *gin.Engine, otpH *otpPkg.OTPHandler, otpLimiter gin.Handl
 
 // RegisterProtected mounts everything behind auth
 func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *contactPkg.ContactHandler, userH *userPkg.UserHandler, mws ...gin.HandlerFunc) {
-	prot := r.Group("")
+	prot := r.Group("/api/v1")
 	prot.Use(mws...)
 
 	// entries
