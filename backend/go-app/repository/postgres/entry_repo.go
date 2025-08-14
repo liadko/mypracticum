@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -40,16 +39,23 @@ func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([
 	for rows.Next() {
 		var entry domain.Entry
 
-		if err := rows.Scan(&entry.ID, &entry.ContactID, &entry.Date, &entry.Approved); err != nil {
-			log.Printf("Error scanning client entry row: %v", err)
+		var date sql.NullTime
+		if err := rows.Scan(&entry.ID, &entry.ContactID, &date, &entry.Approved); err != nil {
+			fmt.Printf("Error scanning client entry row: %v", err)
 			continue // Skip bad rows and continue
+		}
+
+		if date.Valid {
+			entry.Date = date.Time
+		} else {
+			fmt.Println("Error parsing Date from entry")
 		}
 
 		entries = append(entries, entry)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("row error while listing entries for user %q: %w", userID, err)
 	}
 
 	return entries, nil

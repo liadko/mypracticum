@@ -115,6 +115,12 @@
     font-weight: 600;
 }
 
+.nav-button.settings {
+    position: absolute;
+    left: 10px;
+    border: solid 1px #333333;
+
+}
 
 
 

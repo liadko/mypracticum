@@ -90,7 +90,7 @@ export function EditContactsModal({ initialType, onClose }: Props) {
         if (formMode)
             return "עריכת פרטי " + contactLabelSingular[currentPage];
 
-        return "אני רוצה לעדכן";
+        return "עריכת אנשי קשר";
     }
 
     return (

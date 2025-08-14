@@ -70,7 +70,7 @@ func main() {
 	// 	AllowCredentials: true,
 	// }))
 
-	r.Use(cors.Default()) // temporary: allow all origins until you have a stable domain
+	r.Use(cors.Default()) // temporary: allow all origins until i have a stable domain
 
 	// 6. Mount routes
 	limiterMw := middleware.OTPRateLimit(globalOTPLimiter)

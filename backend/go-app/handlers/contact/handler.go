@@ -1,6 +1,7 @@
 package contact
 
 import (
+	"log"
 	"net/http"
 
 	"mypracticum/backend/domain"
@@ -27,6 +28,7 @@ func (h *ContactHandler) List(ctx *gin.Context) {
 	// 2) Fetch from service
 	domainContacts, err := h.svc.ListContacts(ctx.Request.Context(), userID)
 	if err != nil {
+		log.Println(err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list contacts"})
 		return
 	}
@@ -57,6 +59,7 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 
 	contactID, err := uuid.Parse(ctx.Param("contactId"))
 	if err != nil {
+		log.Println(err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid contact ID"})
 		return
 	}

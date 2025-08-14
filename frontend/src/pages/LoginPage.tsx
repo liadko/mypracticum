@@ -27,7 +27,7 @@ export default function LoginPage() {
   // Handle email submission
   const handleEmailSubmit = async (enteredEmail: string) => {
     // if they just re-submit the same email, jump straight to OTP step
-    if (enteredEmail === submittedEmail) {
+    if (enteredEmail === submittedEmail && secondsLeft > 0) {
       setOtpPage(true)
       return
     }

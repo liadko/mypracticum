@@ -94,6 +94,7 @@ func (h *EntryHandler) List(ctx *gin.Context) {
 	// 2) Fetch entries
 	entries, err := h.svc.ListEntries(ctx.Request.Context(), userID)
 	if err != nil {
+		log.Printf("Error while listing: %s", err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list entries"})
 		return
 	}
