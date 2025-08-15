@@ -86,3 +86,44 @@ func (s *UserService) UpdateSignature(
 	// Return exactly what we stored
 	return saved, nil
 }
+
+// CreateUserWithRole builds & validates a new user (incl. role) in the domain,
+// then persists it via the repo. Domain handles all field validation.
+func (s *UserService) CreateUserWithRole(
+	ctx context.Context,
+	newUser domain.NewUserWithRole, // e.g. {Email, FirstName, LastName, Role, CreatedBy}
+) (domain.User, error) {
+
+	// 1) build & validate in one shot (you'll implement this in domain)
+	u, err := domain.NewUserFromWithRole(newUser)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	// 2) persist
+	created, err := s.userRepo.CreateUser(ctx, u)
+	if err != nil {
+		// optional light mapping; drop if you want it as minimal as AddEntry
+		if errors.Is(err, repository.ErrDuplicate) {
+			return domain.User{}, AlreadyExistsError{Resource: "user", Field: "email", Value: u.Email}
+		}
+		if errors.Is(err, repository.ErrNotFound) { // role not found
+			return domain.User{}, NotFoundError{"role", string(u.Roles[0])}
+		}
+		return domain.User{}, DBError{Err: err}
+	}
+
+	return created, nil
+}
+
+func (s *UserService) GetRolesByID(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	roles, err := s.userRepo.FetchRoles(ctx, userID)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return nil, NotFoundError{"roles for user", userID.String()}
+		}
+		return nil, DBError{Err: err}
+	}
+
+	return roles, nil
+}

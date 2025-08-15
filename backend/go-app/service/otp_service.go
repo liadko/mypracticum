@@ -99,26 +99,32 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 func (s *OTPService) VerifyOTP(
 	ctx context.Context,
 	email, code string,
-) (uuid.UUID, error) {
+) (uuid.UUID, []string, error) {
 	// 1) find user(unknown email → validation failure)
 	user, err := s.userSvc.GetUserByEmail(ctx, email)
 	if err != nil {
-		return uuid.Nil, err // good service errors already come out of UserService
+		return uuid.Nil, nil, err // good service errors already come out of UserService
 	}
 
 	// 2) fetch from cache (will only exist if unexpired)
 	key := fmt.Sprintf("otp:%s:%s", user.ID, code)
 	_, err = s.otpStore.Get(key)
 	if err != nil {
-		return uuid.Nil, domain.ValidationError("invalid credentials")
+		return uuid.Nil, nil, domain.ValidationError("invalid credentials")
 	}
 
 	// 3) consume it (DB error → service failure)
 	if err := s.otpStore.Delete(key); err != nil {
-		return uuid.Nil, fmt.Errorf("consume OTP: %w", err)
+		return uuid.Nil, nil, fmt.Errorf("consume OTP: %w", err)
 	}
 
-	return user.ID, nil
+	// 4) fetch roles
+	roles, err := s.userSvc.GetRolesByID(ctx, user.ID)
+	if err != nil {
+		return uuid.Nil, nil, err
+	}
+
+	return user.ID, roles, nil
 }
 
 // generateCode generates a {length}-digit code

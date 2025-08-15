@@ -11,15 +11,15 @@ import (
 type ContactType string
 
 const (
-	Client    ContactType = "client"
-	Mentor    ContactType = "mentor"
-	Therapist ContactType = "therapist"
+	ClientContact    ContactType = "client"
+	MentorContact    ContactType = "mentor"
+	TherapistContact ContactType = "therapist"
 )
 
 var validContactTypes = []ContactType{
-	Client,
-	Mentor,
-	Therapist,
+	ClientContact,
+	MentorContact,
+	TherapistContact,
 }
 
 // IsValidContactType returns true if t is one of the allowed ContactTypes.
@@ -64,19 +64,19 @@ func (contact Contact) Validate() error {
 	}
 
 	switch contact.Type {
-	case Mentor:
+	case MentorContact:
 		if contact.Email == nil || strings.TrimSpace(*contact.Email) == "" {
 			errs = append(errs, "email is required for mentors")
 		}
 		fallthrough
-	case Therapist:
+	case TherapistContact:
 		if contact.Phone == nil || strings.TrimSpace(*contact.Phone) == "" {
 			errs = append(errs, "phone is required for mentors and therapists")
 		}
 		if contact.Specialty != nil && strings.TrimSpace(*contact.Specialty) == "" {
 			errs = append(errs, "specialty, if provided, cannot be blank")
 		}
-	case Client:
+	case ClientContact:
 		// no extra requirements
 	default:
 		errs = append(errs, "invalid contact type")

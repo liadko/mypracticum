@@ -19,3 +19,11 @@ type SignatureUpdateRequest struct {
 type SignatureUpdateResponse struct {
 	Signature string `json:"signature"` // Base64-encoded image bytes
 }
+
+type createUserRequest struct {
+	Email     string    `json:"email"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Role      string    `json:"role"` // "admin" | "student" | "mentor"
+	CreatedBy uuid.UUID `json:"createdBy"`
+}

@@ -3,11 +3,13 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type PostgresUserRepo struct {
@@ -49,7 +51,7 @@ func (r *PostgresUserRepo) loadUser(
 	}
 
 	// 2) fetch & attach roles
-	roles, err := r.fetchRoles(ctx, u.ID)
+	roles, err := r.FetchRoles(ctx, u.ID)
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -67,9 +69,9 @@ func (r *PostgresUserRepo) FindByID(ctx context.Context, id uuid.UUID) (domain.U
 }
 
 // fetchRoles returns all roles assigned to a given user.
-func (r *PostgresUserRepo) fetchRoles(ctx context.Context, userID uuid.UUID) ([]domain.Role, error) {
+func (r *PostgresUserRepo) FetchRoles(ctx context.Context, userID uuid.UUID) ([]string, error) {
 	const q = `
-    SELECT r.id, r.name
+    SELECT r.name
       FROM roles r
       JOIN user_roles ur ON ur.role_id = r.id
      WHERE ur.user_id = $1
@@ -80,10 +82,10 @@ func (r *PostgresUserRepo) fetchRoles(ctx context.Context, userID uuid.UUID) ([]
 	}
 	defer rows.Close()
 
-	var roles []domain.Role
+	var roles []string
 	for rows.Next() {
-		var ro domain.Role
-		if err := rows.Scan(&ro.ID, &ro.Name); err != nil {
+		var ro string
+		if err := rows.Scan(&ro); err != nil {
 			return nil, err
 		}
 		roles = append(roles, ro)
@@ -117,4 +119,57 @@ func (r *PostgresUserRepo) UpdateSignature(
 		return nil, err
 	}
 	return storedSig, nil
+}
+
+// CreateUserWithRole: tx = insert user → attach roles → return user.
+func (r *PostgresUserRepo) CreateUser(ctx context.Context, u domain.User) (domain.User, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return domain.User{}, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	var out domain.User
+	err = tx.QueryRowContext(ctx, `
+		INSERT INTO users (id, first_name, last_name, email, created_by)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, first_name, last_name, email, signature, created_at, created_by
+	`, u.ID, u.FirstName, u.LastName, u.Email, u.CreatedBy).
+		Scan(&out.ID, &out.FirstName, &out.LastName, &out.Email, &out.Signature, &out.CreatedAt, &out.CreatedBy)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return domain.User{}, repository.ErrDuplicate
+		}
+		return domain.User{}, err
+	}
+
+	// For each role in the slice
+	for _, role := range u.Roles {
+		var roleID int
+		if err := tx.QueryRowContext(ctx, `SELECT id FROM roles WHERE name = $1`, role).Scan(&roleID); err != nil {
+			if err == sql.ErrNoRows {
+				return domain.User{}, repository.ErrNotFound
+			}
+			return domain.User{}, err
+		}
+
+		if _, err := tx.ExecContext(ctx,
+			`INSERT INTO user_roles (user_id, role_id) VALUES ($1,$2)`,
+			out.ID, roleID,
+		); err != nil {
+			return domain.User{}, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return domain.User{}, err
+	}
+
+	roles, err := r.FetchRoles(ctx, out.ID)
+	if err != nil && err != sql.ErrNoRows {
+		return domain.User{}, err
+	}
+	out.Roles = roles
+	return out, nil
 }

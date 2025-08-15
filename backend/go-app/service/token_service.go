@@ -27,8 +27,8 @@ func NewTokenService(
 }
 
 // Generates a JWT using the user's ID
-func (s *TokenService) GenerateToken(ctx context.Context, userID uuid.UUID) (string, error) {
-	token, err := s.jwtMgr.Generate(userID)
+func (s *TokenService) GenerateToken(ctx context.Context, userID uuid.UUID, roles []string) (string, error) {
+	token, err := s.jwtMgr.Generate(userID, roles)
 	if err != nil {
 		return "", TokenGenerationError{err}
 	}
@@ -36,11 +36,11 @@ func (s *TokenService) GenerateToken(ctx context.Context, userID uuid.UUID) (str
 }
 
 // ValidateToken parses and verifies the JWT, then returns the embedded userID.
-func (s *TokenService) ValidateToken(tokenStr string) (uuid.UUID, error) {
+func (s *TokenService) ValidateToken(tokenStr string) (uuid.UUID, []string, error) {
 	claims, err := s.jwtMgr.Parse(tokenStr)
 	if err != nil {
-		return uuid.Nil, TokenValidationError{Err: err}
+		return uuid.Nil, nil, TokenValidationError{Err: err}
 	}
 
-	return claims.UserID, nil
+	return claims.UserID, claims.Roles, nil
 }

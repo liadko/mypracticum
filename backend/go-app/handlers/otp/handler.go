@@ -58,7 +58,7 @@ func (h *OTPHandler) Verify(ctx *gin.Context) {
 		return
 	}
 
-	userID, err := h.otpSvc.VerifyOTP(ctx.Request.Context(), req.Email, req.Code)
+	userID, roles, err := h.otpSvc.VerifyOTP(ctx.Request.Context(), req.Email, req.Code)
 	if err != nil {
 		// combine wrong code & unknown user into “unauthorized”
 		var ve domain.ValidationError
@@ -73,7 +73,7 @@ func (h *OTPHandler) Verify(ctx *gin.Context) {
 		return
 	}
 
-	token, err := h.tokenSvc.GenerateToken(ctx.Request.Context(), userID)
+	token, err := h.tokenSvc.GenerateToken(ctx.Request.Context(), userID, roles)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": "token generation failed"})
 		return

@@ -26,7 +26,7 @@ func JWTMiddleware(svc *service.TokenService) gin.HandlerFunc {
 		}
 
 		// 2) Validate token
-		uid, err := svc.ValidateToken(parts[1])
+		uid, roles, err := svc.ValidateToken(parts[1])
 		if err != nil {
 			var valErr service.TokenValidationError
 			if errors.As(err, &valErr) {
@@ -37,8 +37,9 @@ func JWTMiddleware(svc *service.TokenService) gin.HandlerFunc {
 			return
 		}
 
-		// 3) Authenticated! stash the UUID and move on.
+		// 3) Authenticated! stash the UUID and Roles and move on.
 		c.Set("userID", uid)
+		c.Set("roles", roles)
 		c.Next()
 	}
 }

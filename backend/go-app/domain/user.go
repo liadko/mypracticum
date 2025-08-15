@@ -8,11 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type Role struct {
-	ID   int    // matches roles.id
-	Name string // e.g. "admin", "mentor"
-}
-
 // domain/user.go
 type User struct {
 	ID        uuid.UUID
@@ -21,23 +16,39 @@ type User struct {
 	Email     string
 	Signature []byte
 	CreatedAt time.Time
+	CreatedBy uuid.UUID
 
-	Roles []Role
+	Roles []string
 }
 
-// NewUser builds a user with the given names, email and roles,
+type NewUserWithRole struct {
+	FirstName string
+	LastName  string
+	Email     string
+	Role      string
+	CreatedBy uuid.UUID
+}
+
+// NewUserFromWithRole builds a User from a NewUserWithRole struct,
+// Returns a User with validated names, email, and a single Role.
+func NewUserFromWithRole(nuw NewUserWithRole) (User, error) {
+	return NewUserFrom(nuw.FirstName, nuw.LastName, nuw.Email, nuw.CreatedBy, []string{nuw.Role})
+}
+
+// NewUserFrom builds a user with the given names, email and roles,
 // sets ID and CreatedAt automatically, and runs Validate.
-func NewUser(firstName, lastName, email string, roles []Role) (*User, error) {
-	u := &User{
+func NewUserFrom(firstName, lastName, email string, createdBy uuid.UUID, roles []string) (User, error) {
+	u := User{
 		ID:        uuid.New(),
 		FirstName: strings.TrimSpace(firstName),
 		LastName:  strings.TrimSpace(lastName),
 		Email:     strings.ToLower(strings.TrimSpace(email)),
 		Roles:     roles,
 		CreatedAt: time.Now(),
+		CreatedBy: createdBy,
 	}
 	if err := u.Validate(); err != nil {
-		return nil, err
+		return User{}, err
 	}
 	return u, nil
 }
@@ -64,6 +75,9 @@ func (u *User) Validate() error {
 	}
 	if len(u.Roles) == 0 {
 		return ValidationError("user must have at least one role")
+	}
+	if u.CreatedBy == uuid.Nil {
+		return ValidationError("created by must not be empty")
 	}
 	return nil
 }

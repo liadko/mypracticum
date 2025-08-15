@@ -14,6 +14,17 @@ func (e NotFoundError) Error() string {
 	return fmt.Sprintf("%s with ID %q not found", e.Resource, e.ID)
 }
 
+// AlreadyExistsError indicates a unique-key conflict at the business layer.
+type AlreadyExistsError struct {
+	Resource string // e.g., "user"
+	Field    string // e.g., "email"
+	Value    string // e.g., "foo@bar.com"
+}
+
+func (e AlreadyExistsError) Error() string {
+	return e.Resource + " already exists: " + e.Field + "=" + e.Value
+}
+
 // ValidationError indicates the input was invalid.
 type ValidationError string
 

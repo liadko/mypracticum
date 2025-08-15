@@ -25,10 +25,11 @@ func NewManager(cfg config.AuthConfig) *Manager {
 }
 
 // Generate creates a signed token for the given userID.
-func (m *Manager) Generate(userID uuid.UUID) (string, error) {
+func (m *Manager) Generate(userID uuid.UUID, roles []string) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		UserID: userID,
+		Roles:  roles, // []string{"student", "mentor"}
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(m.ttl)),
