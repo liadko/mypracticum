@@ -12,6 +12,7 @@ type UserRepo interface {
 	FindByEmail(ctx context.Context, email string) (domain.User, error)
 	FindByID(ctx context.Context, id uuid.UUID) (domain.User, error)
 	FetchRoles(ctx context.Context, userID uuid.UUID) ([]string, error)
+	GetIDByEmail(ctx context.Context, email string) (uuid.UUID, error)
 
 	UpdateSignature(ctx context.Context, userID uuid.UUID, sig []byte) ([]byte, error)
 

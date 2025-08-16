@@ -45,11 +45,12 @@ type Contact struct {
 }
 
 type NewContact struct {
-	Type      ContactType
-	Name      string
-	Email     *string
-	Phone     *string
-	Specialty *string
+	Type         ContactType
+	Name         string
+	Email        *string
+	Phone        *string
+	Specialty    *string
+	MentorUserID *uuid.UUID
 }
 
 // Validate enforces all the business rules for Contact.
@@ -96,13 +97,14 @@ func NewContactFrom(userID uuid.UUID, nc NewContact) (Contact, error) {
 		return Contact{}, fmt.Errorf("generate contact ID: %w", err)
 	}
 	contact := Contact{
-		ID:        id,
-		UserID:    userID,
-		Type:      nc.Type,
-		Name:      nc.Name,
-		Email:     nc.Email,
-		Phone:     nc.Phone,
-		Specialty: nc.Specialty,
+		ID:           id,
+		UserID:       userID,
+		Type:         nc.Type,
+		Name:         nc.Name,
+		Email:        nc.Email,
+		Phone:        nc.Phone,
+		Specialty:    nc.Specialty,
+		MentorUserID: nc.MentorUserID,
 	}
 	if err := contact.Validate(); err != nil {
 		return Contact{}, err
@@ -114,13 +116,14 @@ func NewContactFrom(userID uuid.UUID, nc NewContact) (Contact, error) {
 func UpdatedContact(userID uuid.UUID, contactID uuid.UUID, nc NewContact) (Contact, error) {
 
 	contact := Contact{
-		ID:        contactID,
-		UserID:    userID,
-		Type:      nc.Type,
-		Name:      nc.Name,
-		Email:     nc.Email,
-		Phone:     nc.Phone,
-		Specialty: nc.Specialty,
+		ID:           contactID,
+		UserID:       userID,
+		Type:         nc.Type,
+		Name:         nc.Name,
+		Email:        nc.Email,
+		Phone:        nc.Phone,
+		Specialty:    nc.Specialty,
+		MentorUserID: nc.MentorUserID,
 	}
 	if err := contact.Validate(); err != nil {
 		return Contact{}, err

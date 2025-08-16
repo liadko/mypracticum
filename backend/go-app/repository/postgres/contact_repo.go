@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
@@ -144,6 +145,24 @@ func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID uuid.UUID) 
 		return nil, err
 	}
 	return contacts, nil
+}
+
+func (r *PostgresContactRepo) ExistsByUserTypeEmail(ctx context.Context, userID uuid.UUID, ctype domain.ContactType, email string) (bool, error) {
+	const q = `
+        SELECT 1
+        FROM contacts
+        WHERE user_id = $1 AND type = $2 AND email = $3
+        LIMIT 1
+    `
+	var dummy int
+	err := r.db.QueryRowContext(ctx, q, userID, string(ctype), email).Scan(&dummy)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil // doesn't exist
+		}
+		return false, err
+	}
+	return true, nil // exists
 }
 
 // // Delete satisfies ContactRepository

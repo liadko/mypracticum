@@ -51,7 +51,7 @@ func main() {
 	tokenSvc := service.NewTokenService(jwtMgr, repoFactory.UserRepo())
 	userSvc := service.NewUserService(repoFactory.UserRepo())
 	entrySvc := service.NewEntryService(repoFactory.EntryRepo())
-	contactSvc := service.NewContactService(repoFactory.ContactRepo())
+	contactSvc := service.NewContactService(repoFactory.ContactRepo(), userSvc)
 	otpSvc := service.NewOTPService(userSvc, store, smooveNotifier, sendOTPLimiter, cfg.OTP)
 
 	// 4. Build handlers

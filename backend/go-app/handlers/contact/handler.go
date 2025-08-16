@@ -1,6 +1,7 @@
 package contact
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -131,9 +132,16 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 	if err != nil {
 		if ve, ok := err.(domain.ValidationError); ok {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
-		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+			return
 		}
+		if ae, ok := err.(service.AlreadyExistsError); ok {
+			ctx.JSON(http.StatusConflict, gin.H{
+				"error": fmt.Sprintf("%s with %s '%s' already exists",
+					ae.Resource, ae.Field, ae.Value),
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 

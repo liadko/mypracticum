@@ -127,3 +127,43 @@ func (s *UserService) GetRolesByID(ctx context.Context, userID uuid.UUID) ([]str
 
 	return roles, nil
 }
+
+// EnsureUserIDByEmailWithRole returns the user's ID if exists;
+// otherwise creates the user with the role and returns its ID.
+func (s *UserService) EnsureUserIDByEmailWithRole(
+	ctx context.Context,
+	email, role, firstName, lastName string,
+	createdBy uuid.UUID,
+) (uuid.UUID, error) {
+	id, err := s.userRepo.GetIDByEmail(ctx, email)
+	if err == nil {
+		return id, nil
+	}
+	if !errors.Is(err, repository.ErrNotFound) {
+		return uuid.Nil, DBError{Err: err}
+	}
+
+	created, err := s.CreateUserWithRole(ctx, domain.NewUserWithRole{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Role:      role,
+		CreatedBy: createdBy,
+	})
+	if err == nil {
+		return created.ID, nil
+	}
+
+	var dup AlreadyExistsError
+	if errors.As(err, &dup) {
+		id2, err2 := s.userRepo.GetIDByEmail(ctx, email)
+		if err2 != nil {
+			if errors.Is(err2, repository.ErrNotFound) {
+				return uuid.Nil, DBError{Err: err}
+			}
+			return uuid.Nil, DBError{Err: err2}
+		}
+		return id2, nil
+	}
+	return uuid.Nil, err
+}

@@ -97,6 +97,21 @@ func (r *PostgresUserRepo) FetchRoles(ctx context.Context, userID uuid.UUID) ([]
 	return roles, nil
 }
 
+func (r *PostgresUserRepo) GetIDByEmail(ctx context.Context, email string) (uuid.UUID, error) {
+	const q = `SELECT id FROM users WHERE email = $1`
+
+	var id uuid.UUID
+	err := r.db.QueryRowContext(ctx, q, email).Scan(&id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return uuid.Nil, repository.ErrNotFound
+		}
+		return uuid.Nil, err
+	}
+
+	return id, nil
+}
+
 // UpdateSignature writes the raw SVG bytes into the users.signature column.
 func (r *PostgresUserRepo) UpdateSignature(
 	ctx context.Context,
