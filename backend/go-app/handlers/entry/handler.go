@@ -1,6 +1,7 @@
 package entry
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -77,7 +78,10 @@ func (h *EntryHandler) Delete(ctx *gin.Context) {
 		switch err := err.(type) {
 		case service.NotFoundError:
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		case service.ValidationError:
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		default:
+			fmt.Printf("Error While Deleting Entry: %v\n", err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return
@@ -103,10 +107,10 @@ func (h *EntryHandler) List(ctx *gin.Context) {
 	resp := make([]EntryResponse, len(entries))
 	for i, d := range entries {
 		resp[i] = EntryResponse{
-			ID:        d.ID,
-			ContactID: d.ContactID,
-			DateStr:   d.Date.Format("2006-01-02"),
-			//Approved:  d.Approved,
+			ID:             d.ID,
+			ContactID:      d.ContactID,
+			DateStr:        d.Date.Format("2006-01-02"),
+			ApprovalStatus: string(d.Approved),
 		}
 	}
 

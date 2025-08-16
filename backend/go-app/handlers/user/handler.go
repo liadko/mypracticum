@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"mypracticum/backend/service"
@@ -37,6 +38,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 		case service.NotFoundError:
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		default:
+			fmt.Printf("GetMe: failed to fetch user %s: %v", userID, err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return
@@ -60,6 +62,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 
 // AddUser handles POST /users
 func (h *UserHandler) AddUser(ctx *gin.Context) {
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 	roles := ctx.MustGet("roles").([]string)
 	if !slices.Contains(roles, "admin") {
 		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
@@ -79,21 +82,23 @@ func (h *UserHandler) AddUser(ctx *gin.Context) {
 		LastName:  req.LastName,
 		Email:     req.Email,
 		Role:      req.Role,
-		CreatedBy: req.CreatedBy,
+		CreatedBy: userID,
 	}
 
 	// 3) Call service
 	created, err := h.svc.CreateUserWithRole(ctx.Request.Context(), newUser)
 	if err != nil {
-		switch err {
-		case service.AlreadyExistsError{}:
-			ctx.JSON(http.StatusConflict, gin.H{"error": "user already exists"})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		var ae service.AlreadyExistsError
+		if errors.As(err, &ae) {
+			ctx.JSON(http.StatusConflict, gin.H{"error": ae.Error()})
+			return
 		}
+
+		// log unexpected errors
+		fmt.Printf("AddUser: failed to add user: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
-
 	// 4) Map to response
 	resp := UserResponse{
 		ID:        created.ID,
@@ -127,11 +132,11 @@ func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 	saved, err := h.svc.UpdateSignature(ctx.Request.Context(), userID, data)
 	if err != nil {
 		var nf service.NotFoundError
-
 		switch {
 		case errors.As(err, &nf):
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		default:
+			fmt.Printf("UpdateSignature: failed to update signature for user %s: %v", userID, err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return

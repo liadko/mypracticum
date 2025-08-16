@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"mypracticum/backend/domain"
@@ -24,7 +25,7 @@ func NewPostgresEntryRepo(db *sql.DB) repository.EntryRepo {
 // ListByUser satisfies EntryRepository
 func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error) {
 	entriesQuery := `
-			SELECT id, contact_id, date, approved  
+			SELECT id, contact_id, date, approval_status  
 			FROM entries 
 			WHERE user_id = $1
 			ORDER BY date DESC
@@ -39,8 +40,9 @@ func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([
 	for rows.Next() {
 		var entry domain.Entry
 
+		var status string
 		var date sql.NullTime
-		if err := rows.Scan(&entry.ID, &entry.ContactID, &date, &entry.Approved); err != nil {
+		if err := rows.Scan(&entry.ID, &entry.ContactID, &date, &status); err != nil {
 			fmt.Printf("Error scanning client entry row: %v", err)
 			continue // Skip bad rows and continue
 		}
@@ -50,6 +52,8 @@ func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([
 		} else {
 			fmt.Println("Error parsing Date from entry")
 		}
+
+		entry.Approved = domain.ApprovalStatus(status)
 
 		entries = append(entries, entry)
 	}
@@ -69,9 +73,9 @@ func (r *PostgresEntryRepo) Create(
 
 	// 1) run INSERT … RETURNING
 	const q = `
-    INSERT INTO entries (id, user_id, contact_id, date, approved)
+    INSERT INTO entries (id, user_id, contact_id, date, approval_status)
     VALUES ($1, $2, $3, $4, $5)
-    RETURNING id, user_id, contact_id, date, approved
+    RETURNING id, user_id, contact_id, date, approval_status
     `
 	row := r.db.QueryRowContext(ctx, q,
 		e.ID,
@@ -83,37 +87,61 @@ func (r *PostgresEntryRepo) Create(
 
 	// 2) scan the returned row
 	var out domain.Entry
+	var status string
 	if err := row.Scan(
 		&out.ID,
 		&out.UserID,
 		&out.ContactID,
 		&out.Date,
-		&out.Approved,
+		&status,
 	); err != nil {
 		return domain.Entry{}, fmt.Errorf("insert entry: %w", err)
 	}
+	out.Approved = domain.ApprovalStatus(status)
 
 	return out, nil
 }
 
-// Delete satisfies EntryRepository
-func (r *PostgresEntryRepo) Delete(ctx context.Context, entryID, userID uuid.UUID) error {
+// DeleteIfNotApproved satisfies EntryRepository
+func (r *PostgresEntryRepo) DeleteIfNotApproved(ctx context.Context, entryID, userID uuid.UUID) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
 
-	const q = `
-    DELETE FROM entries
-    WHERE id = $1 AND user_id = $2
-    `
-	res, err := r.db.ExecContext(ctx, q, entryID, userID)
+	// 1) lock row & check status
+	const sel = `SELECT approval_status FROM entries WHERE id = $1 AND user_id = $2 FOR UPDATE`
+	var status string
+	if err := tx.QueryRowContext(ctx, sel, entryID, userID).Scan(&status); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return repository.ErrNotFound
+		}
+		return fmt.Errorf("check status: %w", err)
+	}
+
+	if status == "approved" {
+		return repository.ErrAlreadyApproved
+	}
+
+	// 2) delete if not approved
+	const del = `DELETE FROM entries WHERE id = $1 AND user_id = $2`
+	res, err := tx.ExecContext(ctx, del, entryID, userID)
 	if err != nil {
 		return fmt.Errorf("delete entry: %w", err)
 	}
 
 	n, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("delete entry (rows affected): %w", err)
+		return fmt.Errorf("rows affected: %w", err)
 	}
 	if n == 0 {
 		return repository.ErrNotFound
+	}
+
+	// 3) commit
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit: %w", err)
 	}
 	return nil
 }

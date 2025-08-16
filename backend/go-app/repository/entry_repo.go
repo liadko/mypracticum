@@ -11,5 +11,5 @@ import (
 type EntryRepo interface {
 	ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error)
 	Create(ctx context.Context, e domain.Entry) (domain.Entry, error)
-	Delete(ctx context.Context, id, userID uuid.UUID) error
+	DeleteIfNotApproved(ctx context.Context, id, userID uuid.UUID) error
 }

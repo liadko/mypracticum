@@ -16,7 +16,8 @@ type UpdateEntryRequest struct {
 
 // EntryResponse is the JSON shape returned by all entry endpoints.
 type EntryResponse struct {
-	ID        uuid.UUID `json:"id"`
-	ContactID uuid.UUID `json:"contactId"`
-	DateStr   string    `json:"date"`
+	ID             uuid.UUID `json:"id"`
+	ContactID      uuid.UUID `json:"contactId"`
+	DateStr        string    `json:"date"`
+	ApprovalStatus string    `json:"approvalStatus"`
 }

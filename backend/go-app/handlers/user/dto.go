@@ -21,9 +21,8 @@ type SignatureUpdateResponse struct {
 }
 
 type createUserRequest struct {
-	Email     string    `json:"email"`
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
-	Role      string    `json:"role"` // "admin" | "student" | "mentor"
-	CreatedBy uuid.UUID `json:"createdBy"`
+	Email     string `json:"email"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Role      string `json:"role"` // "admin" | "student" | "mentor"
 }

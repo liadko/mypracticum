@@ -27,6 +27,7 @@ SELECT id
      , email
      , signature
      , created_at
+	 , created_by
   FROM users
 `
 
@@ -42,7 +43,7 @@ func (r *PostgresUserRepo) loadUser(
 	var u domain.User
 	if err := r.db.
 		QueryRowContext(ctx, q, arg).
-		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt); err != nil {
+		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt, &u.CreatedBy); err != nil {
 
 		if err == sql.ErrNoRows {
 			return domain.User{}, repository.ErrNotFound

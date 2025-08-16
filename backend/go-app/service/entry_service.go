@@ -50,11 +50,15 @@ func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID uuid.UUI
 
 	// MAYBE TODO: check if the fetch some stuff and check if the entry is approved.
 
-	err := s.repo.Delete(ctx, entryID, userID)
+	err := s.repo.DeleteIfNotApproved(ctx, entryID, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			// tell handler to return 404
 			return NotFoundError{"entry", entryID.String()}
+		}
+		if errors.Is(err, repository.ErrAlreadyApproved) {
+			// tell handler to return 400
+			return ValidationError("cannot remove an approved entry")
 		}
 		// wrap real DB errors into 500
 		return DBError{Err: err}
