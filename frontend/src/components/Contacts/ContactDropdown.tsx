@@ -8,7 +8,7 @@ interface Props {
   value: string
   onChange: (id: string) => void
 
-  contactType: ContactType // name displayed in "Edit Mentors/Therapists/Clients"
+  contactType: ContactType | "student" // name displayed in "Edit Mentors/Therapists/Clients"
 }
 
 export function ContactDropdown({ contacts, value, onChange, contactType }: Props) {
@@ -27,6 +27,10 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
   }, [])
 
   const selected = contacts.find(c => c.id === value)
+
+  function isContactType(t: ContactType | "student"): t is ContactType {
+    return t !== "student"
+  }
 
   return (
     <div
@@ -57,17 +61,19 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
             {c.name}
           </div>
         ))}
-
-        <div
-          className="contact-dropdown-footer"
-          onClick={e => {
-            e.stopPropagation()
-            onChange('__edit__')
-            setOpen(false)
-          }}
-        >
-          &#9881; עריכת {contactLabelPluralShort[contactType]}
-        </div>
+        {
+          isContactType(contactType) &&
+          <div
+            className="contact-dropdown-footer"
+            onClick={e => {
+              e.stopPropagation()
+              onChange('__edit__')
+              setOpen(false)
+            }}
+          >
+            &#9881; עריכת {contactLabelPluralShort[contactType]}
+          </div>
+        }
       </div>
     </div>
   )

@@ -1,0 +1,86 @@
+/* Reuse your existing layout classes; add only what’s new for the mentor panel */
+
+.mentor-left {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+  padding-right: 3rem; /* aligns visually with CalendarWithList left pane */
+}
+
+.mentor-left__header {
+  position: relative;
+  gap: 10px;
+}
+
+.mentor-left__header .settings {
+  position: absolute;
+  left: 0;              /* top-left (RTL visual) */
+  top: 50%;
+  transform: translateY(-50%);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+
+.mentor-left__title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.mentor-left__body {
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+.mentor-left__body p {
+  margin: 0 0 0.75rem 0;
+  text-align: right;
+}
+
+/* Approve pill on each entry */
+.approve-pill {
+  min-width: 84px;
+  text-align: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 2px solid #9bb7b3;
+  background: #f0f6f5;
+  color: #3b8d82;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.05s ease;
+}
+
+.approve-pill:active {
+  transform: scale(0.98);
+}
+
+.approve-pill--active {
+  background: #3b8d82;
+  color: #fff;
+  border-color: #3b8d82;
+}
+
+/* Keep existing list layout aesthetics */
+.selected-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f9f9f9;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+}
+
+.selected-item * {
+  font-size: 1.15em;
+  font-weight: 500;
+}
+
+.weekday {
+  width: 50px;
+  text-align: left; /* RTL: weekday is on the right visually; keep spacing tidy */
+}

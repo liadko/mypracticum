@@ -79,7 +79,8 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
             const tempEntry: Entry = {
                 id: tempId,
                 ...newEntry,
-                approved: false,        // or whatever default
+                userId: 'temp_user_id',
+                approvalStatus: "pending",        // default
             }
 
             // optimistic
@@ -108,8 +109,8 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
             // If a toggle is already in flight for this date, skip it:
             if (pending.has(date)) {
-                console.log("toggle blocked.")
-                console.log(pending)
+                //console.log("toggle blocked.")
+                //console.log(pending)
                 return
             }
             setPending(prev => new Set(prev).add(date))

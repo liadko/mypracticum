@@ -21,7 +21,8 @@ export interface CalendarWithListProps {
     contactType: ContactType
 
     onEntryToggle: (contactId: string, date: string) => void
-    //renderExtra: (entry: Entry) => React.ReactNode
+    renderEntryExtra?: (entry: Entry) => React.ReactNode
+    renderMessage?: (contactId: string) => React.ReactNode
 }
 
 export function CalendarWithList({
@@ -30,7 +31,8 @@ export function CalendarWithList({
     //hoursNeeded,
     contactType,
     onEntryToggle,
-    //renderExtra,
+    renderEntryExtra,
+    renderMessage
 }: CalendarWithListProps) {
     // selected contact UUID
     const [selectedContactId, setSelectedContactId] = useState<string>(
@@ -88,7 +90,7 @@ export function CalendarWithList({
                 </div>
             </div>
             <div className="list-side">
-                <div className="selected-list">
+                <div className="selected-list" >
                     <div className="side-header">
                         {/* <span className="selected-list-counter">{filtered.length}/{hoursNeeded}</span> */}
                         <span className='selected-list-header-text'>{pageHeaderText[contactType]}</span>
@@ -114,15 +116,22 @@ export function CalendarWithList({
                                     className={`selected-item ${entry.date == highlightedDate ? 'highlighted-item' : ''}`}
                                     onClick={() => setHighlightedDate(entry.date)}
                                 >
-                                    {/*renderExtra && <span className="extra">{renderExtra(entry)}</span>*/}
+                                    {renderEntryExtra && renderEntryExtra(entry)}
 
-                                    <span className="date">{format(dateObj, "dd/MM/yyyy")}</span>
-                                    <span className="weekday">{weekdayName}</span>
+                                    <span className="date" >{format(dateObj, "dd/MM/yyyy")}</span>
+                                    <span className="weekday" dir='rtl'>{weekdayName}</span>
                                 </div>
                             )
                         })}
 
                     </div>
+                    {renderMessage &&
+                        <div dir='rtl'>
+                            <div className='extra-message'>
+                                {renderMessage(selectedContactId)}
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
             {/* render the modal when “edit” clicked */}

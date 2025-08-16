@@ -30,6 +30,7 @@ export type Contact =
     | ClientContact
     | MentorContact
     | TherapistContact
+    | Student
 
 // You don’t want callers to pass `id` or `created_at` (the server assigns those),
 export interface NewContact {
@@ -44,8 +45,9 @@ export interface NewContact {
 export interface Entry {
     id: string          // uuid
     date: string        // "YYYY-MM-DD"
+    userId: string   // FK → User.id
     contactId: string   // FK → Contact.id
-    approved: boolean
+    approvalStatus: string
 }
 
 export interface NewEntry {
@@ -78,6 +80,7 @@ export interface User {
 }
 
 export interface Student {
+    type: 'student'
     id : string
     name : string
 }

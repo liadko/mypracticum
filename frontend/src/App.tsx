@@ -2,14 +2,10 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
-import StudentLayout from './pages/StudentSide/StudentLayout'
-import { ContactsProvider } from './context/ContactsContext'
-import { EntriesProvider } from './context/EntriesContext'
 import { Toaster } from 'react-hot-toast'
 import { ToastLimiter } from './components/Toast/ToastLimiter'
 import { ProtectedRoute, ProvidersWrapper } from './pages/SpecialRoutes'
 import { useEffect } from 'react'
-import MentorLayout from './pages/MentorSide/MentorLayout'
 import DesktopLayout from './pages/DesktopLayout'
 
 function AppRoutes() {
@@ -19,11 +15,11 @@ function AppRoutes() {
 
   useEffect(() => {
     if (!user) return
-    const dest = user.roles.includes('mentor')
-      ? '/mentor'
-      : '/student'
+    const dest = user.roles.includes('student')
+      ? '/student'
+      : '/mentor'
 
-    navigate('/mentor', { replace: true })
+    navigate(dest, { replace: true })
   }, [user, navigate])
 
   if (isLoading) return <div>Loading authentication…</div>

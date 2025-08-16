@@ -34,13 +34,14 @@ func IsValidContactType(t ContactType) bool {
 
 // Contact holds the core data for a person you can log hours against.
 type Contact struct {
-	ID        uuid.UUID // UUID
-	UserID    uuid.UUID // FK to the owning user (your mom)
-	Type      ContactType
-	Name      string
-	Email     *string // only required for mentors
-	Phone     *string // only required for mentors
-	Specialty *string // optional,
+	ID           uuid.UUID // UUID
+	UserID       uuid.UUID // FK to the owning user (your mom)
+	Type         ContactType
+	Name         string
+	Email        *string    // only required for mentors
+	Phone        *string    // only required for mentors
+	Specialty    *string    // optional,
+	MentorUserID *uuid.UUID // nil unless Type=="mentor"
 }
 
 type NewContact struct {

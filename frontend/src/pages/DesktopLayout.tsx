@@ -21,7 +21,6 @@ export default function DesktopLayout({ user, layoutType }: DesktopLayoutProps) 
 
 
 
-
     if (loadingE || loadingC) return <div>Loading your personal hours…</div>
     if (errorE || errorC) return <div>Oops, something went wrong: {errorE?.message ?? ""} Or {errorC?.message ?? ""}</div>
 
