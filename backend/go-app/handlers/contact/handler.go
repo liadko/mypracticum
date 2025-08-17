@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/service"
@@ -22,24 +23,28 @@ func NewContactHandler(svc *service.ContactService) *ContactHandler {
 
 // List handles GET /contacts
 func (h *ContactHandler) List(ctx *gin.Context) {
+	userID := ctx.MustGet("userID").(uuid.UUID)
+	rs, _ := ctx.Get("roles") // set by JWT middleware
+	roles, _ := rs.([]string)
 
-	// 1) get userID from the context
-	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
+	var contacts []domain.Contact
+	var err error
+	if slices.Contains(roles, "student") {
+		contacts, err = h.svc.ListStudentContacts(ctx.Request.Context(), userID)
+	} else {
+		contacts, err = h.svc.ListMentorStudentsAsContacts(ctx.Request.Context(), userID)
+	}
 
-	// 2) Fetch from service
-	domainContacts, err := h.svc.ListContacts(ctx.Request.Context(), userID)
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("Error while Listing Contacts for user %s: %v", userID, err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list contacts"})
 		return
 	}
 
-	// 3) Map to DTO
-	resp := make([]ContactResponse, len(domainContacts))
-	for i, d := range domainContacts {
+	resp := make([]ContactResponse, len(contacts))
+	for i, d := range contacts {
 		resp[i] = ContactResponse{
 			ID:        d.ID,
-			UserID:    d.UserID,
 			Type:      string(d.Type),
 			Name:      d.Name,
 			Email:     d.Email,
@@ -47,10 +52,7 @@ func (h *ContactHandler) List(ctx *gin.Context) {
 			Specialty: d.Specialty,
 		}
 	}
-
-	// 4) Return JSON
 	ctx.JSON(http.StatusOK, resp)
-
 }
 
 // Update handles PUT /contacts/:contactId
@@ -97,7 +99,6 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 	// map domain.Contact → DTO
 	resp := ContactResponse{
 		ID:        saved.ID,
-		UserID:    saved.UserID,
 		Type:      string(saved.Type),
 		Name:      saved.Name,
 		Email:     saved.Email,
@@ -148,7 +149,6 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 	// map domain.Contact → DTO
 	resp := ContactResponse{
 		ID:        saved.ID,
-		UserID:    saved.UserID,
 		Type:      string(saved.Type),
 		Name:      saved.Name,
 		Email:     saved.Email,

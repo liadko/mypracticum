@@ -9,7 +9,9 @@ import (
 
 // EntryRepo defines how the service reads/writes entries.
 type EntryRepo interface {
-	ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error)
+	ListByStudent(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error)
+	ListByMentor(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error)
+
 	Create(ctx context.Context, e domain.Entry) (domain.Entry, error)
 	DeleteIfNotApproved(ctx context.Context, id, userID uuid.UUID) error
 }

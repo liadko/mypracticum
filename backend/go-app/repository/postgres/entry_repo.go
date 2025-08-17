@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -22,8 +23,8 @@ func NewPostgresEntryRepo(db *sql.DB) repository.EntryRepo {
 	return &PostgresEntryRepo{db: db}
 }
 
-// ListByUser satisfies EntryRepository
-func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error) {
+// ListByStudent satisfies EntryRepository
+func (r *PostgresEntryRepo) ListByStudent(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error) {
 	entriesQuery := `
 			SELECT id, contact_id, date, approval_status  
 			FROM entries 
@@ -63,6 +64,38 @@ func (r *PostgresEntryRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([
 	}
 
 	return entries, nil
+}
+
+func (r *PostgresEntryRepo) ListByMentor(ctx context.Context, mentorUserID uuid.UUID) ([]domain.Entry, error) {
+	const q = `
+		SELECT e.id, e.user_id, e.contact_id, e.date, e.approval_status
+		  FROM entries e
+		  JOIN contacts c ON c.id = e.contact_id
+		 WHERE c.type = 'mentor'
+		   AND c.mentor_user_id = $1
+		 ORDER BY e.date DESC
+	`
+	rows, err := r.db.QueryContext(ctx, q, mentorUserID)
+	if err != nil {
+		return nil, fmt.Errorf("list entries for mentor %q: %w", mentorUserID, err)
+	}
+	defer rows.Close()
+
+	var out []domain.Entry
+	for rows.Next() {
+		var e domain.Entry
+		var status string
+		if err := rows.Scan(&e.ID, &e.UserID, &e.ContactID, &e.Date, &status); err != nil {
+			log.Printf("scan mentor entry: %v", err)
+			continue
+		}
+		e.Approved = domain.ApprovalStatus(status) // or e.ApprovalStatus = ...
+		out = append(out, e)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // Create satisfies EntryRepository

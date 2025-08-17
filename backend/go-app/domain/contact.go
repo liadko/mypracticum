@@ -131,3 +131,16 @@ func UpdatedContact(userID uuid.UUID, contactID uuid.UUID, nc NewContact) (Conta
 
 	return contact, nil
 }
+
+func MapUsersToStudentContactViews(us []User) []Contact {
+	out := make([]Contact, 0, len(us))
+	for _, u := range us {
+		out = append(out, Contact{
+			ID:    u.ID,
+			Type:  "student",
+			Name:  strings.TrimSpace(u.FirstName + " " + u.LastName),
+			Email: &u.Email,
+		})
+	}
+	return out
+}

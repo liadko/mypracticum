@@ -48,8 +48,6 @@ func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID uuid.UUI
 		return fmt.Errorf("missing user")
 	}
 
-	// MAYBE TODO: check if the fetch some stuff and check if the entry is approved.
-
 	err := s.repo.DeleteIfNotApproved(ctx, entryID, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
@@ -67,8 +65,16 @@ func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID uuid.UUI
 	return nil
 }
 
-func (s *EntryService) ListEntries(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error) {
-	list, err := s.repo.ListByUser(ctx, userID)
+func (s *EntryService) ListStudentEntries(ctx context.Context, studentUserID uuid.UUID) ([]domain.Entry, error) {
+	list, err := s.repo.ListByStudent(ctx, studentUserID)
+	if err != nil {
+		return nil, DBError{Err: err}
+	}
+	return list, nil
+}
+
+func (s *EntryService) ListMentorEntries(ctx context.Context, mentorUserID uuid.UUID) ([]domain.Entry, error) {
+	list, err := s.repo.ListByMentor(ctx, mentorUserID)
 	if err != nil {
 		return nil, DBError{Err: err}
 	}

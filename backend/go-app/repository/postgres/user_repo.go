@@ -189,3 +189,32 @@ func (r *PostgresUserRepo) CreateUser(ctx context.Context, u domain.User) (domai
 	out.Roles = roles
 	return out, nil
 }
+
+func (r *PostgresUserRepo) ListStudentsForMentor(ctx context.Context, mentorUserID uuid.UUID) ([]domain.User, error) {
+	const q = `
+		SELECT DISTINCT u.id, u.first_name, u.last_name, u.email, u.signature, u.created_at
+		  FROM contacts c
+		  JOIN users    u ON u.id = c.user_id
+		 WHERE c.type = 'mentor'
+		   AND c.mentor_user_id = $1
+		 ORDER BY u.last_name, u.first_name`
+
+	rows, err := r.db.QueryContext(ctx, q, mentorUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []domain.User
+	for rows.Next() {
+		var u domain.User
+		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, u)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return out, nil
+}

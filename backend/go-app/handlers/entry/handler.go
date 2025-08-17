@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"slices"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/service"
@@ -92,11 +93,20 @@ func (h *EntryHandler) Delete(ctx *gin.Context) {
 
 // List handles GET /entries
 func (h *EntryHandler) List(ctx *gin.Context) {
-	// 1) get userID from the context
+	// 1) get userID and Roles from the context
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
+	rs, _ := ctx.Get("roles")
+	roles, _ := rs.([]string)
 
 	// 2) Fetch entries
-	entries, err := h.svc.ListEntries(ctx.Request.Context(), userID)
+	var entries []domain.Entry
+	var err error
+	if slices.Contains(roles, "student") {
+		entries, err = h.svc.ListStudentEntries(ctx.Request.Context(), userID)
+	} else {
+		entries, err = h.svc.ListMentorEntries(ctx.Request.Context(), userID)
+
+	}
 	if err != nil {
 		log.Printf("Error while listing: %s", err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list entries"})
@@ -108,6 +118,7 @@ func (h *EntryHandler) List(ctx *gin.Context) {
 	for i, d := range entries {
 		resp[i] = EntryResponse{
 			ID:             d.ID,
+			UserID:         d.UserID,
 			ContactID:      d.ContactID,
 			DateStr:        d.Date.Format("2006-01-02"),
 			ApprovalStatus: string(d.Approved),

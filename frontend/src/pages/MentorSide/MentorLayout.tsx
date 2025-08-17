@@ -48,12 +48,12 @@ export default function MentorLayout() {
       {/* LEFT SIDE (info) */}
       <div className="calender-side">
         <div className="mentor-left">
+          <button className="nav-button settings" aria-label="הגדרות"> הגדרות ⚙️</button>
           <div className="side-header mentor-left__header">
-            <button className="nav-button settings" aria-label="הגדרות">⚙️</button>
             <span className="mentor-left__title">סטטוס אישור מפגשי התלמידים</span>
           </div>
 
-          <div className="mentor-left__body">
+          <div className="mentor-left__body" dir="rtl">
             <p>
               כאן מופיעים המפגשים שהתלמידים רשמו ביומן שלהם.
               עליכם לעבור על הרשימה, ולאשר את המפגשים שהתקיימו בפועל.

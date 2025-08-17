@@ -92,6 +92,14 @@ func (s *ContactService) UpdateContact(ctx context.Context, userID, contactID uu
 // 	return s.repo.Delete(ctx, userID, userID)
 // }
 
-func (s *ContactService) ListContacts(ctx context.Context, userID uuid.UUID) ([]domain.Contact, error) {
+func (s *ContactService) ListStudentContacts(ctx context.Context, userID uuid.UUID) ([]domain.Contact, error) {
 	return s.repo.ListByUser(ctx, userID)
+}
+
+func (s *ContactService) ListMentorStudentsAsContacts(ctx context.Context, mentorUserID uuid.UUID) ([]domain.Contact, error) {
+	us, err := s.userSvc.ListStudentsForMentor(ctx, mentorUserID)
+	if err != nil {
+		return nil, err
+	}
+	return domain.MapUsersToStudentContactViews(us), nil
 }

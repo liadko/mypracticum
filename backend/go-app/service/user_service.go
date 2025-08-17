@@ -167,3 +167,12 @@ func (s *UserService) EnsureUserIDByEmailWithRole(
 	}
 	return uuid.Nil, err
 }
+
+func (s *UserService) ListStudentsForMentor(ctx context.Context, mentorUserID uuid.UUID) ([]domain.User, error) {
+	users, err := s.userRepo.ListStudentsForMentor(ctx, mentorUserID)
+	if err != nil {
+		return nil, DBError{Err: err}
+	}
+	return users, nil
+
+}
