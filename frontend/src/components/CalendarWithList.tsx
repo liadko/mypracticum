@@ -56,12 +56,17 @@ export function CalendarWithList({
         setHighlightedDate(date)
     }
 
+
+    function entryDOMKey(entry: Entry) {
+        return `entry-${entry.contactId}-${entry.date}`
+    }
+
     // scroll into view after any change
     useEffect(() => {
         if (!highlightedDate) return
-        const el = document.getElementById(
-            `entry-${filtered.find(e => e.date === highlightedDate)?.id}`
-        )
+        const entry = filtered.find(e => e.date === highlightedDate)
+        if (!entry) return
+        const el = document.getElementById(entryDOMKey(entry))
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, [filtered, highlightedDate])
 
@@ -74,6 +79,8 @@ export function CalendarWithList({
             setSelectedContactId(id)
         }
     }
+
+
 
     return (
         <div className="calendar-with-list">
@@ -111,8 +118,8 @@ export function CalendarWithList({
 
                             return (
                                 <div
-                                    key={entry.id}
-                                    id={`entry-${entry.id}`}
+                                    key={entryDOMKey(entry)}
+                                    id={entryDOMKey(entry)}
                                     className={`selected-item ${entry.date == highlightedDate ? 'highlighted-item' : ''}`}
                                     onClick={() => setHighlightedDate(entry.date)}
                                 >
