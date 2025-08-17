@@ -26,7 +26,7 @@ func NewPostgresEntryRepo(db *sql.DB) repository.EntryRepo {
 // ListByStudent satisfies EntryRepository
 func (r *PostgresEntryRepo) ListByStudent(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error) {
 	entriesQuery := `
-			SELECT id, contact_id, date, approval_status  
+			SELECT id, contact_id, date, approver_id  
 			FROM entries 
 			WHERE user_id = $1
 			ORDER BY date DESC
@@ -41,9 +41,9 @@ func (r *PostgresEntryRepo) ListByStudent(ctx context.Context, userID uuid.UUID)
 	for rows.Next() {
 		var entry domain.Entry
 
-		var status string
+		var approverID uuid.UUID
 		var date sql.NullTime
-		if err := rows.Scan(&entry.ID, &entry.ContactID, &date, &status); err != nil {
+		if err := rows.Scan(&entry.ID, &entry.ContactID, &date, &approverID); err != nil {
 			fmt.Printf("Error scanning client entry row: %v", err)
 			continue // Skip bad rows and continue
 		}
@@ -54,7 +54,7 @@ func (r *PostgresEntryRepo) ListByStudent(ctx context.Context, userID uuid.UUID)
 			fmt.Println("Error parsing Date from entry")
 		}
 
-		entry.Approved = domain.ApprovalStatus(status)
+		entry.Approved = approverID != uuid.Nil
 
 		entries = append(entries, entry)
 	}
@@ -68,7 +68,7 @@ func (r *PostgresEntryRepo) ListByStudent(ctx context.Context, userID uuid.UUID)
 
 func (r *PostgresEntryRepo) ListByMentor(ctx context.Context, mentorUserID uuid.UUID) ([]domain.Entry, error) {
 	const q = `
-		SELECT e.id, e.user_id, e.contact_id, e.date, e.approval_status
+		SELECT e.id, e.user_id, e.contact_id, e.date, e.approver_id
 		  FROM entries e
 		  JOIN contacts c ON c.id = e.contact_id
 		 WHERE c.type = 'mentor'
@@ -84,12 +84,12 @@ func (r *PostgresEntryRepo) ListByMentor(ctx context.Context, mentorUserID uuid.
 	var out []domain.Entry
 	for rows.Next() {
 		var e domain.Entry
-		var status string
-		if err := rows.Scan(&e.ID, &e.UserID, &e.ContactID, &e.Date, &status); err != nil {
+		var approverID uuid.UUID
+		if err := rows.Scan(&e.ID, &e.UserID, &e.ContactID, &e.Date, &approverID); err != nil {
 			log.Printf("scan mentor entry: %v", err)
 			continue
 		}
-		e.Approved = domain.ApprovalStatus(status) // or e.ApprovalStatus = ...
+		e.Approved = approverID != uuid.Nil
 		out = append(out, e)
 	}
 	if err := rows.Err(); err != nil {
@@ -106,31 +106,27 @@ func (r *PostgresEntryRepo) Create(
 
 	// 1) run INSERT … RETURNING
 	const q = `
-    INSERT INTO entries (id, user_id, contact_id, date, approval_status)
+    INSERT INTO entries (id, user_id, contact_id, date)
     VALUES ($1, $2, $3, $4, $5)
-    RETURNING id, user_id, contact_id, date, approval_status
+    RETURNING id, user_id, contact_id, date
     `
 	row := r.db.QueryRowContext(ctx, q,
 		e.ID,
 		e.UserID,
 		e.ContactID,
 		e.Date,
-		e.Approved,
 	)
 
 	// 2) scan the returned row
 	var out domain.Entry
-	var status string
 	if err := row.Scan(
 		&out.ID,
 		&out.UserID,
 		&out.ContactID,
 		&out.Date,
-		&status,
 	); err != nil {
 		return domain.Entry{}, fmt.Errorf("insert entry: %w", err)
 	}
-	out.Approved = domain.ApprovalStatus(status)
 
 	return out, nil
 }
@@ -144,16 +140,16 @@ func (r *PostgresEntryRepo) DeleteIfNotApproved(ctx context.Context, entryID, us
 	defer tx.Rollback()
 
 	// 1) lock row & check status
-	const sel = `SELECT approval_status FROM entries WHERE id = $1 AND user_id = $2 FOR UPDATE`
-	var status string
-	if err := tx.QueryRowContext(ctx, sel, entryID, userID).Scan(&status); err != nil {
+	const sel = `SELECT approver_id FROM entries WHERE id = $1 AND user_id = $2 FOR UPDATE`
+	var approverID uuid.UUID
+	if err := tx.QueryRowContext(ctx, sel, entryID, userID).Scan(&approverID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return repository.ErrNotFound
 		}
 		return fmt.Errorf("check status: %w", err)
 	}
 
-	if status == "approved" {
+	if approverID != uuid.Nil {
 		return repository.ErrAlreadyApproved
 	}
 
@@ -177,4 +173,60 @@ func (r *PostgresEntryRepo) DeleteIfNotApproved(ctx context.Context, entryID, us
 		return fmt.Errorf("commit: %w", err)
 	}
 	return nil
+}
+
+// UpdateApproval sets approver_id (mentor) or NULL and returns the updated entry.
+func (r *PostgresEntryRepo) UpdateApproval(
+	ctx context.Context,
+	entryID uuid.UUID,
+	approverID *uuid.UUID,
+) (domain.Entry, error) {
+	const q = `
+		UPDATE entries
+		   SET approver_id = $2
+		 WHERE id = $1
+		 RETURNING id, user_id, contact_id, date, approver_id
+	`
+
+	// pass NULL when approverID == nil
+	var param interface{}
+	if approverID == nil {
+		param = nil
+	} else {
+		param = *approverID
+	}
+
+	var out domain.Entry
+	var approver uuid.UUID
+	err := r.db.QueryRowContext(ctx, q, entryID, param).
+		Scan(&out.ID, &out.UserID, &out.ContactID, &out.Date, &approver)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return domain.Entry{}, repository.ErrNotFound
+		}
+		return domain.Entry{}, err
+	}
+	out.Approved = approver != uuid.Nil
+	return out, nil
+}
+
+func (r *PostgresEntryRepo) IsEntryLinkedToMentor(
+	ctx context.Context,
+	entryID, mentorUserID uuid.UUID,
+) (bool, error) {
+	const q = `
+		SELECT COALESCE(c.mentor_user_id = $2, false) AS linked
+		  FROM entries e
+		  JOIN contacts c ON c.id = e.contact_id
+		 WHERE e.id = $1
+	`
+	var linked bool
+	err := r.db.QueryRowContext(ctx, q, entryID, mentorUserID).Scan(&linked)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, repository.ErrNotFound
+		}
+		return false, err
+	}
+	return linked, nil
 }

@@ -9,6 +9,7 @@ import React, {
 import type { Contact, ContactType, NewContact } from '../types'
 import * as domain from '../domain/contacts'
 import * as api from '../api/contactsApi'
+import { showAsyncToast } from '../utils/toast'
 
 interface ContactsProviderProps {
   children: React.ReactNode
@@ -60,18 +61,35 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
 
 
   const addContact = useCallback(async (newC: NewContact) => {
-    const created = await api.createContact(newC)
-    setContacts(cs => domain.addContact(cs, created))
-    return created
+    return showAsyncToast(
+      api.createContact(newC).then(created => {
+        setContacts(cs => domain.addContact(cs, created))
+        return created
+      }),
+      {
+        loading: "מוסיף...",
+        success: "נוסף בהצלחה",
+        error: "נכשל בהוספה",
+      }
+    )
   }, [])
 
+
   const updateContact = useCallback(async (id: string, newContact: NewContact) => {
-    const updatedContact = await api.updateContact(id, newContact)
-    setContacts(prev => {
-      const without = domain.removeContact(prev, updatedContact.id)
-      return domain.addContact(without, updatedContact)
-    })
-    return updatedContact
+    return showAsyncToast(
+      api.updateContact(id, newContact).then(updatedContact => {
+        setContacts(prev => {
+          const without = domain.removeContact(prev, updatedContact.id)
+          return domain.addContact(without, updatedContact)
+        })
+        return updatedContact
+      }),
+      {
+        loading: "מעדכן...",
+        success: "עודכן בהצלחה",
+        error: "נכשל בעדכון",
+      }
+    )
   }, [])
 
   // const deleteContact = useCallback(async (id: string) => {

@@ -14,4 +14,6 @@ type EntryRepo interface {
 
 	Create(ctx context.Context, e domain.Entry) (domain.Entry, error)
 	DeleteIfNotApproved(ctx context.Context, id, userID uuid.UUID) error
+	UpdateApproval(ctx context.Context, entryID uuid.UUID, approverID *uuid.UUID) (domain.Entry, error)
+	IsEntryLinkedToMentor(ctx context.Context, entryID, mentorUserID uuid.UUID) (bool, error)
 }

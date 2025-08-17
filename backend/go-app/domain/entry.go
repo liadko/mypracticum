@@ -8,20 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type ApprovalStatus string
-
-const (
-	Pending  ApprovalStatus = "pending"
-	Approved ApprovalStatus = "approved"
-	Rejected ApprovalStatus = "rejected"
-)
-
 type Entry struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
 	ContactID uuid.UUID
 	Date      time.Time
-	Approved  ApprovalStatus
+	Approved  bool
 }
 
 type NewEntry struct {
@@ -71,7 +63,7 @@ func NewEntryFrom(userID uuid.UUID, ne NewEntry) (Entry, error) {
 		UserID:    userID,
 		ContactID: ne.ContactID,
 		Date:      date,
-		Approved:  Pending,
+		Approved:  false,
 	}
 
 	// 3) then validate it

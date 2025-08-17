@@ -45,9 +45,9 @@ export interface NewContact {
 export interface Entry {
     id: string          // uuid
     date: string        // "YYYY-MM-DD"
-    userId: string   // FK → User.id
+    userId: string      // FK → User.id
     contactId: string   // FK → Contact.id
-    approvalStatus: string
+    approved: boolean
 }
 
 export interface NewEntry {
@@ -81,6 +81,6 @@ export interface User {
 
 export interface Student {
     type: 'student'
-    id : string
-    name : string
+    id: string
+    name: string
 }

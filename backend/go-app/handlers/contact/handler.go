@@ -86,9 +86,14 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 	if err != nil {
 		switch e := err.(type) {
 		case domain.ValidationError:
+			fmt.Printf("Error while adding contact, validation apparently: %v\n", err)
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": e.Error()})
 		case service.NotFoundError:
+			fmt.Printf("Error while adding contact, something isn't found: %v\n", err)
 			ctx.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
+		case service.AlreadyExistsError:
+			ctx.JSON(http.StatusConflict, gin.H{"error": e.Error()})
+
 		default:
 			// everything else is a 500
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
@@ -116,6 +121,7 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 
 	var req NewContactDTO
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		fmt.Printf("Error while binding the new-contact json: %v\n", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -132,10 +138,12 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 	saved, err := h.svc.AddContact(ctx.Request.Context(), userID, nc)
 	if err != nil {
 		if ve, ok := err.(domain.ValidationError); ok {
+			fmt.Printf("Error while adding contact, validation apparently: %v\n", err)
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
 			return
 		}
 		if ae, ok := err.(service.AlreadyExistsError); ok {
+			fmt.Printf("Error while adding contact, something already exists: %v\n", err)
 			ctx.JSON(http.StatusConflict, gin.H{
 				"error": fmt.Sprintf("%s with %s '%s' already exists",
 					ae.Resource, ae.Field, ae.Value),

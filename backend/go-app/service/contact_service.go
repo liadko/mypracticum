@@ -20,6 +20,20 @@ func NewContactService(repo repository.ContactRepo, userSvc *UserService) *Conta
 }
 
 func (s *ContactService) AddContact(ctx context.Context, userID uuid.UUID, newContact domain.NewContact) (domain.Contact, error) {
+
+	// Contact can't have the same email as the user itself
+	user, err := s.userSvc.GetUserByID(ctx, userID)
+	if err != nil {
+		return domain.Contact{}, DBError{err}
+	}
+	if newContact.Type == domain.MentorContact && user.Email == *newContact.Email {
+		return domain.Contact{}, AlreadyExistsError{
+			Resource: "contact",
+			Field:    "email",
+			Value:    *newContact.Email,
+		}
+	}
+
 	// User can't have 2 contacts of the same type with the same email
 	if newContact.Email != nil {
 		exists, err := s.repo.ExistsByUserTypeEmail(ctx, userID, newContact.Type, *newContact.Email)
@@ -70,8 +84,54 @@ func splitName(full string) (string, string) {
 	return strings.Join(parts[:n-1], " "), parts[n-1]
 }
 
-func (s *ContactService) UpdateContact(ctx context.Context, userID, contactID uuid.UUID, newContact domain.NewContact) (domain.Contact, error) {
-	// build & validate in one shot
+func (s *ContactService) UpdateContact(
+	ctx context.Context,
+	userID, contactID uuid.UUID,
+	newContact domain.NewContact,
+) (domain.Contact, error) {
+
+	// Contact can't have the same email as the user itself
+	user, err := s.userSvc.GetUserByID(ctx, userID)
+	if err != nil {
+		return domain.Contact{}, DBError{err}
+	}
+	if newContact.Type == domain.MentorContact && user.Email == *newContact.Email {
+		return domain.Contact{}, AlreadyExistsError{
+			Resource: "contact",
+			Field:    "email",
+			Value:    *newContact.Email,
+		}
+	}
+
+	// Uniqueness per (user, type, email) excluding this contact
+	if newContact.Email != nil && strings.TrimSpace(*newContact.Email) != "" {
+		exists, err := s.repo.ExistsByUserTypeEmailExcept(ctx, userID, newContact.Type, *newContact.Email, contactID)
+		if err != nil {
+			return domain.Contact{}, DBError{Err: err}
+		}
+		if exists {
+			return domain.Contact{}, AlreadyExistsError{
+				Resource: "contact",
+				Field:    "email",
+				Value:    *newContact.Email,
+			}
+		}
+	}
+
+	// (Re)link mentor → user (or clear if not mentor / no email)
+	newContact.MentorUserID = nil
+	if newContact.Type == domain.MentorContact && newContact.Email != nil {
+		if email := strings.TrimSpace(*newContact.Email); email != "" {
+			first, last := splitName(newContact.Name)
+			mentorUserID, err := s.userSvc.EnsureUserIDByEmailWithRole(ctx, email, "mentor", first, last, userID)
+			if err != nil {
+				return domain.Contact{}, err
+			}
+			newContact.MentorUserID = &mentorUserID
+		}
+	}
+
+	// Build/validate and persist
 	contact, err := domain.UpdatedContact(userID, contactID, newContact)
 	if err != nil {
 		return domain.Contact{}, err
@@ -85,12 +145,7 @@ func (s *ContactService) UpdateContact(ctx context.Context, userID, contactID uu
 		return domain.Contact{}, DBError{Err: err}
 	}
 	return updated, nil
-
 }
-
-// func (s *ContactService) RemoveContact(ctx context.Context, userID, contactID string) error {
-// 	return s.repo.Delete(ctx, userID, userID)
-// }
 
 func (s *ContactService) ListStudentContacts(ctx context.Context, userID uuid.UUID) ([]domain.Contact, error) {
 	return s.repo.ListByUser(ctx, userID)

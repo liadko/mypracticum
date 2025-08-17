@@ -80,3 +80,38 @@ func (s *EntryService) ListMentorEntries(ctx context.Context, mentorUserID uuid.
 	}
 	return list, nil
 }
+
+func (s *EntryService) SetApproval(
+	ctx context.Context,
+	mentorID uuid.UUID,
+	entryID uuid.UUID,
+	approved bool,
+) (domain.Entry, error) {
+
+	// fetch entry + its mentor link
+	linked, err := s.repo.IsEntryLinkedToMentor(ctx, entryID, mentorID)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return domain.Entry{}, NotFoundError{"entry", entryID.String()}
+		}
+		return domain.Entry{}, DBError{Err: err}
+	}
+	if !linked {
+		return domain.Entry{}, ForbiddenError{"not mentor of this entry"}
+	}
+
+	// set approver_id := mentorID (approved) or NULL (unapprove)
+	var approver *uuid.UUID
+	if approved {
+		approver = &mentorID
+	}
+
+	updated, err := s.repo.UpdateApproval(ctx, entryID, approver)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return domain.Entry{}, NotFoundError{"entry", entryID.String()}
+		}
+		return domain.Entry{}, DBError{Err: err}
+	}
+	return updated, nil
+}

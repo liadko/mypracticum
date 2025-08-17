@@ -12,7 +12,7 @@ type ContactRepo interface {
 	ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Contact, error)
 	Create(ctx context.Context, userID uuid.UUID, c domain.Contact) (domain.Contact, error)
 	Update(ctx context.Context, userID, contactID uuid.UUID, c domain.Contact) (domain.Contact, error)
-
+	ExistsByUserTypeEmailExcept(ctx context.Context, userID uuid.UUID, ctype domain.ContactType, email string, exceptContactID uuid.UUID) (bool, error)
 	ExistsByUserTypeEmail(ctx context.Context, userID uuid.UUID, ctype domain.ContactType, email string) (bool, error)
 	//Delete(ctx context.Context, userID, contactID uuid.UUID) error
 }

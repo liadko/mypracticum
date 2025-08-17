@@ -35,11 +35,10 @@ export default function MentorPage() {
 
   function renderEntryApproved(entry: Entry): React.ReactNode {
     let status = 'ממתין לאישור'
-    if (entry.approvalStatus == 'approved') status = 'מאושר'
-    else if (entry.approvalStatus == 'declined') status = 'לא מאושר'
+    if (entry.approved) status = 'מאושר'
 
     return <span className="extra" dir='rtl'>
-      <span className={'status-dot' + (entry.approvalStatus == 'approved' ? ' approved' : '')} />
+      <span className={'status-dot' + (entry.approved ? ' approved' : '')} />
       {status}
     </span>
   }

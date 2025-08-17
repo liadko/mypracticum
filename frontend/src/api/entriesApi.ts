@@ -48,3 +48,20 @@ export async function deleteEntry(
         throw new Error(`Failed to delete entry: ${res.status} ${res.statusText}`)
     }
 }
+
+
+export async function setEntryApproval(
+  entryId: string,
+  approved: boolean
+): Promise<Entry> {
+  const res = await apiFetch(`/api/v1/entries/${encodeURIComponent(entryId)}/approval`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ approved }),
+  })
+  if (!res.ok) {
+    throw new Error(`Failed to set approval: ${res.status} ${res.statusText}`)
+  }
+  const entry: Entry = await res.json()
+  return entry
+}

@@ -31,6 +31,7 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 	prot.GET("/entries", entryH.List)
 	prot.POST("/entries", entryH.Create)
 	prot.DELETE("/entries/:entryId", entryH.Delete)
+	prot.PATCH("/entries/:entryId/approval", entryH.SetApproval)
 
 	// contacts
 	prot.GET("/contacts", contactH.List)

@@ -2,7 +2,9 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import type { Entry, NewEntry } from '../types'
 import * as domain from '../domain/entries'         // pure helpers: addEntry, removeEntry (sorted)
 import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, deleteEntry
-import { showError } from '../utils/toast'
+import { showAsyncToast, showError } from '../utils/toast'
+import { v4 as uuidv4 } from 'uuid';
+
 
 interface EntriesProviderProps {
     children: React.ReactNode
@@ -14,6 +16,8 @@ interface EntriesContextType {
     errorE: Error | null
     pending: Set<string>       // set of entry‐ids currently being toggled
     toggleEntry: (contactId: string, date: string) => Promise<void>
+
+    toggleApproved: (entryId: string) => Promise<void>
 }
 
 const EntriesContext = createContext<EntriesContextType | null>(null)
@@ -52,7 +56,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
         async (entryId: string) => {
 
             const deletedEntry = domain.getEntry(entries, entryId);
-            if(!deletedEntry) return // nothing to remove 
+            if (!deletedEntry) return // nothing to remove 
 
             setEntries(curr => domain.removeEntry(curr, entryId))
 
@@ -74,13 +78,13 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
             const newEntry: NewEntry = { contactId, date }
 
-            const tempId = crypto.randomUUID()
+            const tempId = uuidv4()
 
             const tempEntry: Entry = {
                 id: tempId,
                 ...newEntry,
                 userId: 'temp_user_id',
-                approvalStatus: "pending",        // default
+                approved: false,        // default
             }
 
             // optimistic
@@ -135,9 +139,31 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
         [entries, remove, create, pending]
     )
 
+    const setApproval = useCallback(async (entryId: string, approved: boolean) => {
+        const updated = await showAsyncToast(
+            api.setEntryApproval(entryId, approved),
+            {
+                loading: "מעדכן אישור…",
+                success: approved ? "אושר בהצלחה" : "ביטול האישור נשמר",
+                error: "עדכון האישור נכשל",
+            }
+        )
+        // keep list sorted via domain helpers
+        setEntries(curr => {
+            const without = domain.removeEntry(curr, updated.id)
+            return domain.addEntry(without, updated)
+        })
+    }, [])
+
+    const toggleApproved = useCallback(async (entryId: string) => {
+        const e = entries.find(x => x.id === entryId)
+        if (!e) return
+        setApproval(entryId, !e.approved)
+
+    }, [entries, setApproval])
 
     return (
-        <EntriesContext.Provider value={{ entries, loadingE: loading, errorE: error, pending, toggleEntry }}>
+        <EntriesContext.Provider value={{ entries, loadingE: loading, errorE: error, pending, toggleEntry, toggleApproved }}>
             {children}
         </EntriesContext.Provider>
     )

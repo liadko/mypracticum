@@ -25,6 +25,10 @@ func (e AlreadyExistsError) Error() string {
 	return e.Resource + " already exists: " + e.Field + "=" + e.Value
 }
 
+type ForbiddenError struct{ Reason string }
+
+func (e ForbiddenError) Error() string { return e.Reason }
+
 // ValidationError indicates the input was invalid.
 type ValidationError string
 

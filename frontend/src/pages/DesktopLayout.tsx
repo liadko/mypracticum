@@ -57,9 +57,12 @@ export default function DesktopLayout({ user, layoutType }: DesktopLayoutProps) 
                 </header>
 
                 {/* STUDENT / MENTOR MAIN LAYOUT */}
+                <div className='layout'>
+
                 {layoutType == "student" ?
                     <StudentLayout />
                     : <MentorLayout />}
+                </div>
 
             </div>
         </>

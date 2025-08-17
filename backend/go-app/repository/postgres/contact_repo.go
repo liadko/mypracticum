@@ -26,11 +26,11 @@ func NewPostgresContactRepo(db *sql.DB) repository.ContactRepo {
 // Create implements repository.ContactRepository.
 func (r *PostgresContactRepo) Create(ctx context.Context, userID uuid.UUID, c domain.Contact) (domain.Contact, error) {
 	query := `
-	INSERT INTO contacts (id, user_id, type, name, email, phone, specialty)
-	VALUES ($1, $2, $3, $4, $5, $6, $7)
-	RETURNING id, user_id, type, name, email, phone, specialty`
+	INSERT INTO contacts (id, user_id, type, name, email, phone, specialty, mentor_user_id)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	RETURNING id, user_id, type, name, email, phone, specialty, mentor_user_id`
 
-	row := r.db.QueryRowContext(ctx, query, c.ID, c.UserID, c.Type, c.Name, c.Email, c.Phone, c.Specialty)
+	row := r.db.QueryRowContext(ctx, query, c.ID, c.UserID, c.Type, c.Name, c.Email, c.Phone, c.Specialty, c.MentorUserID)
 
 	var out domain.Contact
 	if err := row.Scan(
@@ -41,6 +41,7 @@ func (r *PostgresContactRepo) Create(ctx context.Context, userID uuid.UUID, c do
 		&out.Email,
 		&out.Phone,
 		&out.Specialty,
+		&out.MentorUserID,
 	); err != nil {
 		return domain.Contact{}, fmt.Errorf("creating contact: %w", err)
 	}
@@ -57,14 +58,15 @@ func (r *PostgresContactRepo) Update(
 ) (domain.Contact, error) {
 	const q = `
         UPDATE contacts
-        SET type      = $1,
-            name      = $2,
-            email     = $3,
-            phone     = $4,
-            specialty = $5
-        WHERE user_id = $6
-          AND id      = $7
-        RETURNING id, user_id, type, name, email, phone, specialty
+        SET type			= $1,
+            name			= $2,
+            email			= $3,
+            phone			= $4,
+            specialty		= $5,
+			mentor_user_id	= $6
+        WHERE user_id = $7
+          AND id      = $8
+        RETURNING id, user_id, type, name, email, phone, specialty, mentor_user_id
     `
 	row := r.db.QueryRowContext(ctx, q,
 		c.Type,
@@ -72,6 +74,7 @@ func (r *PostgresContactRepo) Update(
 		c.Email,
 		c.Phone,
 		c.Specialty,
+		c.MentorUserID,
 		userID,
 		contactID,
 	)
@@ -85,6 +88,7 @@ func (r *PostgresContactRepo) Update(
 		&out.Email,
 		&out.Phone,
 		&out.Specialty,
+		&out.MentorUserID,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			// Caller tried to update a non-existent contact
@@ -163,6 +167,33 @@ func (r *PostgresContactRepo) ExistsByUserTypeEmail(ctx context.Context, userID 
 		return false, err
 	}
 	return true, nil // exists
+}
+
+func (r *PostgresContactRepo) ExistsByUserTypeEmailExcept(
+	ctx context.Context,
+	userID uuid.UUID,
+	ctype domain.ContactType,
+	email string,
+	exceptContactID uuid.UUID,
+) (bool, error) {
+	const q = `
+		SELECT 1
+		  FROM contacts
+		 WHERE user_id = $1
+		   AND type    = $2
+		   AND email   = $3
+		   AND id     <> $4
+		 LIMIT 1;
+	`
+	var dummy int
+	err := r.db.QueryRowContext(ctx, q, userID, string(ctype), email, exceptContactID).Scan(&dummy)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // // Delete satisfies ContactRepository

@@ -34,9 +34,9 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
     useEffect(() => {
         if (formMode.mode === 'edit') {
             const existing = getContactById(formMode.id)
-            if (!existing) {
+            if (!existing || existing.type === 'student') {
                 console.error("Error Initializing ContactForm")
-                toast.error("Can't Edit Contact Right Now")
+                showError("Can't Edit Contact Right Now")
                 return;
             }
 
