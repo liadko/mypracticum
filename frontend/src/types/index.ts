@@ -26,6 +26,14 @@ export interface TherapistContact extends BaseContact {
 
 }
 
+
+export interface Student {
+    type: 'student'
+    id: string
+    name: string
+}
+
+
 export type Contact =
     | ClientContact
     | MentorContact
@@ -77,10 +85,4 @@ export interface User {
     signature?: string  // Base64 jpeg
 
     roles: UserRole[]
-}
-
-export interface Student {
-    type: 'student'
-    id: string
-    name: string
 }

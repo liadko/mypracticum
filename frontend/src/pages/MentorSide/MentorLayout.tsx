@@ -55,8 +55,8 @@ export default function MentorLayout() {
         </div>
 
         {/* RIGHT SIDE (list) */}
-        <div className="list-side">
-          <div className="selected-list">
+        <div className="list-side bigger">
+          <div className="selected-list bigger">
             <div className="side-header">
               <span className="selected-list-header-text">
                 {selectedStudentId

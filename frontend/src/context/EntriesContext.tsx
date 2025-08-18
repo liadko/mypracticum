@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import type { Entry, NewEntry } from '../types'
 import * as domain from '../domain/entries'         // pure helpers: addEntry, removeEntry (sorted)
 import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, deleteEntry
@@ -18,6 +18,7 @@ interface EntriesContextType {
     toggleEntry: (contactId: string, date: string) => Promise<void>
 
     toggleApproved: (entryId: string) => Promise<void>
+    unapprovedCounts: Record<string, number>
 }
 
 const EntriesContext = createContext<EntriesContextType | null>(null)
@@ -58,6 +59,11 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
             const deletedEntry = domain.getEntry(entries, entryId);
             if (!deletedEntry) return // nothing to remove 
 
+            if (deletedEntry.approved) {
+                showError("אי אפשר למחוק שעה מאושרת")
+                return
+            }
+
             setEntries(curr => domain.removeEntry(curr, entryId))
 
             try {
@@ -77,6 +83,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
         async (contactId: string, date: string) => {
 
             const newEntry: NewEntry = { contactId, date }
+            console.log(new Date().toISOString().slice(0, 10) + " " + newEntry.date)
 
             const tempId = uuidv4()
 
@@ -162,8 +169,16 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
     }, [entries, setApproval])
 
+    const unapprovedCounts = useMemo(() => {
+        const m: Record<string, number> = {};
+        for (const e of entries) {
+            if (!e.approved) m[e.userId] = (m[e.userId] ?? 0) + 1;
+        }
+        return m;
+    }, [entries]);
+
     return (
-        <EntriesContext.Provider value={{ entries, loadingE: loading, errorE: error, pending, toggleEntry, toggleApproved }}>
+        <EntriesContext.Provider value={{ entries, loadingE: loading, errorE: error, pending, toggleEntry, toggleApproved, unapprovedCounts }}>
             {children}
         </EntriesContext.Provider>
     )

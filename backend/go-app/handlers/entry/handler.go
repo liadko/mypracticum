@@ -49,7 +49,7 @@ func (h *EntryHandler) Create(ctx *gin.Context) {
 			log.Printf("[ENTRY][Error] service validation error: %v", err)
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
 		} else {
-			fmt.Printf("Error While Creating Entry: %v\n", err)
+			log.Printf("Error While Creating Entry: %v\n", err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return

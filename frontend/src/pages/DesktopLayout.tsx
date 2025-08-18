@@ -50,7 +50,7 @@ export default function DesktopLayout({ user, layoutType }: DesktopLayoutProps) 
                     {/* Right block */}
                     <div className="header-right">
                         <span className="status">
-                            {false ? '...שומר שינויים' : 'כל השינויים שמורים'}
+                            {layoutType == "student" ? "פרקטיקום סטודנטים" : "פרקטיקום מדריכים"}
                         </span>
                         <img src="/logo-text.png" alt="Logo" className="header-logo" />
                     </div>

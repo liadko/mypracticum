@@ -35,7 +35,7 @@ func (e Entry) Validate() error {
 	if e.Date.IsZero() {
 		errs = append(errs, "date must be provided")
 	}
-	if e.Date.After(time.Now()) {
+	if e.Date.After(time.Now().Add(time.Hour * 24)) {
 		errs = append(errs, "date cannot be in the future")
 	}
 

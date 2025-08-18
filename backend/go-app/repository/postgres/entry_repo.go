@@ -26,7 +26,7 @@ func NewPostgresEntryRepo(db *sql.DB) repository.EntryRepo {
 // ListByStudent satisfies EntryRepository
 func (r *PostgresEntryRepo) ListByStudent(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error) {
 	entriesQuery := `
-			SELECT id, contact_id, date, approver_id  
+			SELECT id, contact_id, date, approver_id
 			FROM entries 
 			WHERE user_id = $1
 			ORDER BY date DESC
@@ -107,7 +107,7 @@ func (r *PostgresEntryRepo) Create(
 	// 1) run INSERT … RETURNING
 	const q = `
     INSERT INTO entries (id, user_id, contact_id, date)
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES ($1, $2, $3, $4)
     RETURNING id, user_id, contact_id, date
     `
 	row := r.db.QueryRowContext(ctx, q,

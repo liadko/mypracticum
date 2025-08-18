@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useContacts } from '../../context/ContactsContext'
 import type { ContactType, FormMode, NewContact } from '../../types'
 import './ContactForm.css'
-import toast from 'react-hot-toast'
 import { validateContact } from '../../domain/contacts'
 import { showError } from '../../utils/toast'
 

@@ -27,7 +27,7 @@ func NewSmooveClient(baseURL, apiKey string) *SmooveClient {
 
 // Send implements the otp.Notifier interface.
 func (c *SmooveClient) Send(ctx context.Context, destination, code string) error {
-	endpoint := fmt.Sprintf("%s/Campaigns?sendNow=true&templateName=my-practicum-otp", c.BaseURL)
+	endpoint := fmt.Sprintf("%s/Campaigns?sendNow=true&templateName=mypracticum-otp", c.BaseURL)
 
 	requestDTO := EmailRequest{
 		CustomData: []KeyValue{

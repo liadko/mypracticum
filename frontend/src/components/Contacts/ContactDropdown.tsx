@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import type { Contact, ContactType } from '../../types'
 import { contactLabelPluralShort } from '../../i18n/he'
 import './ContactDropdown.css'
+import { useEntries } from '../../context/EntriesContext'
 
 interface Props {
   contacts: Contact[]
@@ -14,6 +15,7 @@ interface Props {
 export function ContactDropdown({ contacts, value, onChange, contactType }: Props) {
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
+  const { unapprovedCounts } = useEntries();
 
   // close when clicking outside
   useEffect(() => {
@@ -32,6 +34,25 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
     return t !== "student"
   }
 
+  function isStudent(t: ContactType | "student" | undefined) {
+    return t === "student"
+  }
+
+  function unapprovedCount(contact: Contact | undefined) {
+    if (contact === undefined || !isStudent(contact.type)) return undefined
+
+    return unapprovedCounts[contact.id]
+
+  }
+
+  function unapprovedFlagText(contact: Contact | undefined) {
+    const count = unapprovedCount(contact)
+    if(!count) return
+
+    if(count === 1) return "1 לא אושר";
+    return count + " לא אושרו";
+  }
+
   return (
     <div
       ref={root}
@@ -42,24 +63,35 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
         <span className="contact-dropdown-label">
           {selected?.name ?? 'בחר…'}
         </span>
+        {unapprovedCount(selected) &&
+          <span className='unapproved-entries-flag'>
+            {unapprovedFlagText(selected)}
+          </span>}
       </div>
 
       <div className="contact-dropdown-menu">
         {contacts.map(c => (
-          <div
-            key={c.id}
-            className={
-              'contact-dropdown-item' +
-              (c.id === value ? ' active' : '')
-            }
-            onClick={e => {
-              e.stopPropagation()
-              onChange(c.id)
-              setOpen(false)
-            }}
-          >
-            {c.name}
-          </div>
+          <>
+            <div
+              key={c.id}
+              className={
+                'contact-dropdown-item' +
+                (c.id === value ? ' active' : '')
+              }
+              onClick={e => {
+                e.stopPropagation()
+                onChange(c.id)
+                setOpen(false)
+              }}
+            >
+              {c.name}
+              {unapprovedCount(c) &&
+                <span className='unapproved-entries-flag smaller'>
+                  {unapprovedCount(c)}
+                </span>}
+            </div>
+          </>
+
         ))}
         {
           isContactType(contactType) &&

@@ -20,6 +20,12 @@
 
 }
 
+.list-side.bigger {
+    flex: 6;
+
+}
+
+
 .calendar {
     display: flex;
     flex-direction: column;
@@ -55,7 +61,9 @@
     height: 550px;
 }
 
-
+.selected-list.bigger {
+    max-width: 560px;
+}
 
 .selected-list-header-text {
     font-size: 1.6em;
