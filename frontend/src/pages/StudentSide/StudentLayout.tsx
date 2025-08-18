@@ -14,9 +14,6 @@ export default function StudentLayout() {
         <>
             {/* NAV BAR */}
             <nav className="nav-bar">
-                <button
-                    className='nav-button settings'
-                >הגדרות</button>
                 {contactTypes.map((page) => (
                     <button
                         key={page}

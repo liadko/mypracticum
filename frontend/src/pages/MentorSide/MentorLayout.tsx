@@ -30,8 +30,7 @@ export default function MentorLayout() {
   }
 
   return (
-    <>
-      <button className="nav-button settings" aria-label="הגדרות"> הגדרות ⚙️</button>
+    <div className='mentor-layout-theme'>
       <div className='fake-nav-bar'/>
       <div className="calendar-with-list">
         {/* LEFT SIDE (info) */}
@@ -109,6 +108,6 @@ export default function MentorLayout() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
