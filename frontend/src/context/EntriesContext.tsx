@@ -4,6 +4,7 @@ import * as domain from '../domain/entries'         // pure helpers: addEntry, r
 import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, deleteEntry
 import { showAsyncToast, showError } from '../utils/toast'
 import { v4 as uuidv4 } from 'uuid';
+import { TimeoutError } from '../api/errors'
 
 
 interface EntriesProviderProps {
@@ -71,7 +72,11 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
             } catch (err: any) {
                 console.error(err)
                 setEntries(curr => domain.addEntry(curr, deletedEntry))
-                showError(`אי אפשר למחוק את השעה הזאת`)
+                if (err instanceof TimeoutError) {
+                    showError('יש בעיה ברשת, לא ניתן לדווח')
+                } else {
+                    showError('אי אפשר למחוק את השעה הזאת')
+                }
             }
 
         },
@@ -83,10 +88,14 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
         async (contactId: string, date: string) => {
 
             const newEntry: NewEntry = { contactId, date }
-            console.log(new Date().toISOString().slice(0, 10) + " " + newEntry.date)
+            const today = new Date().toISOString().slice(0, 10)
+            if (newEntry.date > today) {
+                showError("אי אפשר לדווח על שעות עתידיות")
+                return
+            }
+
 
             const tempId = uuidv4()
-
             const tempEntry: Entry = {
                 id: tempId,
                 ...newEntry,
@@ -106,7 +115,12 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
             } catch (err: any) {
                 console.error(err)
                 setEntries(curr => domain.removeEntry(curr, tempId))
-                showError(`אי אפשר להוסיף את השעה הזאת`)
+
+                if (err instanceof TimeoutError) {
+                    showError('יש בעיה ברשת, לא ניתן לדווח')
+                } else {
+                    showError('אי אפשר להוסיף את השעה הזאת')
+                }
             }
         },
         [entries]

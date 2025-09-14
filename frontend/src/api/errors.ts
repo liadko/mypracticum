@@ -15,3 +15,12 @@ export class AuthError extends Error {
     Object.setPrototypeOf(this, AuthError.prototype)
   }
 }
+
+
+export class TimeoutError extends Error {
+  constructor(message = 'Request timed out') {
+    super(message)
+    this.name = 'TimeoutError'
+    Object.setPrototypeOf(this, TimeoutError.prototype)
+  }
+}

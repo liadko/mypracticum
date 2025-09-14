@@ -21,7 +21,7 @@
 }
 
 .list-side.bigger {
-    flex: 6;
+    flex: 5.5;
 
 }
 
@@ -129,6 +129,7 @@
 
 .weekday {
     width: 50px;
+    text-align: start;
 }
 
 .extra {
@@ -146,7 +147,7 @@
     background-color: #BBBBBB;
 }
 
-.status-dot.approved{
+.status-dot.approved {
     background-color: #038B7F;
 }
 
@@ -170,4 +171,5 @@
 .extra-message {
     font-weight: 500;
     width: 350px;
+    text-align: right;
 }

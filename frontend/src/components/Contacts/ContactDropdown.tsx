@@ -47,9 +47,9 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
 
   function unapprovedFlagText(contact: Contact | undefined) {
     const count = unapprovedCount(contact)
-    if(!count) return
+    if (!count) return
 
-    if(count === 1) return "1 לא אושר";
+    if (count === 1) return "1 לא אושר";
     return count + " לא אושרו";
   }
 
@@ -71,26 +71,24 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
 
       <div className="contact-dropdown-menu">
         {contacts.map(c => (
-          <>
-            <div
-              key={c.id}
-              className={
-                'contact-dropdown-item' +
-                (c.id === value ? ' active' : '')
-              }
-              onClick={e => {
-                e.stopPropagation()
-                onChange(c.id)
-                setOpen(false)
-              }}
-            >
-              {c.name}
-              {unapprovedCount(c) &&
-                <span className='unapproved-entries-flag smaller'>
-                  {unapprovedCount(c)}
-                </span>}
-            </div>
-          </>
+          <div
+            key={c.id}
+            className={
+              'contact-dropdown-item' +
+              (c.id === value ? ' active' : '')
+            }
+            onClick={e => {
+              e.stopPropagation()
+              onChange(c.id)
+              setOpen(false)
+            }}
+          >
+            {c.name}
+            {unapprovedCount(c) &&
+              <span className='unapproved-entries-flag smaller'>
+                {unapprovedFlagText(c)}
+              </span>}
+          </div>
 
         ))}
         {

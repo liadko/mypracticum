@@ -36,9 +36,9 @@
   margin-left: 8px;
 
   padding: 2px 8px;
-  color: white;
-  background-color: #F95F5F;
-  border-radius: 3px;;
+  color: rgb(62, 62, 62);
+  background-color: #6b6b6b2f;
+  border-radius: 4px;
 
   white-space: nowrap;
 }
@@ -46,7 +46,9 @@
 .unapproved-entries-flag.smaller {
   font-size: 16px;
   margin-left: 8px;
-
+  
+  background-color: transparent;
+  color: #615656;
   border-radius: 50%;
   
 }

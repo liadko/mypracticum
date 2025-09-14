@@ -1,5 +1,5 @@
 import type { User } from "../types"
-import { fetchWithTimeout } from "../utils/fetchWithTimeout"
+import { fetchWithTimeout } from "./fetchWithTimeout"
 import { apiFetch } from "./client"
 import { AuthError } from "./errors"
 

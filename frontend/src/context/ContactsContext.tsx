@@ -10,6 +10,7 @@ import type { Contact, ContactType, NewContact } from '../types'
 import * as domain from '../domain/contacts'
 import * as api from '../api/contactsApi'
 import { showAsyncToast } from '../utils/toast'
+import { useSelected } from './useSelected'
 
 interface ContactsProviderProps {
   children: React.ReactNode
@@ -26,7 +27,12 @@ interface ContactsContextType {
 
   loadingC: boolean
   errorC: Error | null
-  //deleteContact: (id: string) => Promise<void>
+
+
+  getSelected: (type: ContactType) => string
+  setSelected: (type: ContactType, id: string) => void
+
+
 }
 
 const ContactsContext = createContext<ContactsContextType | undefined>(undefined)
@@ -35,7 +41,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null) // fatal error
-
+  const { getSelected, setSelected } = useSelected()
 
   // load on mount
   useEffect(() => {
@@ -92,10 +98,6 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     )
   }, [])
 
-  // const deleteContact = useCallback(async (id: string) => {
-  //   await api.deleteContact(id)
-  //   setContacts(cs => domain.removeContact(cs, id))
-  // }, [])
 
   const contactsById = useMemo(() => {
     const map: Record<string, Contact> = {}
@@ -124,7 +126,10 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
 
       loadingC: loading,
       errorC: error,
-      //deleteContact
+
+      getSelected,
+      setSelected
+
     }}>
       {children}
     </ContactsContext.Provider>

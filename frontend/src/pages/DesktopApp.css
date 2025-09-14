@@ -99,12 +99,14 @@
 .nav-button {
     background: none;
     border: none;
-    width: 165px;
+    width: 205px;
     margin: 0 1rem;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     padding: 0.5rem 1rem;
     cursor: pointer;
     color: #333333;
+
+    white-space: nowrap;
 }
 
 .nav-button.active {
@@ -115,10 +117,14 @@
     font-weight: 600;
 }
 
-.nav-button.settings {
-    position: absolute;
-    left: 10px;
 
+.nav-button--title{
+    
+    margin-left: 8px;
+}
+.nav-button--subtitle{
+    
+    font-size: 0.75rem;
 }
 
 

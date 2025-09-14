@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, type ReactNode } from 'react'
 import Calendar from './Calendar/Calendar'
 import { format, parseISO } from 'date-fns'
 import type { Contact, ContactType, Entry } from '../types'
@@ -7,17 +7,22 @@ import './CalendarWithList.css'
 import { EditContactsModal } from './Contacts/EditContactsModal'
 import { pageHeaderText } from '../i18n/he'
 import { ContactDropdown } from './Contacts/ContactDropdown'
+import { useContacts } from '../context/ContactsContext'
 
 const hebrewWeekdays = [
-    'ראשון', 'שני', 'שלישי',
-    'רביעי', 'חמישי', 'שישי', 'שבת',
+"יום א'",
+"יום ב'",
+"יום ג'",
+"יום ד'",
+"יום ה'",
+"יום ו'",
+"שבת",
 ];
 
 export interface CalendarWithListProps {
     contacts: Contact[]             // all contacts of this category
     entries: Entry[]                    // all entries of this category
 
-    //hoursNeeded: number
     contactType: ContactType
 
     onEntryToggle: (contactId: string, date: string) => void
@@ -28,18 +33,16 @@ export interface CalendarWithListProps {
 export function CalendarWithList({
     contacts,
     entries,
-    //hoursNeeded,
     contactType,
     onEntryToggle,
     renderEntryExtra,
     renderMessage
 }: CalendarWithListProps) {
     // selected contact UUID
-    const [selectedContactId, setSelectedContactId] = useState<string>(
-        () => contacts[0]?.id ?? ''
-    )
+    const { setSelected, getSelected } = useContacts()
     const [isEditOpen, setEditOpen] = useState(false)
 
+    const selectedContactId = getSelected(contactType)
 
     // highlighted date for scrolling/focus
     const [highlightedDate, setHighlightedDate] = useState<string>('')
@@ -76,11 +79,27 @@ export function CalendarWithList({
         if (id === '__edit__') {
             setEditOpen(true)
         } else {
-            setSelectedContactId(id)
+            setSelected(contactType, id)
         }
     }
 
+    function extraMessage(): ReactNode {
+        let message = "סמנו תאריכים בלוח השנה"
+        if (selectedContactId == '') message = "הוסיפו אנשי קשר"
 
+
+        return (
+            <div dir='rtl'>
+                <div className='extra-message'>
+                    {
+                        filtered.length == 0 ? message
+                            : (renderMessage && renderMessage(selectedContactId))
+                    }
+                </div>
+            </div>
+        )
+
+    }
 
     return (
         <div className="calendar-with-list">
@@ -99,7 +118,6 @@ export function CalendarWithList({
             <div className="list-side">
                 <div className="selected-list" >
                     <div className="side-header">
-                        {/* <span className="selected-list-counter">{filtered.length}/{hoursNeeded}</span> */}
                         <span className='selected-list-header-text'>{pageHeaderText[contactType]}</span>
                         <ContactDropdown
                             contacts={contacts}
@@ -111,7 +129,10 @@ export function CalendarWithList({
 
                     </div>
                     <div className="selected-list-entries">
-                        {/*selectedContactId != '' && entries.length === 0 && <div style={{ textAlign: "right" }}>נא לסמן תאריכים בלוח השנה</div>*/}
+                        {/* {selectedContactId == '' &&
+                            <div>נא לסמן תאריכים בלוח השנה</div>}
+                        {selectedContactId != '' && filtered.length === 0 &&
+                            <div className="extra-message" dir='rtl'>נא לסמן תאריכים בלוח השנה</div>} */}
                         {filtered.map(entry => {
                             const dateObj = parseISO(entry.date)
                             const weekdayName = hebrewWeekdays[dateObj.getDay()]
@@ -132,13 +153,7 @@ export function CalendarWithList({
                         })}
 
                     </div>
-                    {renderMessage &&
-                        <div dir='rtl'>
-                            <div className='extra-message'>
-                                {renderMessage(selectedContactId)}
-                            </div>
-                        </div>
-                    }
+                    {extraMessage()}
                 </div>
             </div>
             {/* render the modal when “edit” clicked */}

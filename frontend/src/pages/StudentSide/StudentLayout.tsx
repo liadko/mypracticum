@@ -20,7 +20,12 @@ export default function StudentLayout() {
                         className={`nav-button ${activePage === page ? 'active' : ''} ${activePage}-page-theme`}
                         onClick={() => setActivePage(page)}
                     >
-                        {pageTitle[page]}
+                        <span className="nav-button--title">
+                            {pageTitle[page]}
+                        </span>
+                        <span className="nav-button--subtitle">
+                            50/150
+                        </span>
                     </button>
                 ))}
             </nav>
