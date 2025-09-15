@@ -191,6 +191,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
         return m;
     }, [entries]);
 
+
     return (
         <EntriesContext.Provider value={{ entries, loadingE: loading, errorE: error, pending, toggleEntry, toggleApproved, unapprovedCounts }}>
             {children}
