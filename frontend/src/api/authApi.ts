@@ -21,7 +21,7 @@ export async function login(email: string): Promise<void> {
     if (res.status === 400) throw new AuthError('invalid-email', 'כתובת מייל לא תקינה')
     if (res.status === 404) throw new AuthError('invalid-email', 'המייל אינו קיים במערכת')
     if (res.status === 429) throw new AuthError('too-many-requests', 'נא להמתין, נסו שוב בקרוב')
-    throw new AuthError('network', `login failed: ${res.status}`)
+    throw new AuthError('network', `יש בעיה בחיבור`)
   }
 
 }
@@ -41,7 +41,7 @@ export async function verifyOtp(
   if (!res.ok) {
     if (res.status === 429) throw new AuthError('too-many-requests', 'נא להמתין בין בדיקות')
     if (res.status === 401) throw new AuthError('invalid-code', 'קוד שגוי, נסו שנית')
-    throw new AuthError('network', `OTP verification failed: ${res.status}`)
+    throw new AuthError('network', `יש בעיה בחיבור`)
   }
   return await res.json()
 }

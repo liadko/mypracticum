@@ -10,6 +10,8 @@ export interface BaseContact {
 
 export interface ClientContact extends BaseContact {
     type: 'client'
+    clientInstitution: string // 'privateClinic' | 'trainingCenter'
+    clientTrainingCenterInfo: string
 }
 
 export interface MentorContact extends BaseContact {
@@ -17,6 +19,7 @@ export interface MentorContact extends BaseContact {
     email: string
     specialty: string
     phone: string
+    mentorshipType: string // 'group' | 'individual'
 }
 
 export interface TherapistContact extends BaseContact {
@@ -47,6 +50,10 @@ export interface NewContact {
     email?: string
     phone?: string
     specialty?: string
+    mentorshipType?: string
+    clientInstitution?: string // 'privateClinic' | 'trainingCenter'
+    clientTrainingCenterInfo?: string
+
 }
 
 
@@ -70,7 +77,7 @@ export type FormMode = AddMode | EditMode
 
 
 
-export type UserRole = 'student' | 'mentor'  | 'admin'
+export type UserRole = 'student' | 'mentor' | 'admin'
 
 export interface User {
     /** UUIDv4 */

@@ -44,12 +44,15 @@ func (h *ContactHandler) List(ctx *gin.Context) {
 	resp := make([]ContactResponse, len(contacts))
 	for i, d := range contacts {
 		resp[i] = ContactResponse{
-			ID:        d.ID,
-			Type:      string(d.Type),
-			Name:      d.Name,
-			Email:     d.Email,
-			Phone:     d.Phone,
-			Specialty: d.Specialty,
+			ID:                       d.ID,
+			Type:                     string(d.Type),
+			Name:                     d.Name,
+			Email:                    d.Email,
+			Phone:                    d.Phone,
+			Specialty:                d.Specialty,
+			MentorshipType:           d.MentorshipType,
+			ClientInstitution:        d.ClientInstitution,
+			ClientTrainingCenterInfo: d.ClientTrainingCenterInfo,
 		}
 	}
 	ctx.JSON(http.StatusOK, resp)
@@ -75,11 +78,14 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 
 	// build the temporary NewContact
 	newContact := domain.NewContact{
-		Type:      req.Type,
-		Name:      req.Name,
-		Email:     req.Email,
-		Phone:     req.Phone,
-		Specialty: req.Specialty,
+		Type:                     req.Type,
+		Name:                     req.Name,
+		Email:                    req.Email,
+		Phone:                    req.Phone,
+		Specialty:                req.Specialty,
+		MentorshipType:           req.MentorshipType,
+		ClientInstitution:        req.ClientInstitution,
+		ClientTrainingCenterInfo: req.ClientTrainingCenterInfo,
 	}
 
 	saved, err := h.svc.UpdateContact(ctx.Request.Context(), userID, contactID, newContact)
@@ -96,6 +102,7 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 
 		default:
 			// everything else is a 500
+			fmt.Printf("Error while updating contact, something internal: %v\n", err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return
@@ -103,12 +110,15 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 
 	// map domain.Contact → DTO
 	resp := ContactResponse{
-		ID:        saved.ID,
-		Type:      string(saved.Type),
-		Name:      saved.Name,
-		Email:     saved.Email,
-		Phone:     saved.Phone,
-		Specialty: saved.Specialty,
+		ID:                       saved.ID,
+		Type:                     string(saved.Type),
+		Name:                     saved.Name,
+		Email:                    saved.Email,
+		Phone:                    saved.Phone,
+		Specialty:                saved.Specialty,
+		MentorshipType:           saved.MentorshipType,
+		ClientInstitution:        saved.ClientInstitution,
+		ClientTrainingCenterInfo: saved.ClientTrainingCenterInfo,
 	}
 
 	ctx.JSON(http.StatusOK, resp)
@@ -128,11 +138,14 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 
 	// build the temporary NewContact
 	nc := domain.NewContact{
-		Type:      req.Type,
-		Name:      req.Name,
-		Email:     req.Email,
-		Phone:     req.Phone,
-		Specialty: req.Specialty,
+		Type:                     req.Type,
+		Name:                     req.Name,
+		Email:                    req.Email,
+		Phone:                    req.Phone,
+		Specialty:                req.Specialty,
+		MentorshipType:           req.MentorshipType,
+		ClientInstitution:        req.ClientInstitution,
+		ClientTrainingCenterInfo: req.ClientTrainingCenterInfo,
 	}
 
 	saved, err := h.svc.AddContact(ctx.Request.Context(), userID, nc)
@@ -150,18 +163,22 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 			})
 			return
 		}
+		fmt.Printf("Error while adding contact, something internal: %v\n", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
 	// map domain.Contact → DTO
 	resp := ContactResponse{
-		ID:        saved.ID,
-		Type:      string(saved.Type),
-		Name:      saved.Name,
-		Email:     saved.Email,
-		Phone:     saved.Phone,
-		Specialty: saved.Specialty,
+		ID:                       saved.ID,
+		Type:                     string(saved.Type),
+		Name:                     saved.Name,
+		Email:                    saved.Email,
+		Phone:                    saved.Phone,
+		Specialty:                saved.Specialty,
+		MentorshipType:           saved.MentorshipType,
+		ClientInstitution:        saved.ClientInstitution,
+		ClientTrainingCenterInfo: saved.ClientTrainingCenterInfo,
 	}
 
 	ctx.JSON(http.StatusCreated, resp)

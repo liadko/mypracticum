@@ -29,17 +29,20 @@ export function validateContact(c: NewContact): Error | null {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const phoneRegex = /^[0-9+\-\s()]{5,20}$/
 
-  // 2) Mentor must have a valid email
+  // 2) Mentor must have a valid email and mentorshipType
   if (c.type === 'mentor') {
     if (!c.email || !emailRegex.test(c.email)) {
-      return new Error('אנא הזן כתובת אימייל תקינה למדריך')
+      return new Error('יש להזין כתובת אימייל תקינה למדריך')
+    }
+    if (c.mentorshipType !== 'group' && c.mentorshipType !== 'individual') {
+      return new Error('נא לבחור סוג הדרכה')
     }
   }
 
   // 3) Mentor & Therapist must have a phone
   if ((c.type === 'mentor' || c.type === 'therapist')) {
     if (!c.phone || !phoneRegex.test(c.phone)) {
-      return new Error('אנא הזן מספר טלפון חוקי')
+      return new Error('יש להזין מספר טלפון חוקי')
     }
   }
 
@@ -47,6 +50,17 @@ export function validateContact(c: NewContact): Error | null {
   if ((c.type === 'mentor' || c.type === 'therapist') && !c.specialty?.trim()) {
     return new Error('יש להזין תחום התמחות')
   }
+
+  // 5) Client must have institution, and if training center then info
+  if (c.type === 'client') {
+    if (c.clientInstitution !== 'privateClinic' && c.clientInstitution !== 'trainingCenter') {
+      return new Error('יש לבחור מקור מסגרת טיפול תקינה')
+    }
+    if (c.clientInstitution === 'trainingCenter' && !c.clientTrainingCenterInfo?.trim()) {
+      return new Error('יש לפרט על מרכז ההכשרה')
+    }
+  }
+
 
   // All good!
   return null

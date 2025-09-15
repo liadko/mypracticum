@@ -34,22 +34,30 @@ func IsValidContactType(t ContactType) bool {
 
 // Contact holds the core data for a person you can log hours against.
 type Contact struct {
-	ID           uuid.UUID // UUID
-	UserID       uuid.UUID // FK to the owning user (your mom)
-	Type         ContactType
-	Name         string
-	Email        *string    // only required for mentors
-	Phone        *string    // only required for mentors
-	Specialty    *string    // optional,
+	ID                       uuid.UUID // UUID
+	UserID                   uuid.UUID // FK to the owning user
+	Type                     ContactType
+	Name                     string
+	Email                    *string // only required mentors
+	Phone                    *string // mentors and therapists
+	Specialty                *string // mentors and therapists
+	MentorshipType           *string // mentors
+	ClientInstitution        *string // clients
+	ClientTrainingCenterInfo *string // clients
+
 	MentorUserID *uuid.UUID // nil unless Type=="mentor"
 }
 
 type NewContact struct {
-	Type         ContactType
-	Name         string
-	Email        *string
-	Phone        *string
-	Specialty    *string
+	Type                     ContactType
+	Name                     string
+	Email                    *string
+	Phone                    *string
+	Specialty                *string
+	MentorshipType           *string
+	ClientInstitution        *string
+	ClientTrainingCenterInfo *string
+
 	MentorUserID *uuid.UUID
 }
 
@@ -70,6 +78,9 @@ func (contact Contact) Validate() error {
 		if contact.Email == nil || strings.TrimSpace(*contact.Email) == "" {
 			errs = append(errs, "email is required for mentors")
 		}
+		if contact.MentorshipType == nil || (*contact.MentorshipType != "group" && *contact.MentorshipType != "individual") {
+			errs = append(errs, "mentorshipType must be 'group' or 'individual'")
+		}
 		fallthrough
 	case TherapistContact:
 		if contact.Phone == nil || strings.TrimSpace(*contact.Phone) == "" {
@@ -79,7 +90,14 @@ func (contact Contact) Validate() error {
 			errs = append(errs, "specialty, if provided, cannot be blank")
 		}
 	case ClientContact:
-		// no extra requirements
+		if contact.ClientInstitution == nil || (*contact.ClientInstitution != "privateClinic" && *contact.ClientInstitution != "trainingCenter") {
+			errs = append(errs, "clientInstitution must be 'privateClinic' or 'trainingCenter'")
+		}
+		if contact.ClientInstitution != nil && *contact.ClientInstitution == "trainingCenter" {
+			if contact.ClientTrainingCenterInfo == nil || strings.TrimSpace(*contact.ClientTrainingCenterInfo) == "" {
+				errs = append(errs, "clientTrainingCenterInfo is required when clientInstitution is 'trainingCenter'")
+			}
+		}
 	default:
 		errs = append(errs, "invalid contact type")
 	}
@@ -97,13 +115,17 @@ func NewContactFrom(userID uuid.UUID, nc NewContact) (Contact, error) {
 		return Contact{}, fmt.Errorf("generate contact ID: %w", err)
 	}
 	contact := Contact{
-		ID:           id,
-		UserID:       userID,
-		Type:         nc.Type,
-		Name:         nc.Name,
-		Email:        nc.Email,
-		Phone:        nc.Phone,
-		Specialty:    nc.Specialty,
+		ID:                       id,
+		UserID:                   userID,
+		Type:                     nc.Type,
+		Name:                     nc.Name,
+		Email:                    nc.Email,
+		Phone:                    nc.Phone,
+		Specialty:                nc.Specialty,
+		MentorshipType:           nc.MentorshipType,
+		ClientInstitution:        nc.ClientInstitution,
+		ClientTrainingCenterInfo: nc.ClientTrainingCenterInfo,
+
 		MentorUserID: nc.MentorUserID,
 	}
 	if err := contact.Validate(); err != nil {
@@ -116,13 +138,17 @@ func NewContactFrom(userID uuid.UUID, nc NewContact) (Contact, error) {
 func UpdatedContact(userID uuid.UUID, contactID uuid.UUID, nc NewContact) (Contact, error) {
 
 	contact := Contact{
-		ID:           contactID,
-		UserID:       userID,
-		Type:         nc.Type,
-		Name:         nc.Name,
-		Email:        nc.Email,
-		Phone:        nc.Phone,
-		Specialty:    nc.Specialty,
+		ID:                       contactID,
+		UserID:                   userID,
+		Type:                     nc.Type,
+		Name:                     nc.Name,
+		Email:                    nc.Email,
+		Phone:                    nc.Phone,
+		Specialty:                nc.Specialty,
+		MentorshipType:           nc.MentorshipType,
+		ClientInstitution:        nc.ClientInstitution,
+		ClientTrainingCenterInfo: nc.ClientTrainingCenterInfo,
+
 		MentorUserID: nc.MentorUserID,
 	}
 	if err := contact.Validate(); err != nil {

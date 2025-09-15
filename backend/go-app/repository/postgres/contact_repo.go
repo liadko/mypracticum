@@ -26,23 +26,25 @@ func NewPostgresContactRepo(db *sql.DB) repository.ContactRepo {
 // Create implements repository.ContactRepository.
 func (r *PostgresContactRepo) Create(ctx context.Context, userID uuid.UUID, c domain.Contact) (domain.Contact, error) {
 	query := `
-	INSERT INTO contacts (id, user_id, type, name, email, phone, specialty, mentor_user_id)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-	RETURNING id, user_id, type, name, email, phone, specialty, mentor_user_id`
+		INSERT INTO contacts (
+			id, user_id, type, name,
+			email, phone, specialty,
+			mentor_user_id,
+			mentorship_type, client_institution, client_training_center_info
+		)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+		RETURNING id, user_id, type, name,
+				email, phone, specialty,
+				mentor_user_id,
+				mentorship_type, client_institution, client_training_center_info`
 
-	row := r.db.QueryRowContext(ctx, query, c.ID, c.UserID, c.Type, c.Name, c.Email, c.Phone, c.Specialty, c.MentorUserID)
+	row := r.db.QueryRowContext(ctx, query, c.ID, c.UserID, c.Type, c.Name, c.Email, c.Phone, c.Specialty, c.MentorUserID, c.MentorshipType, c.ClientInstitution, c.ClientTrainingCenterInfo)
 
 	var out domain.Contact
-	if err := row.Scan(
-		&out.ID,
-		&out.UserID,
-		&out.Type,
-		&out.Name,
-		&out.Email,
-		&out.Phone,
-		&out.Specialty,
+	if err := row.Scan(&out.ID, &out.UserID, &out.Type, &out.Name,
+		&out.Email, &out.Phone, &out.Specialty,
 		&out.MentorUserID,
-	); err != nil {
+		&out.MentorshipType, &out.ClientInstitution, &out.ClientTrainingCenterInfo); err != nil {
 		return domain.Contact{}, fmt.Errorf("creating contact: %w", err)
 	}
 
@@ -57,17 +59,23 @@ func (r *PostgresContactRepo) Update(
 	c domain.Contact,
 ) (domain.Contact, error) {
 	const q = `
-        UPDATE contacts
-        SET type			= $1,
-            name			= $2,
-            email			= $3,
-            phone			= $4,
-            specialty		= $5,
-			mentor_user_id	= $6
-        WHERE user_id = $7
-          AND id      = $8
-        RETURNING id, user_id, type, name, email, phone, specialty, mentor_user_id
-    `
+		UPDATE contacts
+			SET type                     = $1,
+				name                     = $2,
+				email                    = $3,
+				phone                    = $4,
+				specialty                = $5,
+				mentor_user_id           = $6,
+				mentorship_type          = $7,
+				client_institution       = $8,
+				client_training_center_info = $9
+		WHERE user_id = $10
+			AND id      = $11
+		RETURNING id, user_id, type, name,
+				email, phone, specialty,
+				mentor_user_id,
+				mentorship_type, client_institution, client_training_center_info
+	`
 	row := r.db.QueryRowContext(ctx, q,
 		c.Type,
 		c.Name,
@@ -75,6 +83,9 @@ func (r *PostgresContactRepo) Update(
 		c.Phone,
 		c.Specialty,
 		c.MentorUserID,
+		c.MentorshipType,
+		c.ClientInstitution,
+		c.ClientTrainingCenterInfo,
 		userID,
 		contactID,
 	)
@@ -89,6 +100,9 @@ func (r *PostgresContactRepo) Update(
 		&out.Phone,
 		&out.Specialty,
 		&out.MentorUserID,
+		&out.MentorshipType,
+		&out.ClientInstitution,
+		&out.ClientTrainingCenterInfo,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			// Caller tried to update a non-existent contact
@@ -103,46 +117,41 @@ func (r *PostgresContactRepo) Update(
 
 // ListByUser satisfies ContactRepository
 func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID uuid.UUID) ([]domain.Contact, error) {
-	contactsQuery := `
-        SELECT id, user_id, type, name, email, phone, specialty
-			FROM contacts 
-			WHERE user_id = $1
-			ORDER BY name
-		`
+	const contactsQuery = `
+        SELECT id, user_id, type, name,
+               email, phone, specialty,
+               mentor_user_id,
+               mentorship_type, client_institution, client_training_center_info
+          FROM contacts 
+         WHERE user_id = $1
+      ORDER BY name
+    `
+
 	rows, err := r.db.QueryContext(ctx, contactsQuery, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	contacts := []domain.Contact{}
+	var contacts []domain.Contact
 	for rows.Next() {
 		var c domain.Contact
-		var email, phone, specialty sql.NullString
-
 		if err := rows.Scan(
 			&c.ID,
 			&c.UserID,
 			&c.Type,
 			&c.Name,
-			&email,
-			&phone,
-			&specialty,
+			&c.Email,
+			&c.Phone,
+			&c.Specialty,
+			&c.MentorUserID,
+			&c.MentorshipType,
+			&c.ClientInstitution,
+			&c.ClientTrainingCenterInfo,
 		); err != nil {
-			log.Printf("Error scanning client contact row: %v", err)
-			continue // Skip bad rows and continue
+			log.Printf("Error scanning contact row: %v", err)
+			continue // skip bad row
 		}
-
-		if email.Valid {
-			c.Email = &email.String
-		}
-		if phone.Valid {
-			c.Phone = &phone.String
-		}
-		if specialty.Valid {
-			c.Specialty = &specialty.String
-		}
-
 		contacts = append(contacts, c)
 	}
 	if err := rows.Err(); err != nil {
@@ -151,42 +160,29 @@ func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID uuid.UUID) 
 	return contacts, nil
 }
 
-func (r *PostgresContactRepo) ExistsByUserTypeEmail(ctx context.Context, userID uuid.UUID, ctype domain.ContactType, email string) (bool, error) {
-	const q = `
-        SELECT 1
-        FROM contacts
-        WHERE user_id = $1 AND type = $2 AND email = $3
-        LIMIT 1
-    `
-	var dummy int
-	err := r.db.QueryRowContext(ctx, q, userID, string(ctype), email).Scan(&dummy)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, nil // doesn't exist
-		}
-		return false, err
-	}
-	return true, nil // exists
+func (r *PostgresContactRepo) UserHasMentor(ctx context.Context, userID uuid.UUID, email string, mentorshipType string) (bool, error) {
+	return r.UserHasMentorExcept(ctx, userID, email, mentorshipType, uuid.Nil)
 }
 
-func (r *PostgresContactRepo) ExistsByUserTypeEmailExcept(
+func (r *PostgresContactRepo) UserHasMentorExcept(
 	ctx context.Context,
 	userID uuid.UUID,
-	ctype domain.ContactType,
 	email string,
+	mentorshipType string,
 	exceptContactID uuid.UUID,
 ) (bool, error) {
 	const q = `
 		SELECT 1
-		  FROM contacts
-		 WHERE user_id = $1
-		   AND type    = $2
-		   AND email   = $3
-		   AND id     <> $4
-		 LIMIT 1;
+			FROM contacts
+		WHERE user_id			= $1
+			AND type			= 'mentor'
+			AND email   		= $2
+			AND mentorship_type	= $3
+			AND id  		   <> $4
+		LIMIT 1;
 	`
 	var dummy int
-	err := r.db.QueryRowContext(ctx, q, userID, string(ctype), email, exceptContactID).Scan(&dummy)
+	err := r.db.QueryRowContext(ctx, q, userID, email, mentorshipType, exceptContactID).Scan(&dummy)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil

@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useMemo
 } from 'react'
-import type { Contact, ContactType, NewContact } from '../types'
+import { contactTypes, type Contact, type ContactType, type NewContact } from '../types'
 import * as domain from '../domain/contacts'
 import * as api from '../api/contactsApi'
 import { showAsyncToast } from '../utils/toast'
@@ -51,6 +51,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
       .then(fetched => {
         if (!isMounted) return
         setContacts(fetched)
+        initSelected(fetched)
       })
       .catch(err => {
         if (!isMounted) return
@@ -99,6 +100,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
   }, [])
 
 
+
   const contactsById = useMemo(() => {
     const map: Record<string, Contact> = {}
     contacts.forEach(c => { map[c.id] = c })
@@ -114,6 +116,18 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     (id: string) => domain.getContactById(contacts, id),
     [contacts]
   )
+
+  const initSelected = useCallback((contacts: Contact[]) => {
+    for (const t of contactTypes) {
+      const contactsOfType = domain.getContactsByType(contacts, t)
+      let isContactMissing =
+        domain.getContactById(contacts, getSelected(t)) === undefined
+        || getSelected(t) == ''
+
+      if (isContactMissing && contactsOfType.length > 0)
+        setSelected(t, contactsOfType[0].id)
+    }
+  }, [])
 
   return (
     <ContactsContext.Provider value={{

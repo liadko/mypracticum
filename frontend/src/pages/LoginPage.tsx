@@ -13,15 +13,6 @@ export default function LoginPage() {
   const { submitEmail, verifyOtp, secondsLeft, submittedEmail } = useAuth()
 
   const [otpPage, setOtpPage] = useState<boolean>(false)
-  //const [loading, setLoading] = useState<boolean>(false)
-
-  // Redirect on successful auth
-  // useEffect(() => {
-  //   if (user) {
-  //     const homePath = user.role === 'mentor' ? '/mentor' : '/'
-  //     navigate(homePath, { replace: true })
-  //   }
-  // }, [user, navigate])
 
 
   // Handle email submission
@@ -57,8 +48,6 @@ export default function LoginPage() {
         console.error('Unexpected submitEmail error', err)
         showError('שליחת הקוד נכשלה. נסה שוב')
       }
-    } finally {
-      //setLoading(false)
     }
   }
 

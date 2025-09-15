@@ -17,6 +17,9 @@ interface FormValues {
     email: string
     phone: string
     specialty: string
+    mentorshipType: string
+    clientInstitution: string
+    clientTrainingCenterInfo: string
 }
 
 export function ContactForm({ formMode, onClose }: ContactFormProps) {
@@ -39,6 +42,7 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
                 return;
             }
 
+            const isClient = existing.type === 'client'
             const isMentor = existing.type === 'mentor'
             const isTherapist = existing.type === 'therapist'
 
@@ -50,6 +54,11 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
 
                 phone: isMentor || isTherapist ? existing.phone : '',
                 specialty: isMentor || isTherapist ? existing.specialty : '',
+                mentorshipType: isMentor ? existing.mentorshipType : '',
+
+                clientInstitution: isClient ? existing.clientInstitution : '',
+                clientTrainingCenterInfo: isClient ? existing.clientTrainingCenterInfo : '',
+
             })
         } else {
             // add mode
@@ -59,6 +68,10 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
                 email: '',
                 phone: '',
                 specialty: '',
+                mentorshipType: '',
+                clientInstitution: '',
+                clientTrainingCenterInfo: '',
+
             })
         }
 
@@ -74,7 +87,8 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
     // while loading initial, render nothing (or a loader)
     if (!formValues) return null
 
-    const { type, name, email, phone, specialty } = formValues
+    const { type, name, email, phone, specialty, mentorshipType, clientInstitution, clientTrainingCenterInfo } = formValues
+
 
 
     function handleChange<K extends keyof FormValues>(field: K, value: FormValues[K]) {
@@ -86,7 +100,8 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
         const newContact: NewContact = {
             type,
             name,
-            ...(type === 'mentor' && { email, phone, specialty }),
+            ...(type === 'client' && {clientInstitution, clientTrainingCenterInfo}),
+            ...(type === 'mentor' && { email, phone, specialty, mentorshipType }),
             ...(type === 'therapist' && { phone, specialty }),
         }
 
@@ -116,6 +131,7 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
                     < input
                         ref={nameRef}
                         type="text"
+                        placeholder={type == 'client' ? 'א.ב' : ''}
                         className="contact-form__input"
                         value={name}
                         onChange={e => handleChange('name', e.target.value)}
@@ -168,6 +184,87 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
                         </label>
                     </div>
                 </>
+            )}
+
+            {type === 'mentor' && (
+                <div className="contact-form__field">
+                    <label className="contact-form__label">
+                        סוג הדרכה
+                        <div className="contact-form__radio-group">
+                            <label className="contact-form__radio">
+                                <input
+                                    type="radio"
+                                    name="mentorshipType"
+                                    value="individual"
+                                    checked={mentorshipType == 'individual'}
+                                    onChange={() => handleChange('mentorshipType', 'individual')}
+                                />
+                                הדרכה אישית
+                            </label>
+                            <label className="contact-form__radio">
+                                <input
+                                    type="radio"
+                                    name="mentorshipType"
+                                    value="group"
+                                    checked={mentorshipType == 'group'}
+                                    onChange={() => handleChange('mentorshipType', 'group')}
+                                />
+                                הדרכה קבוצתית
+                            </label>
+                        </div>
+                    </label>
+                </div>
+
+            )}
+
+
+            {type === 'client' && (
+                <>
+                <div className='contact-form__gap'/>
+                    <div className="contact-form__field">
+                        <label className="contact-form__label">
+                            מסגרת טיפול
+                            <div className="contact-form__radio-group">
+                                <label className="contact-form__radio">
+                                    <input
+                                        type="radio"
+                                        name="mentorshipType"
+                                        value="individual"
+                                        checked={clientInstitution == 'privateClinic'}
+                                        onChange={() => handleChange('clientInstitution', 'privateClinic')}
+                                    />
+                                    קליניקה פרטית
+                                </label>
+                                <label className="contact-form__radio">
+                                    <input
+                                        type="radio"
+                                        name="mentorshipType"
+                                        value="group"
+                                        checked={clientInstitution == 'trainingCenter'}
+                                        onChange={() => handleChange('clientInstitution', 'trainingCenter')}
+                                    />
+                                    מרכז הכשרה
+                                </label>
+                            </div>
+                        </label>
+                    </div>
+                    {clientInstitution == 'trainingCenter' &&
+                        <div className="contact-form__field">
+                            <label className="contact-form__label">
+                                שם ומיקום המרכז
+                                <input
+                                    type="tel"
+                                    className="contact-form__input"
+                                    placeholder='עמותת הלל, אשדוד'
+                                    value={clientTrainingCenterInfo}
+                                    onChange={e => handleChange('clientTrainingCenterInfo', e.target.value)}
+                                    required
+                                    dir='rtl'
+                                />
+                            </label>
+                        </div>}
+                </>
+
             )}
 
             <div className="contact-form__buttons">
