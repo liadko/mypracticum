@@ -1,0 +1,40 @@
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+.calendar-header__button {
+  background: none;
+  aspect-ratio: 1;
+  width: 20px;
+  transform: scale(0.8);
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 0 50px;
+  padding: 0.25rem 0.5rem;
+  color: var(--dark-main-color);
+  transition: transform 0.2s, color 0.2s;
+}
+
+.flipped {
+    rotate: 180deg;
+}
+
+.calendar-header__button:hover {
+  color: #333;
+  transform: scale(0.9);
+}
+
+.calendar-header__title {
+  flex: 1;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: #222;
+  letter-spacing: 0.5px;
+}

@@ -104,7 +104,7 @@ export function CalendarWithList({
     return (
         <div className="calendar-with-list">
             <div className="calender-side">
-                <div className='calendar'>
+                <div className='calendar' dir='rtl'>
                     <h2 className="side-header">
                         בחר תאריכים
                     </h2>

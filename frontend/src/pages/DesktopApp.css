@@ -25,11 +25,12 @@
     flex-direction: column;
     align-items: center;
 
-    padding: 0.4em 0 0.3em 0;
+    padding: 0.6em 0 0.3em 0;
 }
 
 .signature-image {
-    height: 70px;
+    height: 55px;
+    padding-bottom: 5px;
     width: auto;
     object-fit: contain;
     overflow: visible;
@@ -57,7 +58,6 @@
     /* center it horizontally */
     transform: translateX(-50%);
     margin: 0;
-    bottom: 23px;
 }
 
 .header-right {
@@ -89,44 +89,76 @@
     justify-content: center;
 
     padding-top: 0.8rem;
-    padding-bottom: 1.1rem;
+    padding-bottom: 0.8rem;
 
-    background-color: #ffffff;
+    background-color: #fdfdfd;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
     user-select: none;
 }
 
 .nav-button {
+    position: relative;
     background: none;
     border: none;
-    width: 205px;
     margin: 0 1rem;
     font-size: 1.2rem;
     padding: 0.5rem 1rem;
     cursor: pointer;
     color: #333333;
-
+    min-width: 250px;
     white-space: nowrap;
+    font-weight: 500;
 }
 
 .nav-button.active {
     /* border-bottom: 3px solid #017268; */
-    box-shadow: 0px 6px 3px -3px var(--main-color);
+    /* box-shadow: 0px 6px 3px -3px var(--main-color); */
+    box-shadow: 5px 5px 10px -5px rgb(230, 230, 230);
+    border: solid 1px var(--main-color);
     /* hsl(175, 73%, 38%); */
 
-    font-weight: 600;
+
+    background-color: #ffffff;
+    padding: 17px 30px;
+    min-width: 250px;
+    border-radius: 10px;
+
 }
 
 
-.nav-button--title{
-    
+.nav-button--title {
+
     margin-left: 8px;
 }
-.nav-button--subtitle{
-    
+
+.nav-button--subtitle {
+
     font-size: 0.75rem;
 }
 
+.nav-button .tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    width: 160px;
+    background-color: rgb(223, 223, 223);
+    color: #000000;
+    text-align: center;
+    border-radius: 6px;
+    padding: 6px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    /* place it above */
+    left: 50%;
+    transform: translateX(-50%);
+    transition: opacity 0.35s ease-out;
+}
+
+
+.nav-button:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
 
 
 .client-page-theme {
