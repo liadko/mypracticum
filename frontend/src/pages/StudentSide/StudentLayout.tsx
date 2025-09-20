@@ -18,7 +18,7 @@ export default function StudentLayout() {
     const { getContactById } = useContacts()
 
     const entryCounts = useMemo(() => {
-        const m: Record<string, number> = {'client': 0, 'mentor': 0, 'therapist': 0};
+        const m: Record<string, number> = { 'client': 0, 'mentor': 0, 'therapist': 0 };
         for (const e of entries) {
             const type = getContactById(e.contactId)?.type
             if (!type) console.log(`entry ${e} has a contact with no type! or doesn't have a contact`)
@@ -27,6 +27,9 @@ export default function StudentLayout() {
         return m;
     }, [entries]);
 
+    const awaitingApproval = useMemo(() => {
+        return entries.filter(e => getContactById(e.contactId)?.type === "mentor" && !e.approved).length;
+    }, [entries]);
 
     return (
         <>
@@ -38,7 +41,11 @@ export default function StudentLayout() {
                         className={`nav-button ${activePage === page ? 'active' : ''} ${activePage}-page-theme`}
                         onClick={() => setActivePage(page)}
                     >
-                        {/* <span className='tooltip-text'>bruh</span> */}
+
+                        {page === "mentor" ?
+                            <span className='tooltip-text'>דיווחים מאושרים: {entryCounts[page]}<br />ממתינים לאישור: {awaitingApproval}<br />כמות נדרשת: {countGoals[page]}</span> :
+                            <span className='tooltip-text'>שעות שדווחו: {entryCounts[page]}<br />כמות נדרשת: {countGoals[page]}</span>
+                        }
                         <span className="nav-button--title">
                             {pageTitle[page]}
                         </span>

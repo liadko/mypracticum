@@ -110,11 +110,7 @@ export default function Calendar({ entries, handleDayToggle, highlightedDate }: 
                     //     backgroundColor: '#00A495',
                     // },
 
-                    // June 2025 Header
-                    "& .MuiPickersCalendarHeader-labelContainer": {
-                        fontSize: "1.35rem",   // adjust as you like
-                        marginBotton: "1rem",
-                    },
+
 
                     // weekday labels:
                     '& .MuiDayCalendar-weekDayLabel': {
@@ -123,6 +119,7 @@ export default function Calendar({ entries, handleDayToggle, highlightedDate }: 
                         fontFamily: 'inherit',
                         fontSize: '1.35em',
                         fontWeight: '700',
+                        userSelect: 'none',
                     },
 
                     // center the weekday row nicely

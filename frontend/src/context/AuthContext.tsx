@@ -65,28 +65,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
-  // ② Whenever token changes, fetch (or clear) the user
+  // ② Whenever token changes, fetch (or clear) the user (with up to 3 retries)
   useEffect(() => {
+    let cancelled = false
     setIsLoading(true)
+
     if (!token) {
       setUser(null)
       setIsLoading(false)
       return
     }
 
-    authApi.fetchProfile()
-      .then(u => {
-        console.log(u)
-        setUser(u)
-      })
-      .catch((e) => {
-        // invalid or expired token
-        console.error(e)
-        localStorage.removeItem('token')
-        setToken(null)
-        setUser(null)
-      })
-      .finally(() => setIsLoading(false))
+    async function fetchProfileWithRetries() {
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const u = await authApi.fetchProfile()
+          if (cancelled) return
+          console.log(u)
+          setUser(u)
+          break
+        } catch (e) {
+          console.error(`fetchProfile attempt ${attempt} failed:`, e)
+          if (attempt === 3) {
+            // after three failures, clear token and user
+            localStorage.removeItem('token')
+            setToken(null)
+            setUser(null)
+          }
+        }
+      }
+      if (!cancelled) setIsLoading(false)
+    }
+
+    console.log("fetching profile...")
+    fetchProfileWithRetries()
+
+    return () => {
+      cancelled = true
+    }
   }, [token])
 
   // COUNTDOWN

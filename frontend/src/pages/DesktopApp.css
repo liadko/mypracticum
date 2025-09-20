@@ -139,27 +139,35 @@
 .nav-button .tooltip-text {
     visibility: hidden;
     opacity: 0;
-    width: 160px;
-    background-color: rgb(223, 223, 223);
-    color: #000000;
-    text-align: center;
-    border-radius: 6px;
-    padding: 6px;
-    position: absolute;
     z-index: 1;
-    bottom: 125%;
-    /* place it above */
+    
+    background-color: rgb(255, 255, 255);
+    color: #474747;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3rem;
+
+    border: solid 1.5px #D9D9D9;
+    border-radius: 14px;
+    
+    padding: 0.7rem 1.5rem;
+    
+    position: absolute;
+    top: 90%;
     left: 50%;
     transform: translateX(-50%);
-    transition: opacity 0.35s ease-out;
+
+    transition: opacity 0.25s ease-out;
+    transition-delay: 0s; /* no delay when hiding */
 }
 
 
 .nav-button:hover .tooltip-text {
     visibility: visible;
     opacity: 1;
+    transition-delay: 0.5s; /* wait 0.5s before starting the fade-in */
 }
-
 
 .client-page-theme {
     --highlight-color: #cbf8ef;
@@ -171,13 +179,13 @@
 .mentor-page-theme {
     --highlight-color: #ccc1ff;
     --main-color: #3A75C4;
-    --dark-main-color: #072f63;
+    --dark-main-color: #0a51ae;
 }
 
 .therapist-page-theme {
     --highlight-color: #fe8d8d;
     --main-color: #fc3d54;
-    --dark-main-color: #920919;
+    --dark-main-color: #e3001b;
 
 }
 

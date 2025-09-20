@@ -17,7 +17,7 @@
   cursor: pointer;
   margin: 0 50px;
   padding: 0.25rem 0.5rem;
-  color: var(--dark-main-color);
+  color: #333;
   transition: transform 0.2s, color 0.2s;
 }
 
@@ -26,7 +26,7 @@
 }
 
 .calendar-header__button:hover {
-  color: #333;
+  color: var(--dark-main-color);
   transform: scale(0.9);
 }
 
@@ -37,4 +37,6 @@
   font-weight: 400;
   color: #222;
   letter-spacing: 0.5px;
+
+  user-select: none;
 }

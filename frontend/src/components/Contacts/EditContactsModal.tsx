@@ -98,7 +98,7 @@ export function EditContactsModal({ initialType, onClose }: Props) {
             className="edit-modal-overlay"
             onClick={() => { if (!formMode) onClose() }}
         >
-            <div className="edit-modal client-page-theme" onClick={e => e.stopPropagation()}>
+            <div className="edit-modal" onClick={e => e.stopPropagation()}>
                 <header className="edit-modal__header">
                     <h2>{headerText()}</h2>
                     {

@@ -10,13 +10,13 @@ import { ContactDropdown } from './Contacts/ContactDropdown'
 import { useContacts } from '../context/ContactsContext'
 
 const hebrewWeekdays = [
-"יום א'",
-"יום ב'",
-"יום ג'",
-"יום ד'",
-"יום ה'",
-"יום ו'",
-"שבת",
+    "ראשון",
+    "שני",
+    "שלישי",
+    "רביעי",
+    "חמישי",
+    "שישי",
+    "שבת",
 ];
 
 export interface CalendarWithListProps {

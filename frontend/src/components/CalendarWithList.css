@@ -74,7 +74,7 @@
 .selected-list-entries {
     overflow-y: auto;
     max-height: 420px;
-    padding-right: 2px;
+    padding-right: 10px;
 }
 
 /* WebKit browsers (Chrome, Safari, Edge) */
@@ -83,7 +83,7 @@
 }
 
 .selected-list-entries::-webkit-scrollbar-track {
-    background: rgb(220, 220, 220);
+    background: rgb(245, 245, 245);
     border-radius: 3px;
 }
 
