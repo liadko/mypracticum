@@ -33,6 +33,13 @@
     padding-right: 3rem;
 }
 
+.blurred {
+    filter: blur(2px);
+    /* pointer-events: none;
+    user-select: none; */
+    opacity: 0.6;
+}
+
 .side-header {
     display: flex;
     justify-content: flex-start;
@@ -74,7 +81,7 @@
 .selected-list-entries {
     overflow-y: auto;
     max-height: 420px;
-    padding-right: 10px;
+    padding-right: 8px;
 }
 
 /* WebKit browsers (Chrome, Safari, Edge) */
@@ -172,4 +179,52 @@
     font-weight: 500;
     width: 350px;
     text-align: right;
+}
+
+.first-contact-message {
+    display: flex;
+    flex-direction: column;
+
+
+    border-left: 1px solid #dddddd;
+    padding-left: 6rem;
+
+    max-width: 460px;
+    height: 550px;
+}
+
+.first-contact-message__title {
+    font-weight: bold;
+    margin-top: 1.6rem;
+    margin-bottom: 0;
+    font-size: 1.2rem;
+}
+
+.first-contact-message__text {
+    line-height: 1.6rem;
+    margin-bottom: 2rem;
+    color: #222;
+}
+
+.first-contact-message__button {
+    background-color: #5baaa0;
+    color: #fff;
+    border: none;
+    width: 220px;
+    border-radius: 8px;
+    padding: 0.65rem 1.5rem;
+    
+    font-weight: 600;
+    font-size: 1rem;
+
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease, transform 0.05s ease;
+}
+
+.first-contact-message__button:hover {
+    background-color: #4a948c;
+}
+.first-contact-message__button:active {
+    transform: scale(0.99);
 }

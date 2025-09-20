@@ -70,7 +70,7 @@ export default function SignatureModal({
           </img>}
           <SignaturePad
             ref={sigPadRef}
-            backgroundColor='#F9F9F9'
+            backgroundColor='#FCFCFC'
             canvasProps={{
               width: 300,
               height: 150,

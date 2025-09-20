@@ -9,34 +9,24 @@ import { contactLabelSingular } from '../../i18n/he'
 
 interface Props {
     initialType: ContactType
-    onClose: () => void
+    initiallyCreate: boolean
+    onCloseModal: () => void
 }
 
 
-export function EditContactsModal({ initialType, onClose }: Props) {
-    const dialogRef = useRef<HTMLDialogElement>(null)
+export function EditContactsModal({ initialType, initiallyCreate, onCloseModal }: Props) {
     const [currentPage, setPage] = useState<ContactType>(initialType)
-    const [formMode, setFormMode] = useState<FormMode | null>(null)
+    const [formMode, setFormMode] = useState<FormMode | null>(initiallyCreate ? { mode: 'add', type: initialType } : null)
 
 
     const {
         getContactsByType,
+        setSelected,
+        setActivePage,
     } = useContacts()
 
-    // open the outer dialog
-    useEffect(() => {
-        const dlg = dialogRef.current
-        if (dlg && !dlg.open) dlg.showModal()
-        return () => {
-            if (dlg && dlg.open) dlg.close()
-        }
-    }, [])
 
-    function handleClose() {
-        const dlg = dialogRef.current
-        if (dlg && dlg.open) dlg.close()
-        onClose()
-    }
+
 
     function openAdd() {
         setFormMode({ mode: 'add', type: currentPage })
@@ -48,7 +38,6 @@ export function EditContactsModal({ initialType, onClose }: Props) {
 
 
     const contacts = getContactsByType(currentPage)
-
 
     function renderMainView() {
         return (
@@ -74,13 +63,12 @@ export function EditContactsModal({ initialType, onClose }: Props) {
                             key={c.id}
                             contact={c}
                             onEdit={openEdit}
-                            //onDelete={() => deleteContact(c.id)}
                         />
                     ))}
                 </div>
-                    <button className="edit-modal__add-button" onClick={openAdd}>
-                        לחצו להוספה
-                    </button>
+                <button className="edit-modal__add-button" onClick={openAdd}>
+                    לחצו להוספה
+                </button>
             </>
         )
     }
@@ -93,26 +81,34 @@ export function EditContactsModal({ initialType, onClose }: Props) {
         return "עריכת אנשי קשר";
     }
 
+    function onCloseAndSelectContact(type: ContactType, id: string): void {
+        setSelected(type, id)
+        setActivePage(type)
+        onCloseModal()
+    }
+
     return (
         <div
             className="edit-modal-overlay"
-            onClick={() => { if (!formMode) onClose() }}
+            onClick={() => { if (!formMode) onCloseModal() }}
         >
             <div className="edit-modal" onClick={e => e.stopPropagation()}>
+                {/* Header */}
                 <header className="edit-modal__header">
                     <h2>{headerText()}</h2>
                     {
                         // don't show X when form is active 
                         !formMode && <button
                             className="edit-modal__close"
-                            onClick={handleClose}
+                            onClick={onCloseModal}
                             aria-label="Close"
                         >×</button>
                     }
                 </header>
 
+                {/* Content */}
                 {formMode ?
-                    <ContactForm formMode={formMode} onClose={() => setFormMode(null)} />
+                    <ContactForm formMode={formMode} onCloseForm={() => setFormMode(null)} onCloseAndSelectContact={onCloseAndSelectContact} />
                     :
                     renderMainView()
                 }

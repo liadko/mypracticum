@@ -32,6 +32,8 @@ interface ContactsContextType {
   getSelected: (type: ContactType) => string
   setSelected: (type: ContactType, id: string) => void
 
+  activePage: ContactType
+  setActivePage: (page: ContactType) => void
 
 }
 
@@ -41,6 +43,8 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null) // fatal error
+  
+  const [activePage, setActivePage] = useState<ContactType>('client')
   const { getSelected, setSelected } = useSelected()
 
   // load on mount
@@ -107,6 +111,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
     return map
   }, [contacts])
 
+
   const getContactsByType = useCallback(
     (type: ContactType) => domain.getContactsByType(contacts, type),
     [contacts]
@@ -142,7 +147,10 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
       errorC: error,
 
       getSelected,
-      setSelected
+      setSelected,
+
+      activePage,
+      setActivePage
 
     }}>
       {children}

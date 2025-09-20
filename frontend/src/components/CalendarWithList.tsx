@@ -101,69 +101,96 @@ export function CalendarWithList({
 
     }
 
+    function createFirstContactMessage(): ReactNode {
+        return (
+            <div className="first-contact-message" dir="rtl">
+                <h2 className="first-contact-message__title">
+                    ברוכים הבאים לתמורות פרקטיקום
+                </h2>
+                <p className="first-contact-message__text">
+                    כאן תוכלו לסמן את השעות שבהן טיפלתם במטופלים פרטיים.
+                    <br/>
+                    לפני שמתחילים,
+                    צריך ליצור מטופל חדש כדי שנוכל לשייך אליו את השעות.
+                </p>
+                <button className="first-contact-message__button" onClick={() => setEditOpen(true)}>
+                    צרו מטופל/ת חדש/ה
+                </button>
+            </div>
+        );
+    }
+    function selectedList(): ReactNode {
+        return <div className="selected-list" >
+            <div className="side-header">
+                <span className='selected-list-header-text'>{pageHeaderText[contactType]}</span>
+                <ContactDropdown
+                    contacts={contacts}
+                    value={selectedContactId}
+                    onChange={handleContactChange}
+
+                    contactType={contactType}
+                />
+
+            </div>
+            <div className="selected-list-entries">
+                {filtered.map(entry => {
+                    const dateObj = parseISO(entry.date)
+                    const weekdayName = hebrewWeekdays[dateObj.getDay()]
+
+                    return (
+                        <div
+                            key={entryDOMKey(entry)}
+                            id={entryDOMKey(entry)}
+                            className={`selected-item ${entry.date == highlightedDate ? 'highlighted-item' : ''}`}
+                            onClick={() => setHighlightedDate(entry.date)}
+                        >
+                            {renderEntryExtra && renderEntryExtra(entry)}
+
+                            <span className="date" >{format(dateObj, "dd/MM/yyyy")}</span>
+                            <span className="weekday" dir='rtl'>{weekdayName}</span>
+                        </div>
+                    )
+                })}
+
+            </div>
+            {extraMessage()}
+        </div>
+    }
+
+
     return (
         <div className="calendar-with-list">
             <div className="calender-side">
-                <div className='calendar' dir='rtl'>
-                    <h2 className="side-header">
-                        בחר תאריכים
-                    </h2>
-                    <Calendar
-                        entries={filtered}
-                        highlightedDate={highlightedDate ?? undefined}
-                        handleDayToggle={handleDayClick}
-                    />
-                </div>
+                {renderCalendar(!!selectedContactId)}
             </div>
             <div className="list-side">
-                <div className="selected-list" >
-                    <div className="side-header">
-                        <span className='selected-list-header-text'>{pageHeaderText[contactType]}</span>
-                        <ContactDropdown
-                            contacts={contacts}
-                            value={selectedContactId}
-                            onChange={handleContactChange}
-
-                            contactType={contactType}
-                        />
-
-                    </div>
-                    <div className="selected-list-entries">
-                        {/* {selectedContactId == '' &&
-                            <div>נא לסמן תאריכים בלוח השנה</div>}
-                        {selectedContactId != '' && filtered.length === 0 &&
-                            <div className="extra-message" dir='rtl'>נא לסמן תאריכים בלוח השנה</div>} */}
-                        {filtered.map(entry => {
-                            const dateObj = parseISO(entry.date)
-                            const weekdayName = hebrewWeekdays[dateObj.getDay()]
-
-                            return (
-                                <div
-                                    key={entryDOMKey(entry)}
-                                    id={entryDOMKey(entry)}
-                                    className={`selected-item ${entry.date == highlightedDate ? 'highlighted-item' : ''}`}
-                                    onClick={() => setHighlightedDate(entry.date)}
-                                >
-                                    {renderEntryExtra && renderEntryExtra(entry)}
-
-                                    <span className="date" >{format(dateObj, "dd/MM/yyyy")}</span>
-                                    <span className="weekday" dir='rtl'>{weekdayName}</span>
-                                </div>
-                            )
-                        })}
-
-                    </div>
-                    {extraMessage()}
-                </div>
+                {
+                    !selectedContactId ?
+                        selectedList() :
+                        createFirstContactMessage()
+                }
             </div>
             {/* render the modal when “edit” clicked */}
             {isEditOpen && (
                 <EditContactsModal
                     initialType={contactType}
-                    onClose={() => setEditOpen(false)}
+                    initiallyCreate={!selectedContactId}
+                    onCloseModal={() => setEditOpen(false)}
                 />
             )}
 
         </div>);
 
+
+    function renderCalendar(isBlurred : boolean) {
+        return <div className={`calendar ${isBlurred ? 'blurred' : ''}`} dir='rtl'>
+            <h2 className="side-header">
+                בחר תאריכים
+            </h2>
+            <Calendar
+                entries={filtered}
+                highlightedDate={highlightedDate ?? undefined}
+                handleDayToggle={handleDayClick} />
+        </div>
+    }
 }

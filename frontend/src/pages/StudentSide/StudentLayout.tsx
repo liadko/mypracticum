@@ -12,10 +12,9 @@ import { useContacts } from '../../context/ContactsContext'
 const countGoals = { 'client': 300, 'mentor': 150, 'therapist': 100 }
 
 export default function StudentLayout() {
-    const [activePage, setActivePage] = useState<ContactType>("client")
 
     const { entries } = useEntries()
-    const { getContactById } = useContacts()
+    const { activePage, setActivePage, getContactById } = useContacts()
 
     const entryCounts = useMemo(() => {
         const m: Record<string, number> = { 'client': 0, 'mentor': 0, 'therapist': 0 };
@@ -43,8 +42,8 @@ export default function StudentLayout() {
                     >
 
                         {page === "mentor" ?
-                            <span className='tooltip-text'>דיווחים מאושרים: {entryCounts[page]}<br />ממתינים לאישור: {awaitingApproval}<br />כמות נדרשת: {countGoals[page]}</span> :
-                            <span className='tooltip-text'>שעות שדווחו: {entryCounts[page]}<br />כמות נדרשת: {countGoals[page]}</span>
+                            <span className='tooltip-text' onMouseDown={(e: any) => e.stopPropagation()} onClick={(e: any) => e.stopPropagation()}>דיווחים מאושרים: {entryCounts[page]}<br />ממתינים לאישור: {awaitingApproval}<br />כמות נדרשת: {countGoals[page]}</span> :
+                            <span className='tooltip-text' onMouseDown={(e: any) => e.stopPropagation()} onClick={(e: any) => e.stopPropagation()}>שעות שדווחו: {entryCounts[page]}<br />כמות נדרשת: {countGoals[page]}</span>
                         }
                         <span className="nav-button--title">
                             {pageTitle[page]}

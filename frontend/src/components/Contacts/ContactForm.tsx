@@ -8,7 +8,8 @@ import { showError } from '../../utils/toast'
 
 interface ContactFormProps {
     formMode: FormMode
-    onClose: () => void
+    onCloseForm: () => void
+    onCloseAndSelectContact: (type: ContactType, id: string) => void
 }
 
 interface FormValues {
@@ -22,7 +23,7 @@ interface FormValues {
     clientTrainingCenterInfo: string
 }
 
-export function ContactForm({ formMode, onClose }: ContactFormProps) {
+export function ContactForm({ formMode, onCloseForm: onClose, onCloseAndSelectContact }: ContactFormProps) {
     const { getContactById, addContact, updateContact } = useContacts()
 
     // formValues holds every field at once
@@ -95,7 +96,7 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
         setFormValues(fv => ({ ...fv!, [field]: value }))
     }
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         const newContact: NewContact = {
             type,
@@ -113,11 +114,12 @@ export function ContactForm({ formMode, onClose }: ContactFormProps) {
 
 
         if (formMode.mode === 'edit') {
-            updateContact(formMode.id, newContact)
+            await updateContact(formMode.id, newContact)
+            onClose()
         } else {
-            addContact(newContact)
+            const created = await addContact(newContact)
+            onCloseAndSelectContact(type, created.id)
         }
-        onClose()
     }
 
     return (
