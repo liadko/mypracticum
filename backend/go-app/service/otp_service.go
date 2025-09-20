@@ -78,7 +78,7 @@ func (s *OTPService) SendOTP(ctx context.Context, email string) error {
 	log.Printf("SHHHHH.... %s", code)
 
 	// 4) send (email/SMS)
-	if err := s.notifier.Send(ctx, user.Email, code); err != nil {
+	if err := s.notifier.SendOTP(ctx, user.Email, user.FirstName, code); err != nil {
 		// cleanup so no orphaned code
 		if delErr := s.otpStore.Delete(otpKey); delErr != nil {
 			log.Printf("cleanup OTP failed: %v", delErr)

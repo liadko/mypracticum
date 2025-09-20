@@ -19,6 +19,12 @@ func Load() AppConfig {
 	viper.BindEnv("auth.databaseURL", "DATABASE_URL")
 	viper.BindEnv("auth.jwtSecret", "JWT_SECRET")
 	viper.BindEnv("smoove.apiKey", "SMOOVE_API_KEY")
+	// optional SMTP bindings
+	viper.BindEnv("smtp.host", "SMTP_HOST")
+	viper.BindEnv("smtp.port", "SMTP_PORT")
+	viper.BindEnv("smtp.username", "SMTP_USER")
+	viper.BindEnv("smtp.password", "SMTP_PASS")
+	viper.BindEnv("smtp.from", "SMTP_FROM")
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("config load error: %v", err)

@@ -7,6 +7,7 @@ type AppConfig struct {
 	Port   string       `mapstructure:"port"`
 	Auth   AuthConfig   `mapstructure:"auth"`
 	Smoove SmooveConfig `mapstructure:"smoove"`
+	SMTP   SMTPConfig   `mapstructure:"smtp"`
 	OTP    OTPConfig    `mapstructure:"otp"`
 }
 
@@ -32,6 +33,23 @@ func (c AppConfig) Validate() {
 	}
 	if c.Smoove.APIKey == "" {
 		missing = append(missing, "smoove.apiKey")
+	}
+
+	// smtp fields (ensure all required smtp configs are present)
+	if c.SMTP.Host == "" {
+		missing = append(missing, "smtp.host")
+	}
+	if c.SMTP.Port == 0 {
+		missing = append(missing, "smtp.port")
+	}
+	if c.SMTP.Username == "" {
+		missing = append(missing, "smtp.username")
+	}
+	if c.SMTP.Password == "" {
+		missing = append(missing, "smtp.password")
+	}
+	if c.SMTP.From == "" {
+		missing = append(missing, "smtp.from")
 	}
 
 	// numeric/time fields

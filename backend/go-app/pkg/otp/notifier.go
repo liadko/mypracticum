@@ -6,5 +6,6 @@ import "context"
 // Implementations (e.g. SmooveEmailClient) encapsulate any auth logic (OAuth/API keys)
 // without the service needing to know about it.
 type Notifier interface {
-	Send(ctx context.Context, destination, code string) error
+	SendOTP(ctx context.Context, destination, firstName, code string) error
+	SendReminder(ctx context.Context, destination, firstName, code string) error
 }
