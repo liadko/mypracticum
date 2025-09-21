@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>אישור שעות</title>
+  <style>
+    /* Mobile tweaks (kept tiny for deliverability) */
+    @media (max-width:600px) {
+      .container {
+        width: 100% !important;
+      }
+
+      .p-24 {
+        padding: 16px !important;
+      }
+    }
+
+    /* Prevent blue link styling in iOS */
+    a[x-apple-data-detectors] {
+      color: inherit !important;
+      text-decoration: none !important;
+    }
+  </style>
+</head>
+
+<body style="margin:0; padding:0; background-color:#f6f7f8;">
+  <!-- Preheader (hidden preview text in inbox) -->
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0;">
+    הזמנה לאישור שעות – תמורות פרקטיקום
+  </div>
+
+  <!-- Full-width wrapper -->
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7f8;">
+    <tr>
+      <td align="center" style="padding:24px;">
+        <!-- Constraining table -->
+        <table role="presentation" class="container" cellpadding="0" cellspacing="0" border="0" width="600"
+          style="width:600px; max-width:600px; background:#ffffff; border-radius:8px; overflow:hidden;">
+          <!-- Header (optional logo area) -->
+          <tr>
+            <td align="center" style="padding: 0 20px;">
+              <!-- Put your logo img here if you want -->
+              <img src="https://content.viplus.com/info_temurot_com/Content/Header_582x204-r(3).jpg" alt="תמורות" width="582" height="204"
+                style="display:block; border:0; outline:0; text-decoration:none;" />
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td class="p-24" align="right" dir="rtl"
+              style="padding:24px; font-family:Arial, Helvetica, sans-serif; color:#000000; font-size:16px; line-height:24px;">
+              <div style="margin-bottom:8px;">שלום {{firstName}},</div>
+              <div style="font-weight:700; margin-bottom:16px;">
+                התלמיד/ה עדכן/ה במערכת שעות חדשות מהמפגשים איתך ומזמין/ה אותך לאשר אותן.
+              </div>
+
+              <!-- Centered CTA -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"
+                style="margin:24px auto;">
+                <tr>
+                  <td align="center" bgcolor="#029285" style="border-radius:28px;">
+                    <a href="{{link}}" target="_blank"
+                      style="display:inline-block; padding:14px 36px; font-family:Arial, Helvetica, sans-serif; font-size:17px; line-height:17px; color:#ffffff; text-decoration:none; border-radius:28px;">
+                      לאישור השעות לחץ/י כאן
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="text-align:center; color:#029285; margin:10px 0;">✦✦✦</div>
+
+              <div style="color:#333333;">
+                אם אינך המדריך/ה של התלמיד/ה או שאינך מזהה את הבקשה, אפשר להתעלם מהמייל.
+                במידה ויש לך שאלה או שנתקלת בקושי, ניתן לפנות ל־
+                <a href="mailto:info@temurot.com" style="color:#058b7f; text-decoration:underline;">info@temurot.com</a>
+                ואנו נשמח לעזור.
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer spacer -->
+          <tr>
+            <td style="height:12px;"></td>
+          </tr>
+        </table>
+
+        <!-- Small footer note (optional) -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container"
+          style="width:600px; max-width:600px;">
+          <tr>
+            <td align="center"
+              style="padding:12px; font-family:Arial, Helvetica, sans-serif; font-size:12px; color:#707070;">
+              © תמורות פרקטיקום
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>

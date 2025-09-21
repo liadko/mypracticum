@@ -78,7 +78,6 @@ export default function MentorPage() {
         <CalendarWithList
           contacts={contacts}
           entries={mentorEntries}
-          contactType='mentor'
           onEntryToggle={useEntries().toggleEntry}
           renderEntryExtra={renderEntryApproved}
           renderMessage={renderShareMessage}
@@ -86,6 +85,7 @@ export default function MentorPage() {
 
         {isShareOpen && sharedContact && (
           <MentorShareModal
+            mentorId={sharedContact.id}
             mentorName={sharedContact.name}
             mentorEmail={sharedContact.email}
             onClose={() => setShareOpen(false)}

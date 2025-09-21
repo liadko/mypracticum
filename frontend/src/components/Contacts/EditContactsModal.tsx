@@ -1,22 +1,22 @@
 // EditContactsModal.tsx
-import { useRef, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useContacts } from '../../context/ContactsContext'
 import type { ContactType, FormMode } from '../../types'
 import { ContactRow } from './ContactRow'
 import { ContactForm } from './ContactForm'
 import './EditContactsModal.css'
-import { contactLabelSingular } from '../../i18n/he'
+import { contactLabelSingularDefinite } from '../../i18n/he'
 
 interface Props {
     initialType: ContactType
-    initiallyCreate: boolean
+    isInitialCreation: boolean
     onCloseModal: () => void
 }
 
 
-export function EditContactsModal({ initialType, initiallyCreate, onCloseModal }: Props) {
+export function EditContactsModal({ initialType, isInitialCreation, onCloseModal }: Props) {
     const [currentPage, setPage] = useState<ContactType>(initialType)
-    const [formMode, setFormMode] = useState<FormMode | null>(initiallyCreate ? { mode: 'add', type: initialType } : null)
+    const [formMode, setFormMode] = useState<FormMode | null>(isInitialCreation ? { mode: 'add', type: initialType } : null)
 
 
     const {
@@ -76,9 +76,16 @@ export function EditContactsModal({ initialType, initiallyCreate, onCloseModal }
     function headerText(): string {
 
         if (formMode)
-            return "עריכת פרטי " + contactLabelSingular[currentPage];
+            return "עריכת פרטי " + contactLabelSingularDefinite[currentPage];
 
         return "עריכת אנשי קשר";
+    }
+
+    function onCloseForm(closeEntireModal?: boolean) {
+        if (closeEntireModal)
+            onCloseModal()
+
+        setFormMode(null)
     }
 
     function onCloseAndSelectContact(type: ContactType, id: string): void {
@@ -108,7 +115,7 @@ export function EditContactsModal({ initialType, initiallyCreate, onCloseModal }
 
                 {/* Content */}
                 {formMode ?
-                    <ContactForm formMode={formMode} onCloseForm={() => setFormMode(null)} onCloseAndSelectContact={onCloseAndSelectContact} />
+                    <ContactForm formMode={formMode} onCloseForm={onCloseForm} onCloseAndSelectContact={onCloseAndSelectContact} isInitialCreation={isInitialCreation} />
                     :
                     renderMainView()
                 }

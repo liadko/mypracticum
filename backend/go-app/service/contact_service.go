@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"mypracticum/backend/domain"
+	"mypracticum/backend/pkg/notifier"
 	"mypracticum/backend/repository"
 	"strings"
 
@@ -11,12 +12,13 @@ import (
 )
 
 type ContactService struct {
-	repo    repository.ContactRepo
-	userSvc *UserService
+	repo     repository.ContactRepo
+	userSvc  *UserService
+	notifier notifier.Notifier
 }
 
-func NewContactService(repo repository.ContactRepo, userSvc *UserService) *ContactService {
-	return &ContactService{repo: repo, userSvc: userSvc}
+func NewContactService(repo repository.ContactRepo, userSvc *UserService, notifier notifier.Notifier) *ContactService {
+	return &ContactService{repo: repo, userSvc: userSvc, notifier: notifier}
 }
 
 func (s *ContactService) AddContact(ctx context.Context, userID uuid.UUID, newContact domain.NewContact) (domain.Contact, error) {
@@ -151,4 +153,34 @@ func splitName(full string) (string, string) {
 	}
 	n := len(parts)
 	return strings.Join(parts[:n-1], " "), parts[n-1]
+}
+
+func (s *ContactService) InviteMentor(ctx context.Context, userID uuid.UUID, contactID uuid.UUID) error {
+
+	// fetch contact
+	mentor, err := s.repo.GetMentor(ctx, userID, contactID)
+	if errors.Is(err, repository.ErrNotFound) {
+		return NotFoundError{"contact", contactID.String()}
+	}
+	if err != nil {
+		return DBError{Err: err}
+	}
+
+	if mentor.MentorUserID == nil {
+		return ValidationError("mentor contact is not linked to a mentor user")
+	}
+
+	// get mentor user to obtain email / name
+	mentorUser, err := s.userSvc.GetUserByID(ctx, *mentor.MentorUserID)
+	if err != nil {
+		return DBError{Err: err}
+	}
+
+	// send invite
+	if err := s.notifier.SendInvite(ctx, mentorUser.Email, mentorUser.FirstName); err != nil {
+		return DBError{Err: err}
+	}
+
+	return nil
+
 }

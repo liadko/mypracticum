@@ -2,10 +2,10 @@
 import { useState, useMemo, useEffect, type ReactNode } from 'react'
 import Calendar from './Calendar/Calendar'
 import { format, parseISO } from 'date-fns'
-import type { Contact, ContactType, Entry } from '../types'
+import type { Contact, Entry } from '../types'
 import './CalendarWithList.css'
 import { EditContactsModal } from './Contacts/EditContactsModal'
-import { pageHeaderText } from '../i18n/he'
+import { contactLabelPluralLong, contactLabelSingularGenderless, contactLabelSingularIndefinite, pageHeaderText } from '../i18n/he'
 import { ContactDropdown } from './Contacts/ContactDropdown'
 import { useContacts } from '../context/ContactsContext'
 
@@ -23,7 +23,6 @@ export interface CalendarWithListProps {
     contacts: Contact[]             // all contacts of this category
     entries: Entry[]                    // all entries of this category
 
-    contactType: ContactType
 
     onEntryToggle: (contactId: string, date: string) => void
     renderEntryExtra?: (entry: Entry) => React.ReactNode
@@ -33,7 +32,6 @@ export interface CalendarWithListProps {
 export function CalendarWithList({
     contacts,
     entries,
-    contactType,
     onEntryToggle,
     renderEntryExtra,
     renderMessage
@@ -41,6 +39,8 @@ export function CalendarWithList({
     // selected contact UUID
     const { setSelected, getSelected } = useContacts()
     const [isEditOpen, setEditOpen] = useState(false)
+
+    const {activePage: contactType} = useContacts()
 
     const selectedContactId = getSelected(contactType)
 
@@ -73,6 +73,32 @@ export function CalendarWithList({
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, [filtered, highlightedDate])
 
+
+
+
+
+    return (
+        <div className="calendar-with-list">
+            <div className="calender-side">
+                {selectedContactId && renderCalendar()}
+            </div>
+            <div className="list-side">
+                {
+                    selectedContactId ?
+                        selectedList() :
+                        createFirstContactMessage()
+                }
+            </div>
+            {/* render the modal when “edit” clicked */}
+            {isEditOpen && (
+                <EditContactsModal
+                    initialType={contactType}
+                    isInitialCreation={!selectedContactId}
+                    onCloseModal={() => setEditOpen(false)}
+                />
+            )}
+
+        </div>);
 
     // intercept the “edit” item
     function handleContactChange(id: string) {
@@ -108,17 +134,18 @@ export function CalendarWithList({
                     ברוכים הבאים לתמורות פרקטיקום
                 </h2>
                 <p className="first-contact-message__text">
-                    כאן תוכלו לסמן את השעות שבהן טיפלתם במטופלים פרטיים.
-                    <br/>
+                    כאן תוכלו לסמן את השעות שצברתם עם {contactLabelPluralLong[contactType]}.
+                    <br />
                     לפני שמתחילים,
-                    צריך ליצור מטופל חדש כדי שנוכל לשייך אליו את השעות.
+                    צריך ליצור {contactLabelSingularIndefinite[contactType]} חדש כדי שנוכל לשייך אליו את השעות.
                 </p>
                 <button className="first-contact-message__button" onClick={() => setEditOpen(true)}>
-                    צרו מטופל/ת חדש/ה
+                    צרו {contactLabelSingularGenderless[contactType]} חדש/ה
                 </button>
             </div>
         );
     }
+
     function selectedList(): ReactNode {
         return <div className="selected-list" >
             <div className="side-header">
@@ -157,36 +184,13 @@ export function CalendarWithList({
         </div>
     }
 
+    function renderCalendar() {
+        return <div className='calendar' dir='rtl'>
 
-    return (
-        <div className="calendar-with-list">
-            <div className="calender-side">
-                {renderCalendar(!!selectedContactId)}
-            </div>
-            <div className="list-side">
-                {
-                    !selectedContactId ?
-                        selectedList() :
-                        createFirstContactMessage()
-                }
-            </div>
-            {/* render the modal when “edit” clicked */}
-            {isEditOpen && (
-                <EditContactsModal
-                    initialType={contactType}
-                    initiallyCreate={!selectedContactId}
-                    onCloseModal={() => setEditOpen(false)}
-                />
-            )}
-
-        </div>);
-
-
-    function renderCalendar(isBlurred : boolean) {
-        return <div className={`calendar ${isBlurred ? 'blurred' : ''}`} dir='rtl'>
-            <h2 className="side-header">
-                בחר תאריכים
-            </h2>
+                <h2 className="side-header">
+                    בחר תאריכים
+                </h2>
+          
             <Calendar
                 entries={filtered}
                 highlightedDate={highlightedDate ?? undefined}

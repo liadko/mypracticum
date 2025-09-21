@@ -34,7 +34,6 @@ export default function TherapistPage() {
           contacts={contacts}
           entries={therapistEntries}
           //hoursNeeded={300}
-          contactType='therapist'
           onEntryToggle={useEntries().toggleEntry}
           //renderExtra={e =>/* your old TherapistNameInput */null}
         />

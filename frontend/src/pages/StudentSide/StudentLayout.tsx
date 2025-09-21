@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import TherapistPage from './TherapistPage'
 import MentorPage from './MentorPage'
 import ClientPage from './ClientPage'
 import '../DesktopApp.css'
 import { pageTitle } from '../../i18n/he'
-import { contactTypes, type ContactType } from '../../types'
+import { contactTypes } from '../../types'
 import { useEntries } from '../../context/EntriesContext'
 import { useContacts } from '../../context/ContactsContext'
 

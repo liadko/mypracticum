@@ -10,7 +10,7 @@ import (
 	"mypracticum/backend/config"
 	"mypracticum/backend/domain"
 	"mypracticum/backend/pkg/cache"
-	"mypracticum/backend/pkg/otp" // Notifier interface
+	"mypracticum/backend/pkg/notifier"
 
 	// UserRepo + OTPRepo + ErrNotFound
 	"github.com/google/uuid"
@@ -21,14 +21,14 @@ type OTPService struct {
 	userSvc     *UserService
 	otpStore    cache.Store
 	sendLimiter cache.Limiter
-	notifier    otp.Notifier
+	notifier    notifier.Notifier
 
 	codeLength int
 	expire     time.Duration
 }
 
 // NewOTPService wires in your repositories and notifier (email/SMS client).
-func NewOTPService(u *UserService, s cache.Store, n otp.Notifier, l cache.Limiter, cfg config.OTPConfig) *OTPService {
+func NewOTPService(u *UserService, s cache.Store, n notifier.Notifier, l cache.Limiter, cfg config.OTPConfig) *OTPService {
 	return &OTPService{
 		userSvc:     u,
 		otpStore:    s,

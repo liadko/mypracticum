@@ -14,5 +14,7 @@ type ContactRepo interface {
 	Update(ctx context.Context, userID, contactID uuid.UUID, c domain.Contact) (domain.Contact, error)
 	UserHasMentorExcept(ctx context.Context, userID uuid.UUID, email string, mentorshipType string, exceptContactID uuid.UUID) (bool, error)
 	UserHasMentor(ctx context.Context, userID uuid.UUID, email string, mentorshipType string) (bool, error)
+	GetMentor(ctx context.Context, userID, contactID uuid.UUID) (domain.Contact, error)
+
 	//Delete(ctx context.Context, userID, contactID uuid.UUID) error
 }

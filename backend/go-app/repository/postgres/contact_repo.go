@@ -192,6 +192,37 @@ func (r *PostgresContactRepo) UserHasMentorExcept(
 	return true, nil
 }
 
+func (r *PostgresContactRepo) GetMentor(ctx context.Context, userID, contactID uuid.UUID) (domain.Contact, error) {
+	const q = `
+		SELECT id, user_id, type, name,
+			   email, phone, specialty,
+			   mentor_user_id,
+			   mentorship_type
+		  FROM contacts
+		 WHERE user_id = $1
+		   AND id = $2
+		   AND type = 'mentor'
+	`
+	var c domain.Contact
+	if err := r.db.QueryRowContext(ctx, q, userID, contactID).Scan(
+		&c.ID,
+		&c.UserID,
+		&c.Type,
+		&c.Name,
+		&c.Email,
+		&c.Phone,
+		&c.Specialty,
+		&c.MentorUserID,
+		&c.MentorshipType,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return domain.Contact{}, repository.ErrNotFound
+		}
+		return domain.Contact{}, fmt.Errorf("fetching mentor contact %s: %w", contactID, err)
+	}
+	return c, nil
+}
+
 // // Delete satisfies ContactRepository
 // func (r *PostgresContactRepo) Delete(ctx context.Context, id, userID uuid.UUID) error {
 // 	// DELETE FROM contacts WHERE id=$1 AND user_id=$2

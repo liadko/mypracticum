@@ -1,20 +1,24 @@
+import { useContacts } from '../../context/ContactsContext'
 import './MentorShareModal.css'
 
 interface MentorShareModalProps {
+    mentorId: string
     mentorName: string
     mentorEmail: string
     onClose: () => void
 }
 
 export default function MentorShareModal({
+    mentorId,
     mentorName,
     mentorEmail,
     onClose
 }: MentorShareModalProps) {
 
-    const handleSend = () => {
-        // TODO: hook up to backend email trigger
-        console.log(`Sending share email to ${mentorName} <${mentorEmail}>`)
+    const {inviteContact} = useContacts()
+
+    const handleSend = async() => {
+        await inviteContact(mentorId)
         onClose()
     }
 

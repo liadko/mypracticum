@@ -37,6 +37,7 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 	prot.GET("/contacts", contactH.List)
 	prot.POST("/contacts", contactH.Create)
 	prot.PUT("/contacts/:contactId", contactH.Update)
+	prot.POST("/contacts/:contactId/invite", contactH.InviteMentor)
 
 	// users
 	prot.GET("/users/me", userH.GetMe)

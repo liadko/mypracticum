@@ -8,8 +8,9 @@ import { showError } from '../../utils/toast'
 
 interface ContactFormProps {
     formMode: FormMode
-    onCloseForm: () => void
+    onCloseForm: (closeEntireModal: boolean) => void
     onCloseAndSelectContact: (type: ContactType, id: string) => void
+    isInitialCreation: boolean
 }
 
 interface FormValues {
@@ -23,7 +24,7 @@ interface FormValues {
     clientTrainingCenterInfo: string
 }
 
-export function ContactForm({ formMode, onCloseForm: onClose, onCloseAndSelectContact }: ContactFormProps) {
+export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseAndSelectContact }: ContactFormProps) {
     const { getContactById, addContact, updateContact } = useContacts()
 
     // formValues holds every field at once
@@ -101,7 +102,7 @@ export function ContactForm({ formMode, onCloseForm: onClose, onCloseAndSelectCo
         const newContact: NewContact = {
             type,
             name,
-            ...(type === 'client' && {clientInstitution, clientTrainingCenterInfo}),
+            ...(type === 'client' && { clientInstitution, clientTrainingCenterInfo }),
             ...(type === 'mentor' && { email, phone, specialty, mentorshipType }),
             ...(type === 'therapist' && { phone, specialty }),
         }
@@ -115,7 +116,7 @@ export function ContactForm({ formMode, onCloseForm: onClose, onCloseAndSelectCo
 
         if (formMode.mode === 'edit') {
             await updateContact(formMode.id, newContact)
-            onClose()
+            onCloseForm(false)
         } else {
             const created = await addContact(newContact)
             onCloseAndSelectContact(type, created.id)
@@ -222,7 +223,7 @@ export function ContactForm({ formMode, onCloseForm: onClose, onCloseAndSelectCo
 
             {type === 'client' && (
                 <>
-                <div className='contact-form__gap'/>
+                    <div className='contact-form__gap' />
                     <div className="contact-form__field">
                         <label className="contact-form__label">
                             מסגרת טיפול
@@ -273,7 +274,7 @@ export function ContactForm({ formMode, onCloseForm: onClose, onCloseAndSelectCo
                 <button
                     type="button"
                     className="contact-form__cancel-button"
-                    onClick={onClose} // BAD, should ask for confirmation
+                    onClick={() => onCloseForm(isInitialCreation)} // close entire modal if was initial creation
                 >
                     ביטול
                 </button>

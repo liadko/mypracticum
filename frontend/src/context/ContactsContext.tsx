@@ -23,7 +23,7 @@ interface ContactsContextType {
   getContactById: (id: string) => Contact | undefined
   addContact: (c: NewContact) => Promise<Contact>
   updateContact: (id: string, newContact: NewContact) => Promise<Contact>
-
+  inviteContact: (id: string) => Promise<Contact>
 
   loadingC: boolean
   errorC: Error | null
@@ -104,6 +104,17 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
   }, [])
 
 
+    const inviteContact = useCallback(async (id: string) => {
+      return showAsyncToast(
+        api.inviteMentorContact(id),
+        {
+          loading: "שולח הזמנה...",
+          success: "הוזמן בהצלחה",
+          error: "נכשל בשליחת ההזמנה",
+        }
+      )
+    }, [])
+
 
   const contactsById = useMemo(() => {
     const map: Record<string, Contact> = {}
@@ -142,6 +153,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
       getContactById,
       addContact,
       updateContact,
+      inviteContact,
 
       loadingC: loading,
       errorC: error,

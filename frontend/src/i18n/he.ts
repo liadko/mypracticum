@@ -1,9 +1,24 @@
 import type { ContactType } from '../types'
 
-export const contactLabelSingular: Record<ContactType, string> = {
+
+
+export const contactLabelSingularDefinite: Record<ContactType, string> = {
   client:    'המטופל הפרטי',
   mentor:    'המדריך',
   therapist: 'המטפל האישי שלי',
+}
+
+export const contactLabelSingularIndefinite: Record<ContactType, string> = {
+  client:    'מטופל פרטי',
+  mentor:    'מדריך',
+  therapist: 'מטפל אישי',
+}
+
+
+export const contactLabelSingularGenderless: Record<ContactType, string> = {
+  client:    'מטופל/ת',
+  mentor:    'מדריך/ה',
+  therapist: 'מטפל/ת אישי/ת',
 }
 
 export const contactLabelPluralShort: Record<ContactType, string> = {

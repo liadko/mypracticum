@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import './LoginPage.css'
+import { useSearchParams } from 'react-router-dom'
 
 export interface LoginFormProps {
   /** Called with the user’s email when the form is submitted */
@@ -8,8 +9,12 @@ export interface LoginFormProps {
   secondsLeft: number
 }
 
-export default function LoginForm({ onSubmit, previouslySubmittedEmail = '', secondsLeft=0 }: LoginFormProps) {
-  const [email, setEmail] = useState(previouslySubmittedEmail)
+export default function LoginForm({ onSubmit, previouslySubmittedEmail, secondsLeft = 0 }: LoginFormProps) {
+
+  const [searchParams] = useSearchParams()
+  const emailFromQuery = searchParams.get('email')?.trim() ?? ''
+
+  const [email, setEmail] = useState(previouslySubmittedEmail ? previouslySubmittedEmail : emailFromQuery)
   //const [touched, setTouched] = useState(false)
 
   function handleSubmit(e: FormEvent) {

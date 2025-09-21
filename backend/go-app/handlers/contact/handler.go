@@ -182,4 +182,32 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, resp)
+
+}
+
+// InviteMentor handles POST /contacts/:contactId/invite
+func (h *ContactHandler) InviteMentor(ctx *gin.Context) {
+	// 1) get userID from the context
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
+
+	contactID, err := uuid.Parse(ctx.Param("contactId"))
+	if err != nil {
+		log.Println(err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid contact ID"})
+		return
+	}
+
+	// directly call service with userID and contactID
+	if err := h.svc.InviteMentor(ctx.Request.Context(), userID, contactID); err != nil {
+		if ve, ok := err.(domain.ValidationError); ok {
+			fmt.Printf("Error while adding contact, validation apparently: %v\n", err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
+			return
+		}
+		fmt.Printf("Error while inviting mentor: %v\n", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "invitation sent"})
 }

@@ -34,7 +34,6 @@ export default function ClientPage() {
           contacts={contacts}
           entries={clientEntries}
           //hoursNeeded={300}
-          contactType='client'
           onEntryToggle={useEntries().toggleEntry}
           //renderExtra={e =>/* your old ClientNameInput */null}
         />

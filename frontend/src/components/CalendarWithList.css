@@ -35,8 +35,8 @@
 
 .blurred {
     filter: blur(2px);
-    /* pointer-events: none;
-    user-select: none; */
+    pointer-events: none;
+    user-select: none;
     opacity: 0.6;
 }
 
@@ -210,9 +210,9 @@
     background-color: #5baaa0;
     color: #fff;
     border: none;
-    width: 220px;
+    width: 250px;
     border-radius: 8px;
-    padding: 0.65rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     
     font-weight: 600;
     font-size: 1rem;

@@ -33,8 +33,13 @@ export async function updateContact(
     return res.json() as Promise<Contact>
 }
 
-// // this route is not really implemented
-// export async function deleteContact(id: string): Promise<void> {
-//     const res = await fetch(`/api/contacts/${id}`, { method: 'DELETE' })
-//     if (!res.ok) throw new Error(res.statusText)
-// }
+export async function inviteMentorContact(
+    id: string,
+): Promise<Contact> {
+    const res = await apiFetch(`/api/v1/contacts/${id}/invite`, {
+        method: 'POST',
+    })
+    if (!res.ok) throw new Error(await res.text())
+    return res.json() as Promise<Contact>
+}
+

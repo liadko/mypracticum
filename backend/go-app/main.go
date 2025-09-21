@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 
@@ -15,7 +14,7 @@ import (
 	"mypracticum/backend/middleware"
 	"mypracticum/backend/pkg/cache/inmem"
 	"mypracticum/backend/pkg/jwt"
-	smtpPkg "mypracticum/backend/pkg/smtp"
+	smtpPkg "mypracticum/backend/pkg/notifier/smtp"
 	"mypracticum/backend/repository/postgres"
 	"mypracticum/backend/service"
 
@@ -32,37 +31,7 @@ func main() {
 	cfg := config.Load()
 	cfg.Validate()
 
-	// Load email templates (optional). Paths are relative to the project root.
-	// Adjust filenames/paths to match your project layout.
-	otpTmplPath := "pkg/smtp/templates/otp.html"
-	reminderTmplPath := "pkg/smtp/templates/reminder.html"
-
-	var otpTemplate, reminderTemplate string
-
-	if b, err := os.ReadFile(otpTmplPath); err != nil {
-		log.Printf("warning: couldn't read OTP template %s: %v", otpTmplPath, err)
-	} else {
-		otpTemplate = string(b)
-		log.Printf("loaded OTP template (%d bytes) from %s", len(otpTemplate), otpTmplPath)
-	}
-
-	if b, err := os.ReadFile(reminderTmplPath); err != nil {
-		log.Printf("warning: couldn't read reminder template %s: %v", reminderTmplPath, err)
-	} else {
-		reminderTemplate = string(b)
-		log.Printf("loaded reminder template (%d bytes) from %s", len(reminderTemplate), reminderTmplPath)
-	}
-
-	var smtpNotifier *smtpPkg.SMTPNotifier
-	if cfg.SMTP.Host != "" && true {
-		smtpNotifier := smtpPkg.NewSMTPNotifier(cfg.SMTP, otpTemplate, reminderTemplate)
-		// If it does, pass otpTemplate; otherwise this remains a simple smoke test.
-		if err := smtpNotifier.SendOTP(context.Background(), "liadkoren@gmail.com", "ליעד", "123456"); err != nil {
-			log.Printf("SMTP test send failed: %v", err)
-		} else {
-			log.Printf("SMTP test email sent to liadkoren@gmail.com (check inbox/spam)")
-		}
-	}
+	// Load templates
 
 	// 1. Connect to Postgres, and Logger
 	db, err := db.Connect(cfg.Auth.DatabaseURL)
@@ -79,13 +48,14 @@ func main() {
 
 	jwtMgr := jwt.NewManager(cfg.Auth)
 
-	//smooveNotifier := smoovePkg.NewSmooveClient(cfg.Smoove.BaseURL, cfg.Smoove.APIKey)
+	otpTemplate, inviteTemplate := loadSMTPTemplates("pkg/notifier/smtp/templates/otp.html", "pkg/notifier/smtp/templates/invite.html")
+	smtpNotifier := smtpPkg.NewSMTPNotifier(cfg.SMTP, otpTemplate, inviteTemplate)
 
 	// 3. Build services
 	tokenSvc := service.NewTokenService(jwtMgr, repoFactory.UserRepo())
 	userSvc := service.NewUserService(repoFactory.UserRepo())
 	entrySvc := service.NewEntryService(repoFactory.EntryRepo())
-	contactSvc := service.NewContactService(repoFactory.ContactRepo(), userSvc)
+	contactSvc := service.NewContactService(repoFactory.ContactRepo(), userSvc, smtpNotifier)
 	otpSvc := service.NewOTPService(userSvc, store, smtpNotifier, sendOTPLimiter, cfg.OTP)
 
 	// 4. Build handlers
@@ -115,4 +85,24 @@ func main() {
 
 	// 7. Start server
 	r.Run(":" + cfg.Port)
+}
+
+func loadSMTPTemplates(otpTmplPath, inviteTmplPath string) (string, string) {
+	var otpTemplate, inviteTemplate string
+
+	if b, err := os.ReadFile(otpTmplPath); err != nil {
+		log.Printf("warning: couldn't read OTP template %s: %v", otpTmplPath, err)
+	} else {
+		otpTemplate = string(b)
+		log.Printf("loaded OTP template (%d bytes) from %s", len(otpTemplate), otpTmplPath)
+	}
+
+	if b, err := os.ReadFile(inviteTmplPath); err != nil {
+		log.Printf("warning: couldn't read invite template %s: %v", inviteTmplPath, err)
+	} else {
+		inviteTemplate = string(b)
+		log.Printf("loaded invite template (%d bytes) from %s", len(inviteTemplate), inviteTmplPath)
+	}
+
+	return otpTemplate, inviteTemplate
 }

@@ -12,14 +12,14 @@ export default function LoginPage() {
   //const navigate = useNavigate()
   const { submitEmail, verifyOtp, secondsLeft, submittedEmail } = useAuth()
 
-  const [otpPage, setOtpPage] = useState<boolean>(false)
+  const [isOtpPage, setIsOtpPage] = useState<boolean>(false)
 
 
   // Handle email submission
   const handleEmailSubmit = async (enteredEmail: string) => {
     // if they just re-submit the same email, jump straight to OTP step
     if (enteredEmail === submittedEmail && secondsLeft > 0) {
-      setOtpPage(true)
+      setIsOtpPage(true)
       return
     }
 
@@ -38,7 +38,7 @@ export default function LoginPage() {
     //setLoading(true)
     try {
       await submitEmail(enteredEmail)
-      setOtpPage(true)
+      setIsOtpPage(true)
       showSuccess("קוד נשלח בהצלחה", 4000)
     } catch (err: unknown) {
       if (err instanceof AuthError) {
@@ -76,10 +76,10 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-modal">
         <div className="login-modal__header">
-          {otpPage && (
+          {isOtpPage && (
             <button
               className="login-modal__close"
-              onClick={() => setOtpPage(false)}
+              onClick={() => setIsOtpPage(false)}
               aria-label="Close"
             >
               ×
@@ -87,12 +87,12 @@ export default function LoginPage() {
           )}
           <img src="/logo.png" alt="לוגו" className="login-modal__logo" />
           <h1 className="login-modal__title">
-            {otpPage ? 'הכנס קוד אימות' : 'ברוכים הבאים לתמורות פרקטיקום'}
+            {isOtpPage ? 'הכנס קוד אימות' : 'ברוכים הבאים לתמורות פרקטיקום'}
           </h1>
         </div>
 
         <div className="login-modal__body">
-          {!otpPage ? (
+          {!isOtpPage ? (
             <LoginForm onSubmit={handleEmailSubmit}  previouslySubmittedEmail={submittedEmail ?? ""} secondsLeft={secondsLeft}/>
           ) : (
             <OtpForm

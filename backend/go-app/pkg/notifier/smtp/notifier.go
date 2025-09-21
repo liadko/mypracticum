@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"mypracticum/backend/config"
-	"mypracticum/backend/pkg/otp"
+	"mypracticum/backend/pkg/notifier"
 
 	mail "github.com/wneessen/go-mail"
 )
@@ -17,17 +17,17 @@ import (
 // SMTPNotifier sends emails using go-mail which handles TLS/STARTTLS and
 // SMTP auth for us. It uses the application's `config.SMTPConfig`.
 type SMTPNotifier struct {
-	cfg          config.SMTPConfig
-	otpHTML      string
-	reminderHTML string
+	cfg        config.SMTPConfig
+	otpHTML    string
+	inviteHTML string
 }
 
 // NewSMTPNotifier returns a notifier whose otp and reminder HTML
 // templates are required and validated. If either template string is empty an error
 // is returned and the notifier is not created.
-func NewSMTPNotifier(cfg config.SMTPConfig, otpHTML, reminderHTML string) *SMTPNotifier {
+func NewSMTPNotifier(cfg config.SMTPConfig, otpHTML, inviteHTML string) *SMTPNotifier {
 
-	return &SMTPNotifier{cfg: cfg, otpHTML: otpHTML, reminderHTML: reminderHTML}
+	return &SMTPNotifier{cfg: cfg, otpHTML: otpHTML, inviteHTML: inviteHTML}
 }
 
 // SendOTP implements otp.Notifier. destination is the recipient address, code is the OTP.
@@ -77,15 +77,17 @@ func (s *SMTPNotifier) SendOTP(ctx context.Context, destination, firstName, code
 	return nil
 }
 
-// SendReminder implements otp.Notifier, it gets
-func (s *SMTPNotifier) SendReminder(ctx context.Context, destination, firstName, code string) error {
+// SendInvite implements notifier.Notifier, it gets
+func (s *SMTPNotifier) SendInvite(ctx context.Context, destination, firstName string) error {
 	// default firstName for reminders as well
 	if firstName == "" {
 		firstName = "רב"
 	}
 
-	htmlBody := strings.ReplaceAll(s.reminderHTML, "{{firstName}}", firstName)
-	htmlBody = strings.ReplaceAll(htmlBody, "{{code}}", code)
+	link := "http://192.168.68.124:5173/login?email=" + destination
+
+	htmlBody := strings.ReplaceAll(s.inviteHTML, "{{firstName}}", firstName)
+	htmlBody = strings.ReplaceAll(htmlBody, "{{link}}", link)
 
 	// compose message
 	msg := mail.NewMsg()
@@ -95,7 +97,7 @@ func (s *SMTPNotifier) SendReminder(ctx context.Context, destination, firstName,
 	if err := msg.To(destination); err != nil {
 		return fmt.Errorf("set to: %w", err)
 	}
-	msg.Subject("Reminder: your verification code")
+	msg.Subject("בקשה לאישור שעות בתמורות פרקטיקום")
 	msg.SetBodyString(mail.TypeTextHTML, htmlBody)
 
 	c, err := mail.NewClient(
@@ -107,7 +109,7 @@ func (s *SMTPNotifier) SendReminder(ctx context.Context, destination, firstName,
 		mail.WithSSL(),
 	)
 	if err != nil {
-		return fmt.Errorf("create dialer: %w", err)
+		return fmt.Errorf("create client: %w", err)
 	}
 	if err := c.DialAndSendWithContext(ctx, msg); err != nil {
 		return fmt.Errorf("send mail: %w", err)
@@ -115,5 +117,5 @@ func (s *SMTPNotifier) SendReminder(ctx context.Context, destination, firstName,
 	return nil
 }
 
-// Ensure SMTPNotifier implements otp.Notifier at compile time
-var _ otp.Notifier = (*SMTPNotifier)(nil)
+// Ensure SMTPNotifier implements notifier.Notifier at compile time
+var _ notifier.Notifier = (*SMTPNotifier)(nil)
