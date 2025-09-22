@@ -81,3 +81,13 @@ func (u *User) Validate() error {
 	}
 	return nil
 }
+
+func ValidateNames(firstName, lastName string) error {
+	if strings.TrimSpace(firstName) == "" {
+		return ValidationError("first name must not be empty")
+	}
+	if strings.TrimSpace(lastName) == "" {
+		return ValidationError("last name must not be empty")
+	}
+	return nil
+}

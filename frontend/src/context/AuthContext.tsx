@@ -3,9 +3,11 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
 } from 'react'
 import * as authApi from '../api/authApi'
-import type { User } from '../types'
+import type { FullName, User } from '../types'
+import { showAsyncToast, showSuccess } from '../utils/toast'
 
 
 interface AuthProviderProps {
@@ -20,10 +22,11 @@ interface AuthContextType {
   submitEmail: (email: string) => Promise<void>
   verifyOtp: (code: string) => Promise<void>
   logout: () => void
+  saveProfile:  (fullName: FullName) => Promise<void>
   secondsLeft: number
   submittedEmail: string | null
 
-  
+
   updateSignature: (sig: string) => Promise<void>
 
 
@@ -158,12 +161,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { token: newToken } = await authApi.verifyOtp(submittedEmail, code)
     localStorage.setItem('token', newToken)
     setToken(newToken)
+
+    setSubmittedEmail(null)
+    localStorage.removeItem('submittedEmail')
   }
 
   function logout() {
     localStorage.removeItem('token')
     setToken(null)
+
+    showSuccess('יצאת מהחשבון בהצלחה')
   }
+
+  const saveProfile = useCallback(async (fullName: FullName) => {
+    return showAsyncToast(
+      authApi.updateProfile(fullName).then(updatedName => {
+        if (!user) return
+        console.log(updatedName)
+        setUser({ ...user, firstName: updatedName.firstName, lastName: updatedName.lastName })
+      }),
+      {
+        loading: "מעדכן פרטים אישיים...",
+        success: "עודכן בהצלחה",
+        error: "נכשל בשמירת העדכון",
+      }
+    )
+  }, [])
 
 
   async function updateSignature(base64: string) {
@@ -182,6 +205,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isLoading,
         submitEmail,
         verifyOtp,
+        saveProfile,
         logout,
         secondsLeft,
         submittedEmail,

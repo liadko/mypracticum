@@ -43,7 +43,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null) // fatal error
-  
+
   const [activePage, setActivePage] = useState<ContactType>('client')
   const { getSelected, setSelected } = useSelected()
 
@@ -104,16 +104,16 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
   }, [])
 
 
-    const inviteContact = useCallback(async (id: string) => {
-      return showAsyncToast(
-        api.inviteMentorContact(id),
-        {
-          loading: "שולח הזמנה...",
-          success: "הוזמן בהצלחה",
-          error: "נכשל בשליחת ההזמנה",
-        }
-      )
-    }, [])
+  const inviteContact = useCallback(async (id: string) => {
+    return showAsyncToast(
+      api.inviteMentorContact(id),
+      {
+        loading: "שולח הזמנה...",
+        success: "הוזמן בהצלחה",
+        error: "נכשל בשליחת ההזמנה",
+      }
+    )
+  }, [])
 
 
   const contactsById = useMemo(() => {

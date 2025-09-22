@@ -19,4 +19,6 @@ type UserRepo interface {
 	UpdateSignature(ctx context.Context, userID uuid.UUID, sig []byte) ([]byte, error)
 
 	CreateUser(ctx context.Context, u domain.User) (domain.User, error)
+
+	UpdateUserNames(ctx context.Context, userID uuid.UUID, firstName, lastName string) (string, string, error)
 }

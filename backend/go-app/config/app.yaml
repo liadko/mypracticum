@@ -3,7 +3,7 @@ port: "8080"
 auth:
   # non-sensitive defaults
   jwtIssuer:      "mypracticum"
-  jwtTTL:         "168h"               
+  jwtTTL:         "2400h"          # 100 days      
 smoove:
   baseURL:        "https://rest.smoove.io/v1/"
 otp:

@@ -60,6 +60,39 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// UpdateProfile handles PATCH /users/me
+func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
+	// 1) get userID from the context
+	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
+
+	var req ProfileUpdateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(400, gin.H{"error": "invalid payload"})
+		return
+	}
+
+	updatedFirstName, updatedLastName, err := h.svc.UpdateProfile(ctx.Request.Context(), userID, req.FirstName, req.LastName)
+	if err != nil {
+		var nf service.NotFoundError
+		var ve domain.ValidationError
+		switch {
+		case errors.As(err, &ve):
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
+		case errors.As(err, &nf):
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		default:
+			fmt.Printf("UpdateProfile: failed to update profile for user %s: %v", userID, err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, ProfileUpdateResponse{
+		FirstName: updatedFirstName,
+		LastName:  updatedLastName,
+	})
+}
+
 // AddUser handles POST /users
 func (h *UserHandler) AddUser(ctx *gin.Context) {
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
@@ -112,7 +145,7 @@ func (h *UserHandler) AddUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, resp)
 }
 
-// UpdateSignature handles PATCH /users/me
+// UpdateSignature handles PATCH /users/me/signature
 func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 

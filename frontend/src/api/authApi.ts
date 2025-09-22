@@ -1,4 +1,4 @@
-import type { User } from "../types"
+import type { FullName, User } from "../types"
 import { fetchWithTimeout } from "./fetchWithTimeout"
 import { apiFetch } from "./client"
 import { AuthError } from "./errors"
@@ -58,6 +58,20 @@ export async function fetchProfile(): Promise<User> {
   return await res.json()
 }
 
+
+// Update the current user’s profile.
+export async function updateProfile(fullName: FullName): Promise<FullName> {
+  const res = await apiFetch('/api/v1/users/me', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fullName),
+  })
+  if (!res.ok) throw new Error(`updateProfile failed: ${res.status}`)
+
+  return res.json()
+}
+
+
 /**
  * updateSignature
  *
@@ -73,7 +87,7 @@ export async function fetchProfile(): Promise<User> {
 export async function updateSignature(
   base64Jpeg: string
 ): Promise<{ signature: string }> {
-  const res = await apiFetch('/api/v1/users/me', {
+  const res = await apiFetch('/api/v1/users/me/signature', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ signature: base64Jpeg }),

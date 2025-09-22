@@ -93,3 +93,8 @@ export interface User {
 
     roles: UserRole[]
 }
+
+export interface FullName {
+    firstName: string
+    lastName: string
+}

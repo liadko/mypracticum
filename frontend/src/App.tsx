@@ -35,7 +35,6 @@ function AppRoutes() {
             path="/student"
             element={
               <DesktopLayout
-                user={user!}
                 layoutType='student'
               />
             }
@@ -43,7 +42,6 @@ function AppRoutes() {
           <Route
             path="/mentor"
             element={<DesktopLayout
-              user={user!}
               layoutType="mentor"
             />}
           />

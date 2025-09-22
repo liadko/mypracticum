@@ -218,3 +218,26 @@ func (r *PostgresUserRepo) ListStudentsForMentor(ctx context.Context, mentorUser
 	}
 	return out, nil
 }
+
+func (r *PostgresUserRepo) UpdateUserNames(ctx context.Context, userID uuid.UUID, firstName, lastName string) (string, string, error) {
+	const q = `
+	UPDATE users
+	   SET first_name = $1
+		 , last_name  = $2
+	 WHERE id = $3
+	 RETURNING first_name, last_name
+	`
+	var outFirst string
+	var outLast string
+	err := r.db.QueryRowContext(ctx, q, firstName, lastName, userID).Scan(
+		&outFirst,
+		&outLast,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", "", repository.ErrNotFound
+		}
+		return "", "", err
+	}
+	return outFirst, outLast, nil
+}

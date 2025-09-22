@@ -176,3 +176,18 @@ func (s *UserService) ListStudentsForMentor(ctx context.Context, mentorUserID uu
 	return users, nil
 
 }
+
+// UpdateProfile updates a user's first/last name and returns the updated user.
+func (s *UserService) UpdateProfile(ctx context.Context, userID uuid.UUID, firstName, lastName string) (string, string, error) {
+	if err := domain.ValidateNames(firstName, lastName); err != nil {
+		return "", "", err
+	}
+	firstName, lastName, err := s.userRepo.UpdateUserNames(ctx, userID, firstName, lastName)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return "", "", NotFoundError{"user", userID.String()}
+		}
+		return "", "", DBError{Err: err}
+	}
+	return firstName, lastName, nil
+}

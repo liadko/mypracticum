@@ -28,7 +28,7 @@ func (h *EntryHandler) Create(ctx *gin.Context) {
 	// 1) get userID from the context
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
-	log.Printf("[ENTRY][Create] userID=%s starting create", userID)
+	log.Printf("[ENTRY][Create] userID=%s clientIP=%s starting create", userID, ctx.ClientIP())
 
 	// 2) bind JSON → DTO
 	var req CreateEntryRequest

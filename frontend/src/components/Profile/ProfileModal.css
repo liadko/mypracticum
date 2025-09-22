@@ -1,0 +1,133 @@
+/* Overlay + panel (mirrors SignatureModal look) */
+.profile-modal__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: grid;
+    place-items: center;
+    z-index: 1000;
+}
+
+.profile-modal__content {
+    height: 450px;
+    width: 400px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 28px 28px 18px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Typography / layout */
+.profile-modal__title {
+    margin: 0.5rem 0 2.5rem;
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.profile-modal__field {
+    margin: 1rem auto;
+    width: 330px;
+    max-width: 100%;
+}
+
+.profile-modal__label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    text-align: right;
+}
+
+.profile-modal__input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.65rem 1rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.profile-modal__input::placeholder {
+    color: #a8a8a8;
+}
+
+/* Actions */
+.profile-modal__actions {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+}
+
+.profile-modal__btn {
+    min-width: 140px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-modal__btn--primary {
+    background: #00a495;
+    color: #fff;
+    border: none;
+}
+
+.profile-modal__btn--ghost {
+    background: #fff;
+    color: #333;
+    border: 1px solid var(--main-color);
+}
+
+.profile-modal__btn--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Sign-out link (centered) */
+.profile-modal__signout {
+    display: block;
+    margin: 2rem auto 4px;
+    background: none;
+    border: none;
+    color: #6b6b6b;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Confirmation mini-modal */
+.profile-modal__confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    display: grid;
+    place-items: center;
+    z-index: 1001;
+}
+
+.profile-modal__confirm {
+    width: 360px;
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.14);
+}
+
+.profile-modal__confirm-text {
+    margin: 0 0 16px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.profile-modal__confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}

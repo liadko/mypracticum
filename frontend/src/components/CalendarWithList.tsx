@@ -40,7 +40,7 @@ export function CalendarWithList({
     const { setSelected, getSelected } = useContacts()
     const [isEditOpen, setEditOpen] = useState(false)
 
-    const {activePage: contactType} = useContacts()
+    const { activePage: contactType } = useContacts()
 
     const selectedContactId = getSelected(contactType)
 
@@ -70,7 +70,19 @@ export function CalendarWithList({
         const entry = filtered.find(e => e.date === highlightedDate)
         if (!entry) return
         const el = document.getElementById(entryDOMKey(entry))
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const container = document.getElementById('selected-list-entries')
+
+        if (el && container) {
+            const elTop = el.offsetTop
+            const elHeight = el.clientHeight
+            const containerHeight = container.clientHeight
+
+            container.scrollTo({
+                top: elTop - containerHeight - elHeight,
+                behavior: 'smooth',
+            })
+        }
+
     }, [filtered, highlightedDate])
 
 
@@ -159,7 +171,7 @@ export function CalendarWithList({
                 />
 
             </div>
-            <div className="selected-list-entries">
+            <div className="selected-list-entries" id="selected-list-entries">
                 {filtered.map(entry => {
                     const dateObj = parseISO(entry.date)
                     const weekdayName = hebrewWeekdays[dateObj.getDay()]
@@ -187,10 +199,10 @@ export function CalendarWithList({
     function renderCalendar() {
         return <div className='calendar' dir='rtl'>
 
-                <h2 className="side-header">
-                    בחר תאריכים
-                </h2>
-          
+            <h2 className="side-header">
+                בחר תאריכים
+            </h2>
+
             <Calendar
                 entries={filtered}
                 highlightedDate={highlightedDate ?? undefined}

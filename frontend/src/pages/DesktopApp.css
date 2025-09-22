@@ -29,15 +29,16 @@
 }
 
 .signature-image {
-    height: 55px;
-    padding-bottom: 5px;
-    width: auto;
+    width: 230px;
+    height: 60px;
+    padding: 5px 0;
+    background-color: #fcfcfc;
+    margin-bottom: 5px;
     object-fit: contain;
     overflow: visible;
-
 }
 
-.agreement {
+.subsignature {
     display: flex;
     align-items: center;
     font-size: 0.85rem;
@@ -49,6 +50,23 @@
 
 .agreement-checkbox {
     margin-left: 6px;
+}
+
+.settings-button {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-right: 10px;
+}
+.settings-cog {
+    width: 16px;
+    height: 16px;
+    margin-left: 3px;
+}
+.settings-text {
+    font-size: 0.85rem;
+    color: #4f6650;
+    /* subtle greenish-gray */
 }
 
 .header h1 {
