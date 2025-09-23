@@ -206,7 +206,8 @@ export function CalendarWithList({
             <Calendar
                 entries={filtered}
                 highlightedDate={highlightedDate ?? undefined}
-                handleDayToggle={handleDayClick} />
+                handleDayToggle={handleDayClick}
+                onHighlightedDateChange={(date) => setHighlightedDate(date || '')} />
         </div>
     }
 }

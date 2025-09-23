@@ -89,13 +89,21 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   z-index: 10;
   max-height: 240px;
-  overflow-y: auto;
+  overflow: hidden;
   direction: ltr;
+  flex-direction: column;
 }
 
 /* show panel when open */
 .contact-dropdown.open .contact-dropdown-menu {
-  display: block;
+  display: flex;
+}
+
+/* Add a scrollable container for the items */
+.contact-dropdown-items {
+  flex: 1;
+  overflow-y: auto;
+  direction: ltr;
 }
 
 /* each item */
@@ -120,14 +128,15 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  flex-shrink: 0;
 
   padding: 10px 12px;
-  /* border-top: 1px solid #eee; */
-  /* font-style: italic; */
+  border-top: 1px solid #eee;
   color: #000;
   background-color: #F8F8F8;
   cursor: pointer;
   direction: rtl;
+  border-radius: 0 0 8px 8px;
 }
 
 .contact-dropdown-footer:hover {

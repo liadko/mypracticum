@@ -70,27 +70,29 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
       </div>
 
       <div className="contact-dropdown-menu">
-        {contacts.map(c => (
-          <div
-            key={c.id}
-            className={
-              'contact-dropdown-item' +
-              (c.id === value ? ' active' : '')
-            }
-            onClick={e => {
-              e.stopPropagation()
-              onChange(c.id)
-              setOpen(false)
-            }}
-          >
-            {c.name}
-            {unapprovedCount(c) &&
-              <span className='unapproved-entries-flag smaller'>
-                {unapprovedFlagText(c)}
-              </span>}
-          </div>
+        <div className="contact-dropdown-items">
+          {contacts.map(c => (
+            <div
+              key={c.id}
+              className={
+                'contact-dropdown-item' +
+                (c.id === value ? ' active' : '')
+              }
+              onClick={e => {
+                e.stopPropagation()
+                onChange(c.id)
+                setOpen(false)
+              }}
+            >
+              {c.name}
+              {unapprovedCount(c) &&
+                <span className='unapproved-entries-flag smaller'>
+                  {unapprovedFlagText(c)}
+                </span>}
+            </div>
 
-        ))}
+          ))}
+        </div>
         {
           isContactType(contactType) &&
           <div

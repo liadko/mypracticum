@@ -37,6 +37,52 @@
   font-weight: 400;
   color: #222;
   letter-spacing: 0.5px;
-
   user-select: none;
+  position: relative;
+  overflow: hidden;
+  height: 1.5rem;
 }
+
+.calendar-header__title-content {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+.calendar-header__title-content.slide-out-left {
+  animation: slideOutLeft 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.calendar-header__title-content.slide-out-right {
+  animation: slideOutRight 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.calendar-header__title-content.slide-in-left {
+  animation: slideInFromLeft 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.calendar-header__title-content.slide-in-right {
+  animation: slideInFromRight 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideOutLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes slideInFromLeft {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInFromRight {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+

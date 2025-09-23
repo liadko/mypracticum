@@ -3,6 +3,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { addMonths, format, parseISO } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { useState, useEffect } from 'react';
 import './Calendar.css';
 
 
@@ -16,15 +17,53 @@ interface CalendarProps {
     entries: Entry[];
     handleDayToggle: (date: string) => void;
     highlightedDate: string | undefined;
+    onHighlightedDateChange: (date: string | undefined) => void;
 }
 
 
 // holds a list of the selected dates, an which date (if any) is highlighted.
 // upon toggle it calls the callback handleDayToggle
-export default function Calendar({ entries, handleDayToggle, highlightedDate }: CalendarProps) {
+export default function Calendar({ entries, handleDayToggle, highlightedDate, onHighlightedDateChange }: CalendarProps) {
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [titleAnimation, setTitleAnimation] = useState('');
+    const [displayedMonth, setDisplayedMonth] = useState(currentMonth);
 
     const daySize = 56
     const dayIconMargin = 8
+
+    // Update displayed month when highlighted date changes
+    useEffect(() => {
+        if (highlightedDate) {
+            const highlightedMonth = parseISO(highlightedDate);
+            if (!isSameMonth(highlightedMonth, currentMonth)) {
+                setCurrentMonth(highlightedMonth);
+                const direction = highlightedMonth > currentMonth ? 'next' : 'prev';
+                handleMonthChange(highlightedMonth, direction);
+            }
+        }
+    }, [highlightedDate]);
+
+    const handleMonthChange = (newMonth: Date, direction: 'next' | 'prev') => {
+
+        // Start the slide out animation for current month
+        setTitleAnimation(direction === 'next' ? 'slide-out-right' : 'slide-out-left');
+
+        // After slide out completes, update the month and slide in
+        setTimeout(() => {
+            setDisplayedMonth(newMonth);
+            setCurrentMonth(newMonth);
+            setTitleAnimation(direction === 'next' ? 'slide-in-right' : 'slide-in-left');
+
+            // Clear animation after slide in completes
+            setTimeout(() => {
+                setTitleAnimation('');
+            }, 150);
+        }, 150);
+    };
+
+    function isSameMonth(d1: Date, d2: Date) {
+        return format(d1, 'yyyy-MM') === format(d2, 'yyyy-MM');
+    }
 
 
     return (
@@ -40,23 +79,35 @@ export default function Calendar({ entries, handleDayToggle, highlightedDate }: 
                         <div className="calendar-header">
                             <svg
                                 className="calendar-header__button flipped"
-                                onClick={() => onMonthChange(addMonths(currentMonth, -1))}
+                                onClick={() => {
+                                    const newMonth = addMonths(currentMonth, -1);
+                                    onHighlightedDateChange(undefined);
+                                    handleMonthChange(newMonth, 'prev');
+                                    onMonthChange(newMonth);
+                                }}
                                 aria-label="Previous month"
-        
+
                             >
-                                <use href='/left-arrow.svg' fill='currentColor'/>
-                                </svg>                      
+                                <use href='/left-arrow.svg' fill='currentColor' />
+                            </svg>
                             <div className="calendar-header__title">
-                                {format(currentMonth, 'LLLL yyyy', { locale: he })}
+                                <div className={`calendar-header__title-content ${titleAnimation}`}>
+                                    {format(displayedMonth, 'LLLL yyyy', { locale: he })}
+                                </div>
                             </div>
                             <svg
                                 className="calendar-header__button"
-                                onClick={() => onMonthChange(addMonths(currentMonth, 1))}
+                                onClick={() => {
+                                    const newMonth = addMonths(currentMonth, 1);
+                                    onHighlightedDateChange(undefined);
+                                    handleMonthChange(newMonth, 'next');
+                                    onMonthChange(newMonth);
+                                }}
                                 aria-label="Next month"
-        
+
                             >
-                                <use href='/left-arrow.svg' fill='currentColor'/>
-                                </svg>      
+                                <use href='/left-arrow.svg' fill='currentColor' />
+                            </svg>
                         </div>
                     )
 

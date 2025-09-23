@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import './ProfileModal.css'
 import { useAuth } from '../../context/AuthContext'
 import { showError } from '../../utils/toast'
