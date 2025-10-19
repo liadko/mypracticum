@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"log"
+	"strings"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -240,4 +243,73 @@ func (r *PostgresUserRepo) UpdateUserNames(ctx context.Context, userID uuid.UUID
 		return "", "", err
 	}
 	return outFirst, outLast, nil
+}
+
+// UpsertStudent inserts a new user row and ensures role "student".
+// If a user with the same email exists, it returns ErrDuplicate and does nothing.
+func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStudent) (bool, bool, error) {
+	email := strings.ToLower(ns.Email)
+
+	log.Printf("[upsert] BEGIN email=%s first=%q last=%q semester=%q createdBy=%s", maskEmail(email), ns.FirstName, ns.LastName, ns.Semester, ns.CreatedBy)
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return false, false, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	var userID uuid.UUID
+	// Insert or do nothing on conflict. RETURNING only when inserted.
+	err = tx.QueryRowContext(ctx, `
+		INSERT INTO users (id, first_name, last_name, email, semester, created_by)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (email) DO NOTHING
+		RETURNING id
+	`, uuid.New(), ns.FirstName, ns.LastName, email, ns.Semester, ns.CreatedBy).Scan(&userID)
+
+	if err == sql.ErrNoRows {
+		// Row already exists → skip, signal duplicate to caller.
+		return false, false, repository.ErrDuplicate
+	}
+	if err != nil {
+		return false, false, err
+	}
+
+	// Only for newly created user: ensure role "student".
+	var roleID int
+	if err := tx.QueryRowContext(ctx, `SELECT id FROM roles WHERE name = 'student'`).Scan(&roleID); err != nil {
+		if err == sql.ErrNoRows {
+			return false, false, fmt.Errorf("role 'student' not found")
+		}
+		return false, false, err
+	}
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO user_roles (user_id, role_id)
+		VALUES ($1, $2)
+		ON CONFLICT (user_id, role_id) DO NOTHING
+	`, userID, roleID); err != nil {
+		return false, false, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return false, false, err
+	}
+	return true, false, nil // created=true, updated=false
+}
+
+// optional helper to avoid spraying full PII in logs
+func maskEmail(e string) string {
+	if e == "" {
+		return ""
+	}
+	at := strings.IndexByte(e, '@')
+	if at <= 1 {
+		return "***"
+	}
+	name := e[:at]
+	dom := e[at+1:]
+	if len(name) > 2 {
+		name = name[:2] + "****"
+	}
+	return name + "@" + dom
 }

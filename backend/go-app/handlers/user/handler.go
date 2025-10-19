@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
+	"mypracticum/backend/pkg/csv"
 	"mypracticum/backend/service"
 
 	"mypracticum/backend/domain"
@@ -178,4 +180,47 @@ func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 	// encode raw bytes back to Base64 and return
 	encoded := base64.StdEncoding.EncodeToString(saved)
 	ctx.JSON(http.StatusOK, SignatureUpdateResponse{Signature: encoded})
+}
+
+// POST /admin/students/import
+func (h *UserHandler) ImportStudents(ctx *gin.Context) {
+	userID := ctx.MustGet("userID").(uuid.UUID)
+	roles := ctx.MustGet("roles").([]string)
+	if !slices.Contains(roles, "admin") {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing file"})
+		return
+	}
+	f, err := fileHeader.Open()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "cannot open file"})
+		return
+	}
+	defer f.Close()
+
+	rows, parseErrs := csv.ParseStudentsCSV(f) // []domain.NewStudent + []error
+	if len(rows) == 0 && len(parseErrs) > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "csv parse error", "details": parseErrs})
+		return
+	}
+
+	dry := strings.EqualFold(ctx.Query("dryRun"), "true")
+
+	res, err := h.svc.BulkUpsertStudents(ctx.Request.Context(), rows, userID, dry)
+	if err != nil {
+		fmt.Printf("ImportStudents: bulk upsert failed: %v\n", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+
+	// include parse warnings, if any
+	if len(parseErrs) > 0 {
+		res.ParseWarnings = parseErrs
+	}
+	ctx.JSON(http.StatusOK, res)
 }

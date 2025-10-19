@@ -41,6 +41,12 @@ func (e DBError) Error() string {
 	return e.Err.Error()
 }
 
+type RowError struct {
+	Row   int    `json:"row"`
+	Email string `json:"email,omitempty"`
+	Err   string `json:"err"`
+}
+
 type TokenGenerationError struct{ Err error }
 
 func (e TokenGenerationError) Error() string {

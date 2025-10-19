@@ -45,4 +45,7 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 	prot.PATCH("/users/me/signature", userH.UpdateSignature)
 	prot.POST("/users", userH.AddUser)
 
+	// admin
+	prot.POST("/admin/students/import", userH.ImportStudents)
+
 }

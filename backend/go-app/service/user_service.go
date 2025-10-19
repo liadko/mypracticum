@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -94,7 +95,7 @@ func (s *UserService) CreateUserWithRole(
 	newUser domain.NewUserWithRole, // e.g. {Email, FirstName, LastName, Role, CreatedBy}
 ) (domain.User, error) {
 
-	// 1) build & validate in one shot (you'll implement this in domain)
+	// 1) domain build & validate in one shot
 	u, err := domain.NewUserFromWithRole(newUser)
 	if err != nil {
 		return domain.User{}, err
@@ -103,7 +104,6 @@ func (s *UserService) CreateUserWithRole(
 	// 2) persist
 	created, err := s.userRepo.CreateUser(ctx, u)
 	if err != nil {
-		// optional light mapping; drop if you want it as minimal as AddEntry
 		if errors.Is(err, repository.ErrDuplicate) {
 			return domain.User{}, AlreadyExistsError{Resource: "user", Field: "email", Value: u.Email}
 		}
@@ -190,4 +190,57 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID uuid.UUID, first
 		return "", "", DBError{Err: err}
 	}
 	return firstName, lastName, nil
+}
+
+type BulkStudentsResult struct {
+	Created       int        `json:"created"`
+	Updated       int        `json:"updated"`
+	Skipped       int        `json:"skipped"`
+	Errors        []RowError `json:"errors"`
+	ParseWarnings []RowError `json:"parseWarnings,omitempty"`
+}
+
+func (s *UserService) BulkUpsertStudents(
+	ctx context.Context,
+	rows []domain.NewStudent,
+	actor uuid.UUID,
+	dryRun bool,
+) (BulkStudentsResult, error) {
+
+	res := BulkStudentsResult{}
+	seen := make(map[string]struct{}) // dedupe emails within file
+
+	for i, r := range rows {
+		email := strings.ToLower(strings.TrimSpace(r.Email))
+		if _, ok := seen[email]; ok {
+			res.Skipped++
+			res.Errors = append(res.Errors, RowError{Row: i + 2, Email: email, Err: "duplicate in file"})
+			continue
+		}
+		seen[email] = struct{}{}
+
+		if dryRun {
+			// probe only
+			_, err := s.userRepo.FindByEmail(ctx, email)
+			if err != nil && !errors.Is(err, repository.ErrNotFound) {
+				res.Errors = append(res.Errors, RowError{Row: i + 2, Email: email, Err: err.Error()})
+			}
+			continue
+		}
+
+		r.CreatedBy = actor
+		created, updated, err := s.userRepo.UpsertStudent(ctx, r)
+		if err != nil {
+			res.Errors = append(res.Errors, RowError{Row: i + 2, Email: email, Err: err.Error()})
+			continue
+		}
+		if created {
+			res.Created++
+		} else if updated {
+			res.Updated++
+		} else {
+			res.Skipped++
+		}
+	}
+	return res, nil
 }

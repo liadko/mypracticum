@@ -14,6 +14,7 @@ type User struct {
 	FirstName string
 	LastName  string
 	Email     string
+	Semester  string
 	Signature []byte
 	CreatedAt time.Time
 	CreatedBy uuid.UUID
@@ -26,6 +27,14 @@ type NewUserWithRole struct {
 	LastName  string
 	Email     string
 	Role      string
+	CreatedBy uuid.UUID
+}
+
+type NewStudent struct {
+	FirstName string
+	LastName  string
+	Email     string
+	Semester  string
 	CreatedBy uuid.UUID
 }
 
