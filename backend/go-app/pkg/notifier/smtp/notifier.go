@@ -3,6 +3,7 @@ package smtp
 import (
 	"context"
 	"fmt"
+	"html"
 	"strings"
 
 	"mypracticum/backend/config"
@@ -39,18 +40,28 @@ func (s *SMTPNotifier) SendOTP(ctx context.Context, destination, firstName, code
 		firstName = "רב"
 	}
 
-	htmlBody := strings.ReplaceAll(s.otpHTML, "{{firstName}}", firstName)
+	// build preheader (e.g., include the code)
+	pre := fmt.Sprintf("קוד הכניסה שלך: %s", code)
+
+	// visually hidden preheader block
+	preHTML := fmt.Sprintf(`
+			<div style="display:none!important;visibility:hidden;mso-hide:all;
+						font-size:1px;line-height:1px;color:transparent;max-height:0;
+						max-width:0;opacity:0;overflow:hidden;">
+				%s
+			</div>`, html.EscapeString(pre))
+
+	// put it BEFORE the rest of the HTML
+	htmlBody := preHTML + s.otpHTML
+
+	htmlBody = strings.ReplaceAll(htmlBody, "{{firstName}}", firstName)
 	htmlBody = strings.ReplaceAll(htmlBody, "{{code}}", code)
 
 	// compose message
 	msg := mail.NewMsg()
 
-	if err := msg.From(s.cfg.From); err != nil {
-		return fmt.Errorf("set from: %w", err)
-	}
-	if err := msg.To(destination); err != nil {
-		return fmt.Errorf("set to: %w", err)
-	}
+	_ = msg.From(s.cfg.From)
+	_ = msg.To(destination)
 	msg.Subject("קוד כניסה לתמורות פרקטיקום")
 
 	// set HTML body

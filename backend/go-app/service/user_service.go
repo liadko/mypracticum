@@ -193,11 +193,11 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID uuid.UUID, first
 }
 
 type BulkStudentsResult struct {
-	Created       int        `json:"created"`
-	Updated       int        `json:"updated"`
-	Skipped       int        `json:"skipped"`
-	Errors        []RowError `json:"errors"`
-	ParseWarnings []RowError `json:"parseWarnings,omitempty"`
+	Created       int               `json:"created"`
+	Updated       int               `json:"updated"`
+	Skipped       int               `json:"skipped"`
+	Errors        []StudentRowError `json:"errors"`
+	ParseWarnings []StudentRowError `json:"parseWarnings,omitempty"`
 }
 
 func (s *UserService) BulkUpsertStudents(
@@ -214,7 +214,7 @@ func (s *UserService) BulkUpsertStudents(
 		email := strings.ToLower(strings.TrimSpace(r.Email))
 		if _, ok := seen[email]; ok {
 			res.Skipped++
-			res.Errors = append(res.Errors, RowError{Row: i + 2, Email: email, Err: "duplicate in file"})
+			res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: "duplicate in file"})
 			continue
 		}
 		seen[email] = struct{}{}
@@ -223,7 +223,7 @@ func (s *UserService) BulkUpsertStudents(
 			// probe only
 			_, err := s.userRepo.FindByEmail(ctx, email)
 			if err != nil && !errors.Is(err, repository.ErrNotFound) {
-				res.Errors = append(res.Errors, RowError{Row: i + 2, Email: email, Err: err.Error()})
+				res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: err.Error()})
 			}
 			continue
 		}
@@ -231,7 +231,7 @@ func (s *UserService) BulkUpsertStudents(
 		r.CreatedBy = actor
 		created, updated, err := s.userRepo.UpsertStudent(ctx, r)
 		if err != nil {
-			res.Errors = append(res.Errors, RowError{Row: i + 2, Email: email, Err: err.Error()})
+			res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: err.Error()})
 			continue
 		}
 		if created {

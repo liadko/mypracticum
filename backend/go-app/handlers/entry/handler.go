@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"slices"
+	"strings"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/service"
@@ -196,4 +197,45 @@ func hasRole(rs []string, want string) bool {
 		}
 	}
 	return false
+}
+
+// POST /admin/entries/approve
+func (h *EntryHandler) BulkApprove(ctx *gin.Context) {
+	adminID := ctx.MustGet("userID").(uuid.UUID)
+	roles := ctx.MustGet("roles").([]string)
+	if !hasRole(roles, "admin") {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "admin role required"})
+		return
+	}
+
+	var req BulkApproveRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil || len(req.IDs) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload: require ids[]"})
+		return
+	}
+	approved := true
+	if req.Approved != nil {
+		approved = *req.Approved
+	}
+
+	// parse UUIDs; fail fast on any invalid
+	ids := make([]uuid.UUID, 0, len(req.IDs))
+	for _, s := range req.IDs {
+		id, err := uuid.Parse(strings.TrimSpace(s))
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid entry id", "value": s})
+			return
+		}
+		ids = append(ids, id)
+	}
+
+	log.Printf("[ENTRY][BulkApprove] admin=%s approved=%t count=%d", adminID, approved, len(ids))
+
+	res, err := h.svc.BulkSetApproval(ctx.Request.Context(), adminID, ids, approved)
+	if err != nil {
+		log.Printf("[ENTRY][BulkApprove] svc error: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	ctx.JSON(http.StatusOK, res)
 }

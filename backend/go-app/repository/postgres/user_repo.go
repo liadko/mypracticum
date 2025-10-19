@@ -250,7 +250,7 @@ func (r *PostgresUserRepo) UpdateUserNames(ctx context.Context, userID uuid.UUID
 func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStudent) (bool, bool, error) {
 	email := strings.ToLower(ns.Email)
 
-	log.Printf("[upsert] BEGIN email=%s first=%q last=%q semester=%q createdBy=%s", maskEmail(email), ns.FirstName, ns.LastName, ns.Semester, ns.CreatedBy)
+	log.Printf("[upsert] BEGIN email=%s first=%q last=%q class=%q createdBy=%s", maskEmail(email), ns.FirstName, ns.LastName, ns.Class, ns.CreatedBy)
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -261,11 +261,11 @@ func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStude
 	var userID uuid.UUID
 	// Insert or do nothing on conflict. RETURNING only when inserted.
 	err = tx.QueryRowContext(ctx, `
-		INSERT INTO users (id, first_name, last_name, email, semester, created_by)
+		INSERT INTO users (id, first_name, last_name, email, class, created_by)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (email) DO NOTHING
 		RETURNING id
-	`, uuid.New(), ns.FirstName, ns.LastName, email, ns.Semester, ns.CreatedBy).Scan(&userID)
+	`, uuid.New(), ns.FirstName, ns.LastName, email, ns.Class, ns.CreatedBy).Scan(&userID)
 
 	if err == sql.ErrNoRows {
 		// Row already exists → skip, signal duplicate to caller.

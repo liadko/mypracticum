@@ -22,3 +22,8 @@ type EntryResponse struct {
 	DateStr   string    `json:"date"`
 	Approved  bool      `json:"approved"`
 }
+
+type BulkApproveRequest struct {
+	IDs      []string `json:"ids" binding:"required"`
+	Approved *bool    `json:"approved,omitempty"` // default true
+}

@@ -34,7 +34,7 @@ type NewStudent struct {
 	FirstName string
 	LastName  string
 	Email     string
-	Semester  string
+	Class     string
 	CreatedBy uuid.UUID
 }
 

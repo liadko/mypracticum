@@ -2,6 +2,8 @@ package service
 
 import (
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 // NotFoundError indicates that the requested resource wasn't found.
@@ -41,10 +43,15 @@ func (e DBError) Error() string {
 	return e.Err.Error()
 }
 
-type RowError struct {
+type StudentRowError struct {
 	Row   int    `json:"row"`
 	Email string `json:"email,omitempty"`
 	Err   string `json:"err"`
+}
+
+type EntryRowError struct {
+	ID  uuid.UUID `json:"id"`
+	Err string    `json:"err"`
 }
 
 type TokenGenerationError struct{ Err error }

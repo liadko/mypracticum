@@ -18,8 +18,6 @@ func RegisterPublic(r *gin.Engine, otpH *otpPkg.OTPHandler, otpLimiter gin.Handl
 	pub.POST("/otp/send", otpH.Send)
 	pub.POST("/otp/verify", otpH.Verify)
 
-	//pub.GET("/login/google", oauthH.LoginGoogle)
-	//pub.GET("/login/callback", oauthH.HandleCallback)
 }
 
 // RegisterProtected mounts everything behind auth
@@ -47,5 +45,6 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 
 	// admin
 	prot.POST("/admin/students/import", userH.ImportStudents)
+	prot.POST("/admin/entries/approve", entryH.BulkApprove)
 
 }

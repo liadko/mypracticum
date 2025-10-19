@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
 
@@ -114,4 +115,45 @@ func (s *EntryService) SetApproval(
 		return domain.Entry{}, DBError{Err: err}
 	}
 	return updated, nil
+}
+
+type BulkApprovalResult struct {
+	Total     int             `json:"total"`
+	Succeeded int             `json:"succeeded"`
+	NotFound  []string        `json:"notFound,omitempty"`
+	Errors    []EntryRowError `json:"errors,omitempty"`
+}
+
+func (s *EntryService) BulkSetApproval(
+	ctx context.Context,
+	actor uuid.UUID,
+	ids []uuid.UUID,
+	approved bool,
+) (BulkApprovalResult, error) {
+
+	res := BulkApprovalResult{Total: len(ids)}
+	log.Printf("[ENTRY][BulkSetApproval] actor=%s approved=%t total=%d", actor, approved, len(ids))
+
+	var approver *uuid.UUID
+	if approved {
+		approver = &actor
+	} // unapprove → nil
+
+	for i, id := range ids {
+		_, err := s.repo.UpdateApproval(ctx, id, approver)
+		if err != nil {
+			if errors.Is(err, repository.ErrNotFound) {
+				res.NotFound = append(res.NotFound, id.String())
+				continue
+			}
+			log.Printf("[ENTRY][BulkSetApproval] idx=%d id=%s err=%v", i, id, err)
+			res.Errors = append(res.Errors, EntryRowError{ID: id, Err: err.Error()})
+			continue
+		}
+		res.Succeeded++
+	}
+
+	log.Printf("[ENTRY][BulkSetApproval] done succeeded=%d notFound=%d errors=%d",
+		res.Succeeded, len(res.NotFound), len(res.Errors))
+	return res, nil
 }
