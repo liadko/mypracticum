@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: practicum-admin-portal
+
+
+practicum:
+  api:
+    base-url: "localhost:8080/api/v1"
+    jwt: ${PRACTICUM_API_JWT}
+
+
+server:
+  port: 8090
+
+

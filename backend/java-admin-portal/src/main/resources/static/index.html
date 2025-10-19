@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practicum Admin Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+    <h1>My Practicum - Admin Portal</h1>
+</header>
+
+<main>
+    <section class="admin-card">
+        <h2>Import Students (CSV)</h2>
+        <form id="import-form">
+            <div class="form-group">
+                <label for="file-input">Select CSV File:</label>
+                <input type="file" id="file-input" name="file" accept=".csv" required>
+            </div>
+            <div class="form-group">
+                <input type="checkbox" id="dry-run-check" name="dryRun">
+                <label for="dry-run-check">Dry Run (Check for errors without saving)</label>
+            </div>
+            <button type="submit" id="import-button">Upload and Process</button>
+        </form>
+    </section>
+
+    <section class="admin-card">
+        <h2>Approve Entries</h2>
+
+        <form id="approve-form">
+            <div class="form-group">
+                <label for="approve-ids-input">Entry IDs (one per line)</label>
+                <textarea id="approve-ids-input" placeholder="id1
+id2
+id3" required></textarea>
+            </div>
+            <button type="submit" id="approve-button">Approve Listed Entries</button>
+        </form>
+    </section>
+
+    <section class="admin-card">
+        <h2>Logs & Results</h2>
+        <pre id="log-output"></pre>
+    </section>
+</main>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
