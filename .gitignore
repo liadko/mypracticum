@@ -16,6 +16,8 @@ Thumbs.db
 /backend/go-app/*.exe
 /backend/go-app/*.log
 /backend/go-app/.env
+/backend/go-app/run server.bat
+
 
 # Neon / test data
 /backend/tmp/
@@ -31,3 +33,5 @@ Thumbs.db
 
 # General
 *.log
+
+
