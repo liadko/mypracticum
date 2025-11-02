@@ -4,7 +4,7 @@ import MentorPage from './MentorPage'
 import ClientPage from './ClientPage'
 import '../DesktopApp.css'
 import { pageTitle } from '../../i18n/he'
-import { contactTypes, type ContactType } from '../../types'
+import { contactTypes } from '../../types'
 import { useEntries } from '../../context/EntriesContext'
 import { useContacts } from '../../context/ContactsContext'
 import TooltipContent from '../../components/Tooltip/TooltipContent'
@@ -26,6 +26,17 @@ export default function StudentLayout() {
         }
         return m;
     }, [entries]);
+
+    // the same thing for manual entries
+    const manualEntryCount = useMemo(() => {
+        const m: Record<string, number> = { 'client': 0, 'mentor': 0, 'therapist': 0 };
+        for (const me of manualEntries) {
+            const type = me.type
+            if (!type) console.log(`entry ${me} has a contact with no type! or doesn't have a contact`)
+            else m[type] = m[type] + me.hours;
+        }
+        return m;
+    }, [manualEntries]);
 
 
     return (
@@ -49,7 +60,7 @@ export default function StudentLayout() {
                             {pageTitle[page]}
                         </span>
                         <span className="nav-button--subtitle">
-                            {entryCounts[page]}/{countGoals[page]}
+                            {entryCounts[page] + manualEntryCount[page]}/{countGoals[page]}
                         </span>
                     </button>
                 ))}
