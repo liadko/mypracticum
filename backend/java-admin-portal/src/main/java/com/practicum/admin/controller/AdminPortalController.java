@@ -1,12 +1,14 @@
 package com.practicum.admin.controller;
 
 import com.practicum.admin.client.PracticumApiClient;
-import com.practicum.admin.dto.UserResponse;
+import com.practicum.admin.dto.student.StudentResponse;
 import com.practicum.admin.dto.approve.BulkApproveRequest;
 import com.practicum.admin.dto.approve.BulkApproveResult;
-import com.practicum.admin.dto.StudentImportResponse;
+import com.practicum.admin.dto.student.StudentImportResponse;
 import com.practicum.admin.dto.manual_entry.BulkAddManualEntriesRequest;
 import com.practicum.admin.dto.manual_entry.BulkAddManualEntriesResult;
+import com.practicum.admin.dto.manual_entry.DeleteManualEntriesRequest;
+import com.practicum.admin.dto.manual_entry.DeleteManualEntriesResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,7 +47,7 @@ public class AdminPortalController {
      * (Corresponds to loadInitialData() in admin.js)
      */
     @GetMapping("/students")
-    public List<UserResponse> getStudents() {
+    public List<StudentResponse> getStudents() {
         log.info("Fetching all students for admin portal");
         return practicumApiClient.getStudents();
     }
@@ -60,6 +62,18 @@ public class AdminPortalController {
         log.info("Handling bulk manual entry add. Count: {}", req.entries().size());
         // The Feign client calls the Go API
         return practicumApiClient.bulkAddManualEntries(req);
+    }
+
+    /**
+     * Endpoint for the admin portal frontend to delete manual entries by ID or Batch ID.
+     * (Corresponds to handleDeleteManualSubmit() in admin.js)
+     */
+    @PostMapping("/entries/manual/delete")
+    public DeleteManualEntriesResult handleDeleteManualEntries(
+            @RequestBody DeleteManualEntriesRequest req) {
+        log.info("Handling delete request for {} manual entry/batch IDs.", req.ids().size());
+        // The Feign client calls the Go API
+        return practicumApiClient.deleteManualEntries(req);
     }
 
 }

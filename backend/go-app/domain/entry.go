@@ -23,20 +23,23 @@ type NewEntry struct {
 
 // ManualEntry represents an administrative adjustment to a user's hours.
 type ManualEntry struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID // The user this entry belongs to
-	Hours     int
-	Cause     string // The administrative reason for the entry
-	Type      string // "client", "mentor", or "therapist"
+	ID     uuid.UUID
+	UserID uuid.UUID // The user this entry belongs to
+	Hours  int
+	Cause  string // The administrative reason for the entry
+	Type   string // "client", "mentor", or "therapist"
+
+	BatchID   *uuid.UUID // optional batch ID for grouping
 	CreatedAt time.Time
 }
 
 // NewManualEntry is the input struct for creating a new manual entry.
 type NewManualEntry struct {
-	UserID uuid.UUID
-	Hours  int
-	Cause  string
-	Type   string
+	UserID  uuid.UUID
+	Hours   int
+	Cause   string
+	Type    string
+	BatchID *uuid.UUID
 }
 
 // Validate checks all business rules and returns a ValidationError if anything is wrong.
@@ -102,6 +105,13 @@ type FailedManualEntry struct {
 // BulkAddManualEntriesResult summarizes the outcome of the bulk operation.
 type BulkAddManualEntriesResult struct {
 	CreatedCount int                 `json:"createdCount"`
-	FailedCount  int                 `jsonL:"failedCount"`
+	FailedCount  int                 `json:"failedCount"`
 	Failures     []FailedManualEntry `json:"failures"`
+	BatchID      *uuid.UUID          `json:"batchId,omitempty"`
+}
+
+// This matches the DTO from entry/dto.go
+type DeleteManualEntriesResult struct {
+	EntriesDeleted int64 `json:"entriesDeleted"`
+	BatchesDeleted int64 `json:"batchesDeleted"`
 }

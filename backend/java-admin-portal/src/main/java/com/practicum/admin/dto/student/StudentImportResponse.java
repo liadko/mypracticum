@@ -1,4 +1,4 @@
-package com.practicum.admin.dto;
+package com.practicum.admin.dto.student;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -9,10 +9,9 @@ import java.util.List;
  */
 public record StudentImportResponse(
 		@JsonProperty("created") int created,
-		@JsonProperty("updated") int updated,
+		@JsonProperty("failed") int failed,
 		@JsonProperty("skipped") int skipped,
 
-		// Note: List<RowError> is the Java equivalent of Go's []RowError
 		@JsonProperty("errors") List<StudentRowError> errors,
 
 		@JsonProperty("parseWarnings") List<StudentRowError> parseWarnings

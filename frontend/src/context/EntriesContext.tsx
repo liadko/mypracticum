@@ -42,13 +42,13 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
                 // Fetch both sets of data in parallel
                 const [fetchedEntries, fetchedManualEntries] = await Promise.all([
                     api.fetchAllEntries(),
-                    api.fetchManualEntries(), // <-- ADDED
+                    api.fetchManualEntries(),
                 ]);
 
                 // Only update state if the component is still mounted
                 if (isMounted) {
                     setEntries(fetchedEntries);
-                    setManualEntries(fetchedManualEntries); // <-- ADDED
+                    setManualEntries(fetchedManualEntries);
                 }
             } catch (err) {
                 if (isMounted) {

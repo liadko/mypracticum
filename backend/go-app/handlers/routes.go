@@ -26,10 +26,11 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 	prot.Use(mws...)
 
 	// entries
-	prot.GET("/entries", entryH.List)
+	prot.GET("/entries", entryH.ListEntries)
 	prot.POST("/entries", entryH.Create)
 	prot.DELETE("/entries/:entryId", entryH.Delete)
 	prot.PATCH("/entries/:entryId/approval", entryH.SetApproval)
+	prot.GET("/entries/manual", entryH.ListManualEntries)
 
 	// contacts
 	prot.GET("/contacts", contactH.List)
@@ -48,5 +49,6 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 	prot.POST("/admin/students/import", userH.ImportStudents)
 	prot.POST("/admin/entries/approve", entryH.BulkApprove)
 	prot.POST("/admin/entries/manual", entryH.BulkAddManualEntries)
+	prot.POST("/admin/entries/manual/delete", entryH.DeleteManualEntries)
 
 }

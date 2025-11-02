@@ -28,8 +28,6 @@ interface AuthContextType {
 
 
   updateSignature: (sig: string) => Promise<void>
-  getPastTherapyHours: () => number
-
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -195,9 +193,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser({ ...user, signature })  // now holds base64 JPEG
   }
 
-  function getPastTherapyHours() {
-    return user ? user.pastTherapyHours : 0
-  }
 
 
   return (
@@ -214,7 +209,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         submittedEmail,
 
         updateSignature,
-        getPastTherapyHours,
       }}
     >
       {children}

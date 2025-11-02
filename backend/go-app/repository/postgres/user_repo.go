@@ -247,14 +247,14 @@ func (r *PostgresUserRepo) UpdateUserNames(ctx context.Context, userID uuid.UUID
 
 // UpsertStudent inserts a new user row and ensures role "student".
 // If a user with the same email exists, it returns ErrDuplicate and does nothing.
-func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStudent) (bool, bool, error) {
+func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStudent) error {
 	email := strings.ToLower(ns.Email)
 
 	log.Printf("[upsert] BEGIN email=%s first=%q last=%q class=%q createdBy=%s", maskEmail(email), ns.FirstName, ns.LastName, ns.Class, ns.CreatedBy)
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return false, false, err
+		return err
 	}
 	defer func() { _ = tx.Rollback() }()
 
@@ -269,32 +269,32 @@ func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStude
 
 	if err == sql.ErrNoRows {
 		// Row already exists → skip, signal duplicate to caller.
-		return false, false, repository.ErrDuplicate
+		return repository.ErrDuplicate
 	}
 	if err != nil {
-		return false, false, err
+		return err
 	}
 
 	// Only for newly created user: ensure role "student".
 	var roleID int
 	if err := tx.QueryRowContext(ctx, `SELECT id FROM roles WHERE name = 'student'`).Scan(&roleID); err != nil {
 		if err == sql.ErrNoRows {
-			return false, false, fmt.Errorf("role 'student' not found")
+			return fmt.Errorf("role 'student' not found")
 		}
-		return false, false, err
+		return err
 	}
 	if _, err := tx.ExecContext(ctx, `
 		INSERT INTO user_roles (user_id, role_id)
 		VALUES ($1, $2)
 		ON CONFLICT (user_id, role_id) DO NOTHING
 	`, userID, roleID); err != nil {
-		return false, false, err
+		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		return false, false, err
+		return err
 	}
-	return true, false, nil // created=true, updated=false
+	return nil // created=true, updated=false
 }
 
 // optional helper to avoid spraying full PII in logs

@@ -23,5 +23,5 @@ type UserRepo interface {
 
 	UpdateUserNames(ctx context.Context, userID uuid.UUID, firstName, lastName string) (string, string, error)
 
-	UpsertStudent(ctx context.Context, ns domain.NewStudent) (bool, bool, error)
+	UpsertStudent(ctx context.Context, ns domain.NewStudent) error
 }

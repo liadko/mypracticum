@@ -1,4 +1,4 @@
-package com.practicum.admin.dto;
+package com.practicum.admin.dto.student;
 
 /**
  * Represents a single student in the list for the admin portal.
@@ -9,7 +9,7 @@ package com.practicum.admin.dto;
  * if the Go API sends extra fields like 'signature' that you
  * don't need in this view).
  */
-public record UserResponse(
+public record StudentResponse(
         String id,
         String firstName,
         String lastName,

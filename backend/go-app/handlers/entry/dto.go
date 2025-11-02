@@ -1,6 +1,8 @@
 package entry
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -25,11 +27,6 @@ type EntryResponse struct {
 	Approved  bool      `json:"approved"`
 }
 
-type BulkApproveRequest struct {
-	IDs      []string `json:"ids" binding:"required"`
-	Approved *bool    `json:"approved,omitempty"` // default true
-}
-
 type ManualEntryRequest struct {
 	UserID string `json:"userId"`
 	Hours  int    `json:"hours"`
@@ -40,4 +37,20 @@ type ManualEntryRequest struct {
 // BulkAddManualEntriesRequest is the payload for the bulk manual entry endpoint.
 type BulkAddManualEntriesRequest struct {
 	Entries []ManualEntryRequest `json:"entries"`
+}
+
+// ManualEntryResponse is the DTO for a manual entry.
+type ManualEntryResponse struct {
+	ID        uuid.UUID `json:"id"`
+	UserID    uuid.UUID `json:"userId"`
+	Hours     int       `json:"hours"`
+	Cause     string    `json:"cause"`
+	Type      string    `json:"type"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// BulkUUIDRequest is a generic request for any bulk operation
+// that takes a list of IDs.
+type BulkUUIDRequest struct {
+	IDs []string `json:"ids"`
 }

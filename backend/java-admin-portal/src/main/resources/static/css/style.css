@@ -38,11 +38,20 @@ main {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+.dryrun-form-group {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+
+
+
 .form-group {
     margin-bottom: 15px;
 }
 
-.form-group label {
+.form-group label,
+.dryrun-form-group label {
     display: block;
     margin-bottom: 5px;
     font-weight: 600;
@@ -91,7 +100,7 @@ button:disabled {
     word-wrap: break-word;
 }
 
-#approve-ids-input {
+#approve-ids-input, #delete-manual-ids-input {
     width: 100%;
     min-height: 140px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
@@ -119,7 +128,7 @@ button:disabled {
 
 /* Container for the scrollable student list */
 .student-list-container {
-    height: 400px;
+    height: 300px;
     overflow-y: auto;
     border: 1px solid #eee;
     border-radius: 6px;
@@ -182,4 +191,112 @@ button:disabled {
     background-color: #f4f4f4;
     color: #aaa;
     border-color: #eee;
+}
+
+
+
+/* --- Tab Navigation Styles --- */
+
+.tab-nav {
+    display: flex;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 5px;
+}
+
+.tab-button {
+    flex-grow: 1; /* Make all buttons share space equally */
+    padding: 12px 15px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #555;
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tab-button:hover {
+    background-color: #f4f7f6; /* Light hover */
+}
+
+.tab-button.active {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+/* --- Page Visibility --- */
+
+/* Hide all pages by default */
+.admin-page {
+    display: none;
+}
+
+/* Show only the active page */
+.admin-page.active {
+    display: block;
+}
+
+hr.section-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 30px 0; /* Creates space between the forms */
+}
+
+p.description {
+    font-size: 0.95em;
+    color: #555;
+    margin-top: -10px; /* Tucks it under the h2 */
+    margin-bottom: 15px;
+}
+
+.button-danger {
+    background-color: #dc3545; /* A standard 'danger' red */
+}
+
+.button-danger:hover {
+    background-color: #c82333; /* Darker red on hover */
+}
+
+
+/* --- Template Explainer Box --- */
+
+.template-explainer {
+    direction: rtl;
+    text-align: right;
+    background-color: #f4f7f6; /* A slightly different bg */
+    border: 1px dashed #007bff; /* Use your theme color */
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+}
+
+.template-explainer p {
+    margin-top: 0;
+}
+
+.template-explainer a {
+    font-weight: 600;
+    color: #0056b3;
+    display: block;
+    margin-top: 5px;
+}
+
+.template-explainer ol {
+    margin-bottom: 0;
+    padding-right: 20px; /* Correct padding for RTL list */
+    font-size: 0.95em;
+    color: #333;
+}
+
+.template-explainer li {
+    margin-bottom: 8px;
+}
+
+.template-explainer li:last-child {
+    margin-bottom: 0;
 }

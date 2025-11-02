@@ -21,7 +21,7 @@ export async function fetchAllEntries(
 export async function fetchManualEntries(): Promise<ManualEntry[]> {
     // I'm assuming the Go endpoint is /api/v1/manual-entries
     // and that it's protected by the same auth as /entries
-    const res = await apiFetch(`/api/v1/manual-entries`);
+    const res = await apiFetch(`/api/v1/entries/manual`);
 
     if (!res.ok) {
         throw new Error(`Failed to load manual entries: ${res.status} ${res.statusText}`);

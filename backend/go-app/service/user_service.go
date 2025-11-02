@@ -194,7 +194,7 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID uuid.UUID, first
 
 type BulkStudentsResult struct {
 	Created       int               `json:"created"`
-	Updated       int               `json:"updated"`
+	Failed        int               `json:"failed"`
 	Skipped       int               `json:"skipped"`
 	Errors        []StudentRowError `json:"errors"`
 	ParseWarnings []StudentRowError `json:"parseWarnings,omitempty"`
@@ -222,25 +222,27 @@ func (s *UserService) BulkUpsertStudents(
 		if dryRun {
 			// probe only
 			_, err := s.userRepo.FindByEmail(ctx, email)
+			if err == nil {
+				res.Failed++
+				res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: "user already exists"})
+				continue
+			}
 			if err != nil && !errors.Is(err, repository.ErrNotFound) {
+				res.Failed++
 				res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: err.Error()})
 			}
 			continue
 		}
 
 		r.CreatedBy = actor
-		created, updated, err := s.userRepo.UpsertStudent(ctx, r)
+		err := s.userRepo.UpsertStudent(ctx, r)
 		if err != nil {
+			res.Failed++
 			res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: err.Error()})
-			continue
-		}
-		if created {
-			res.Created++
-		} else if updated {
-			res.Updated++
 		} else {
-			res.Skipped++
+			res.Created++
 		}
+
 	}
 	return res, nil
 }

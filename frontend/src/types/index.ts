@@ -101,7 +101,6 @@ export interface User {
 
     roles: UserRole[]
 
-    pastTherapyHours: number
 }
 
 export interface FullName {

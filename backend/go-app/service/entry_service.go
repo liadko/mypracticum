@@ -211,18 +211,23 @@ func (s *EntryService) BulkAddManualEntries(
 	entries []domain.NewManualEntry,
 ) (domain.BulkAddManualEntriesResult, error) {
 
+	batchID := uuid.New()
+
 	result := domain.BulkAddManualEntriesResult{
 		Failures: []domain.FailedManualEntry{}, // Ensure slice is not nil
+		BatchID:  &batchID,
 	}
 
 	for _, entry := range entries {
-		// We re-use the singular AddManualEntry method to ensure all
-		// validation and repository logic is applied consistently.
+
+		entry.BatchID = &batchID // assign this batch's ID to each entry
 		_, err := s.AddManualEntry(ctx, entry)
 
 		if err != nil {
 			// This entry failed, record it and continue
 			result.FailedCount++
+			// Log at debug level
+			log.Printf("[SERVICE][BulkAddManual] admin=%s entry=%+v err=%v", adminID, entry, err)
 			result.Failures = append(result.Failures, domain.FailedManualEntry{
 				Input: entry,
 				Error: err.Error(),
@@ -234,14 +239,53 @@ func (s *EntryService) BulkAddManualEntries(
 	}
 
 	log.Printf(
-		"[SERVICE][BulkAddManual] admin=%s processed %d entries: %d created, %d failed",
+		"[SERVICE][BulkAddManual] admin=%s processed %d entries: %d created, %d failed. batchID=%s",
 		adminID,
 		len(entries),
 		result.CreatedCount,
 		result.FailedCount,
+		batchID.String(),
 	)
 
 	// A partial success is still a "success" from the handler's
 	// perspective. We return the result and no error.
 	return result, nil
+}
+
+// ListManualEntries retrieves all manual entries for a specific user.
+//
+// Returns:
+//   - A slice of domain.ManualEntry (empty if none)
+//   - A DBError for any underlying database failure.
+func (s *EntryService) ListManualEntries(
+	ctx context.Context,
+	userID uuid.UUID,
+) ([]domain.ManualEntry, error) {
+
+	entries, err := s.repo.ListManualEntriesByUserID(ctx, userID)
+	if err != nil {
+		// No need to check for ErrNotFound, an empty slice is a valid response
+		return nil, DBError{Err: err}
+	}
+
+	return entries, nil
+}
+
+// DeleteManualEntriesByIDs passes a list of UUIDs to the repository
+// to be deleted. The repository will delete all entries where
+// EITHER the 'id' OR the 'batch_id' matches any UUID in the list.
+func (s *EntryService) DeleteManualEntriesByIDs(
+	ctx context.Context,
+	ids []uuid.UUID,
+) (domain.DeleteManualEntriesResult, error) {
+
+	entriesDeleted, batchesDeleted, err := s.repo.DeleteManualEntriesByIDs(ctx, ids)
+	if err != nil {
+		return domain.DeleteManualEntriesResult{}, DBError{Err: err}
+	}
+
+	return domain.DeleteManualEntriesResult{
+		EntriesDeleted: entriesDeleted,
+		BatchesDeleted: batchesDeleted,
+	}, nil
 }

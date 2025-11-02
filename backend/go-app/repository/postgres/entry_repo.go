@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/lib/pq"
 )
 
 // PostgresEntryRepo “implements” EntryRepository
@@ -246,9 +247,9 @@ func (r *PostgresEntryRepo) CreateManualEntry(
 ) (domain.ManualEntry, error) {
 
 	const q = `
-    INSERT INTO manual_entries (user_id, hours, cause, type)
-    VALUES ($1, $2, $3, $4)
-    RETURNING id, user_id, hours, cause, type, created_at
+    INSERT INTO manual_entries (user_id, hours, cause, type, batch_id)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id, user_id, hours, cause, type, batch_id, created_at
     `
 
 	var createdEntry domain.ManualEntry
@@ -259,12 +260,14 @@ func (r *PostgresEntryRepo) CreateManualEntry(
 		entry.Hours,
 		entry.Cause,
 		entry.Type,
+		entry.BatchID,
 	).Scan(
 		&createdEntry.ID,
 		&createdEntry.UserID,
 		&createdEntry.Hours,
 		&createdEntry.Cause,
 		&createdEntry.Type,
+		&createdEntry.BatchID,
 		&createdEntry.CreatedAt,
 	)
 
@@ -278,4 +281,100 @@ func (r *PostgresEntryRepo) CreateManualEntry(
 	}
 
 	return createdEntry, nil
+}
+
+// ListManualEntriesByUserID fetches all manual entries for a specific user,
+// ordered by most recent first.
+func (r *PostgresEntryRepo) ListManualEntriesByUserID(
+	ctx context.Context,
+	userID uuid.UUID,
+) ([]domain.ManualEntry, error) {
+
+	const q = `
+    SELECT id, user_id, hours, cause, type, created_at
+    FROM manual_entries
+    WHERE user_id = $1
+    ORDER BY created_at DESC
+    `
+
+	rows, err := r.db.QueryContext(ctx, q, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var entries []domain.ManualEntry
+	for rows.Next() {
+		var e domain.ManualEntry
+		if err := rows.Scan(
+			&e.ID,
+			&e.UserID,
+			&e.Hours,
+			&e.Cause,
+			&e.Type,
+			&e.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		entries = append(entries, e)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Return the (possibly empty) slice
+	return entries, nil
+}
+
+// DeleteManualEntriesByIDs deletes all manual entries where the 'id'
+// or the 'batch_id' matches any of the provided UUIDs.
+// It runs in a transaction and returns the counts for each deletion type.
+func (r *PostgresEntryRepo) DeleteManualEntriesByIDs(
+	ctx context.Context,
+	ids []uuid.UUID,
+) (int64, int64, error) {
+
+	// Start a new transaction
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	// Defer a rollback in case anything goes wrong
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback() // Rollback on panic
+			panic(p)
+		} else if err != nil {
+			_ = tx.Rollback() // Rollback on error
+		}
+	}()
+
+	var entriesDeleted, batchesDeleted int64
+
+	// 1. Delete by BATCH_ID
+	// We delete by batch_id first.
+	const deleteBatchQuery = `DELETE FROM manual_entries WHERE batch_id = ANY($1)`
+	res, err := tx.ExecContext(ctx, deleteBatchQuery, pq.Array(ids))
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to delete by batch_id: %w", err)
+	}
+	batchesDeleted, _ = res.RowsAffected()
+
+	// 2. Delete by ID
+	// This will catch any individual entry IDs. If an ID was *also* a
+	// batch_id, its rows were already deleted, so this won't affect them.
+	const deleteEntryQuery = `DELETE FROM manual_entries WHERE id = ANY($1)`
+	res, err = tx.ExecContext(ctx, deleteEntryQuery, pq.Array(ids))
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to delete by entry id: %w", err)
+	}
+	entriesDeleted, _ = res.RowsAffected()
+
+	// 3. Commit the transaction
+	if err = tx.Commit(); err != nil {
+		return 0, 0, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return entriesDeleted, batchesDeleted, nil
 }

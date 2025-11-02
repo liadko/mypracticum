@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const studentListContainer = document.getElementById('student-list-container');
     const createGroupButton = document.getElementById('create-group-button');
 
+    const deleteManualForm = document.getElementById('delete-manual-form');
+    const deleteManualIdsInput = document.getElementById('delete-manual-ids-input');
+    const deleteManualButton = document.getElementById('delete-manual-button');
+
     let allStudents = [];
 
     // --- Attach Event Listener for Student Import ---
@@ -35,9 +39,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Handle live searching in the student list
         studentSearchInput.addEventListener('input', handleStudentSearch);
+
+        studentSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+    }
+    if (deleteManualForm) {
+        deleteManualForm.addEventListener('submit', handleDeleteManualSubmit);
+    }
+
+    // --- Tab Switching Logic ---
+    const tabContainer = document.querySelector('.tab-nav');
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const adminPages = document.querySelectorAll('.admin-page');
+
+    if (tabContainer) {
+        tabContainer.addEventListener('click', (e) => {
+            const clickedButton = e.target.closest('.tab-button');
+            if (!clickedButton) return; // Exit if they clicked the nav background
+
+            // Get the ID of the page to show
+            const targetId = clickedButton.dataset.target;
+            const targetPage = document.getElementById(targetId);
+
+            if (targetPage) {
+                // 1. Remove 'active' from all buttons and pages
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                adminPages.forEach(page => page.classList.remove('active'));
+
+                // 2. Add 'active' to the clicked button and target page
+                clickedButton.classList.add('active');
+                targetPage.classList.add('active');
+            }
+        });
     }
 
     loadInitialData();
+
+
     /**
      * Handles the submission of the student import form.
      */
@@ -51,6 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const isDryRun = dryRunCheck.checked;
+        if (!isDryRun) {
+            const confirmMsg = "This is a LIVE import and will create students in the database.\n\nAre you sure you want to continue? Did you run a Test Run first?";
+
+            if (!window.confirm(confirmMsg)) {
+                logMessage("Import canceled by user.");
+                return;
+            }
+        }
+
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -77,6 +128,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     logMessage('SUCCESS: Import complete.');
                     logMessage(JSON.stringify(result, null, 2));
+
+                    // We check for 'failures' (from the bulk upsert) and 'parseWarnings' (from the CSV parser)
+                    const errors = result.errors || [];
+                    const warnings = result.parseWarnings || [];
+
+                    if (isDryRun && result.failures == 0 && errors.length === 0 && warnings.length === 0) {
+                        // This is the success alert you requested
+                        window.alert("בדיקת היבוא הסתיימה בהצלחה!\n\nלא נמצאו שגיאות. אפשר להוריד את הסימון 'Test Run' ולהעלות את הקובץ בבטחה.");
+                    }
+                    else
+                    {
+                        window.alert("נמצאו בעיות במהלך בדיקת היבוא.\n\nבדוק את יומן ההודעות לפרטים נוספים.");
+
+                    }
                 } else {
                     // Handle backend errors (like 400, 500)
                     logMessage(`ERROR (${response.status}): ${result.error}`);
@@ -351,6 +416,15 @@ document.addEventListener('DOMContentLoaded', () => {
             entries: entriesPayload
         };
 
+        const confirmMsg = `Are you sure you want to add ${entriesPayload.length} manual entries?
+        Cause: ${titleAsCause}
+        Type: ${type}`;
+
+        if (!window.confirm(confirmMsg)) {
+            logMessage("Canceled by user.");
+            return; // Stop the submission
+        }
+
         // This is the new endpoint we created in the service
         const url = '/admin-portal/entries/manual';
         createGroupButton.disabled = true;
@@ -399,6 +473,80 @@ document.addEventListener('DOMContentLoaded', () => {
             createGroupButton.textContent = 'Add Manual Hours for Group';
         }
     }
+
+    /**
+     * Handles the submission of the delete manual entries form.
+     */
+    async function handleDeleteManualSubmit(event) {
+        event.preventDefault();
+
+        const raw = (deleteManualIdsInput.value || '').trim();
+        if (!raw) {
+            logMessage('Error: No IDs provided for deletion.');
+            return;
+        }
+
+        // Parse IDs (same logic as approve)
+        const ids = Array.from(new Set(raw.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean)));
+
+        // Quick UUID sanity check (good to keep)
+        const invalid = ids.filter(s => !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(s));
+        if (invalid.length) {
+            logMessage(`Error: Invalid UUIDs (${invalid.length}): ${invalid.slice(0,5).join(', ')}${invalid.length>5?' …':''}`);
+            return;
+        }
+
+        // --- CRITICAL: Add confirmation for destructive action ---
+        const confirmMsg = `Are you sure you want to permanently delete ${ids.length} entries/batches?
+
+This action cannot be undone.`;
+        if (!window.confirm(confirmMsg)) {
+            logMessage("Deletion canceled by user.");
+            return;
+        }
+        // --- End of confirmation ---
+
+        const url = '/admin-portal/entries/manual/delete';
+        deleteManualButton.disabled = true;
+        deleteManualButton.textContent = 'Deleting…';
+        logMessage(`Sending ${ids.length} IDs for deletion…`);
+
+        try {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids }) // Send the same { "ids": [...] } payload
+            });
+
+            const contentType = resp.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await resp.json();
+                if (resp.ok) {
+                    logMessage('SUCCESS: Deletion complete.');
+                    logMessage(JSON.stringify(data, null, 2));
+                    deleteManualIdsInput.value = ''; // Clear input on success
+                } else {
+                    logMessage(`ERROR (${resp.status}): ${data.error || 'request failed'}`);
+                    if (data.details) logMessage(`Details: ${JSON.stringify(data.details, null, 2)}`);
+                }
+            } else {
+                const text = await resp.text();
+                logMessage(`ERROR (${resp.status}): Unexpected response from server.`);
+                logMessage(text);
+            }
+        } catch (e) {
+            logMessage('FATAL ERROR: Could not reach server.');
+            logMessage(e.message);
+        } finally {
+            deleteManualButton.disabled = false;
+            deleteManualButton.textContent = 'Delete Listed Entries';
+        }
+    }
+
+
+
+
+
     /**
      * A helper function to print messages to the log box on the page.
      * @param {string} message - The message to log.
@@ -407,5 +555,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const timestamp = new Date().toLocaleTimeString();
         logOutput.textContent = `[${timestamp}] ${message}\n` + logOutput.textContent;
     }
+
+
+
 
 });

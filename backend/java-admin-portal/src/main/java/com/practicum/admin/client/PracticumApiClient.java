@@ -2,10 +2,12 @@ package com.practicum.admin.client;
 
 import com.practicum.admin.dto.approve.BulkApproveRequest;
 import com.practicum.admin.dto.approve.BulkApproveResult;
-import com.practicum.admin.dto.StudentImportResponse;
-import com.practicum.admin.dto.UserResponse;
+import com.practicum.admin.dto.student.StudentImportResponse;
+import com.practicum.admin.dto.student.StudentResponse;
 import com.practicum.admin.dto.manual_entry.BulkAddManualEntriesRequest;
 import com.practicum.admin.dto.manual_entry.BulkAddManualEntriesResult;
+import com.practicum.admin.dto.manual_entry.DeleteManualEntriesRequest;
+import com.practicum.admin.dto.manual_entry.DeleteManualEntriesResult;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +33,7 @@ public interface PracticumApiClient {
      * Calls the Go API's GET /admin/students endpoint.
      */
     @GetMapping(value = "/admin/students", produces = MediaType.APPLICATION_JSON_VALUE)
-    List<UserResponse> getStudents();
+    List<StudentResponse> getStudents();
 
     /**
      * Calls the Go API's POST /admin/entries/manual endpoint.
@@ -43,4 +45,15 @@ public interface PracticumApiClient {
             @RequestBody BulkAddManualEntriesRequest request
     );
 
+
+    /**
+     * Calls the Go API's POST /admin/entries/manual/delete endpoint.
+     * The Go backend will interpret the IDs as either entry_ids or batch_ids.
+     */
+    @PostMapping(value = "/admin/entries/manual/delete",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    DeleteManualEntriesResult deleteManualEntries(
+            @RequestBody DeleteManualEntriesRequest request
+    );
 }

@@ -1,4 +1,4 @@
-package com.practicum.admin.dto;
+package com.practicum.admin.dto.student;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

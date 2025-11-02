@@ -100,8 +100,8 @@ func (h *EntryHandler) Delete(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
-// List handles GET /entries
-func (h *EntryHandler) List(ctx *gin.Context) {
+// ListEntries handles GET /entries
+func (h *EntryHandler) ListEntries(ctx *gin.Context) {
 	// 1) get userID and Roles from the context
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 	rs, _ := ctx.Get("roles")
@@ -208,15 +208,13 @@ func (h *EntryHandler) BulkApprove(ctx *gin.Context) {
 		return
 	}
 
-	var req BulkApproveRequest
+	var req BulkUUIDRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil || len(req.IDs) == 0 {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload: require ids[]"})
 		return
 	}
-	approved := true
-	if req.Approved != nil {
-		approved = *req.Approved
-	}
+
+	approved := true // Hardcoded to approve; unapprove not supported in bulk for now
 
 	// parse UUIDs; fail fast on any invalid
 	ids := make([]uuid.UUID, 0, len(req.IDs))
@@ -307,5 +305,78 @@ func (h *EntryHandler) BulkAddManualEntries(ctx *gin.Context) {
 	}
 
 	// 6) Return the result from the service
+	ctx.JSON(http.StatusOK, result)
+}
+
+func (h *EntryHandler) ListManualEntries(ctx *gin.Context) {
+	// 1) Get userID from the context
+	userID := ctx.MustGet("userID").(uuid.UUID)
+
+	log.Printf("[ENTRY][ListManual] userID=%s fetching manual entries", userID)
+
+	// 2) Call the UserService
+	// (We use userSvc because manual entries are a user-centric resource)
+	entries, err := h.svc.ListManualEntries(ctx.Request.Context(), userID)
+	if err != nil {
+		log.Printf("[ENTRY][ListManual] svc error: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+
+	// 3) Map domain objects to DTOs
+	resp := make([]ManualEntryResponse, 0, len(entries))
+	for _, e := range entries {
+		resp = append(resp, ManualEntryResponse{
+			ID:        e.ID,
+			UserID:    e.UserID,
+			Hours:     e.Hours,
+			Cause:     e.Cause,
+			Type:      e.Type,
+			CreatedAt: e.CreatedAt,
+		})
+	}
+
+	// 4) Return JSON
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (h *EntryHandler) DeleteManualEntries(ctx *gin.Context) {
+	// 1) Admin-only check
+	adminID := ctx.MustGet("userID").(uuid.UUID)
+	roles := ctx.MustGet("roles").([]string)
+	if !hasRole(roles, "admin") {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "admin role required"})
+		return
+	}
+
+	// 2) Bind the request payload
+	var req BulkUUIDRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil || req.IDs == nil || len(req.IDs) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload: require non-empty 'ids' array"})
+		return
+	}
+
+	// 3) Parse and validate all UUIDs
+	ids := make([]uuid.UUID, 0, len(req.IDs))
+	for _, s := range req.IDs {
+		id, err := uuid.Parse(strings.TrimSpace(s))
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid uuid", "value": s})
+			return
+		}
+		ids = append(ids, id)
+	}
+
+	log.Printf("[ENTRY][DeleteManual] admin=%s deleting %d ids...", adminID, len(ids))
+
+	// 4) Call the UserService
+	result, err := h.svc.DeleteManualEntriesByIDs(ctx.Request.Context(), ids)
+	if err != nil {
+		log.Printf("[ENTRY][DeleteManual] service error: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error while deleting"})
+		return
+	}
+
+	// 5) Return the successful result
 	ctx.JSON(http.StatusOK, result)
 }

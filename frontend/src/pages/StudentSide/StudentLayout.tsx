@@ -7,16 +7,15 @@ import { pageTitle } from '../../i18n/he'
 import { contactTypes, type ContactType } from '../../types'
 import { useEntries } from '../../context/EntriesContext'
 import { useContacts } from '../../context/ContactsContext'
-import { useAuth } from '../../context/AuthContext'
+import TooltipContent from '../../components/Tooltip/TooltipContent'
 
 
 const countGoals = { 'client': 300, 'mentor': 150, 'therapist': 100 }
 
 export default function StudentLayout() {
 
-    const { entries } = useEntries()
+    const { entries, manualEntries } = useEntries()
     const { activePage, setActivePage, getContactById } = useContacts()
-    const { getPastTherapyHours } = useAuth()
 
     const entryCounts = useMemo(() => {
         const m: Record<string, number> = { 'client': 0, 'mentor': 0, 'therapist': 0 };
@@ -28,50 +27,6 @@ export default function StudentLayout() {
         return m;
     }, [entries]);
 
-    const awaitingApproval = useMemo(() => {
-        return entries.filter(e => getContactById(e.contactId)?.type === "mentor" && !e.approved).length;
-    }, [entries]);
-
-    const pastHours = getPastTherapyHours() ?? 0;
-
-    const tooltip = (page: ContactType) => {
-
-        return (
-            <span
-                className='tooltip-text'
-                onMouseDown={(e: any) => e.stopPropagation()}
-                onClick={(e: any) => e.stopPropagation()}
-            >
-                {(() => {
-                    switch (page) {
-                        case 'mentor':
-                            return (
-                                <>
-                                    דיווחים מאושרים: {entryCounts[page]}<br />
-                                    ממתינים לאישור: {awaitingApproval}<br />
-                                </>
-                            )
-                        case 'therapist':
-                            return (
-                                <>
-                                    שעות שדווחו: {entryCounts[page]}<br />
-                                    {pastHours > 0 && (
-                                        <>שעות טיפול עבר: {pastHours}<br /></>
-                                    )}
-                                </>
-                            )
-                        case 'client':
-                            return (
-                                <>
-                                    שעות שדווחו: {entryCounts[page]}<br />
-                                </>
-                            )
-                    }
-                })()}
-            </span>
-        )
-
-    }
 
     return (
         <>
@@ -84,7 +39,12 @@ export default function StudentLayout() {
                         onClick={() => setActivePage(page)}
                     >
 
-                        {tooltip(page)}
+                        <TooltipContent
+                            page={page}
+                            entries={entries}
+                            manualEntries={manualEntries}
+                            entryCounts={entryCounts}
+                        />
                         <span className="nav-button--title">
                             {pageTitle[page]}
                         </span>
