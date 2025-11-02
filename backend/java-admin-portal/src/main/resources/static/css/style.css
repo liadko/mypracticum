@@ -114,6 +114,7 @@ button:disabled {
     border-radius: 6px;
     border: 1px solid #ddd;
     box-sizing: border-box; /* Ensures padding doesn't break layout */
+    direction: rtl;
 }
 
 /* Container for the scrollable student list */

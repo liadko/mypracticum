@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- NEW ELEMENTS FOR GROUP CREATION ---
     const createGroupForm = document.getElementById('create-group-form');
     const groupTitleInput = document.getElementById('group-title-input');
+    const groupTypeSelect = document.getElementById('group-type-select');
     const studentSearchInput = document.getElementById('student-search-input');
     const studentListContainer = document.getElementById('student-list-container');
     const createGroupButton = document.getElementById('create-group-button');
@@ -310,8 +311,15 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
 
         const titleAsCause = groupTitleInput.value.trim();
+        const type = groupTypeSelect.value;
+
         if (!titleAsCause) {
             logMessage("Error: Please provide a Group Title to use as the 'cause'.");
+            return;
+        }
+
+        if(!type) {
+            logMessage("Error: Please select a Group Type.");
             return;
         }
 
@@ -336,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userId: student.studentId,
             hours: student.hoursAssigned,
             cause: titleAsCause,
-            type: 'client' // Hardcoding 'client' as the default type
+            type: type
         }));
 
         const payload = {
@@ -362,13 +370,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (resp.ok) {
                     logMessage('SUCCESS: Bulk manual entry complete.');
                     logMessage(JSON.stringify(data, null, 2));
-                    // Optional: reset the form after success
-                    // createGroupForm.reset();
-                    // allStudents.forEach(s => {
-                    //    s.isSelected = false;
-                    //    s.hoursAssigned = 0;
-                    // });
-                    // renderStudents(allStudents);
+                    // reset the form after success
+                    createGroupForm.reset();
+                    allStudents.forEach(s => {
+                       s.isSelected = false;
+                       s.hoursAssigned = 0;
+                    });
+                    renderStudents(allStudents);
                 } else {
                     logMessage(`ERROR (${resp.status}): ${data.error || 'request failed'}`);
                     if (data.failures) {
