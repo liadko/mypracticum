@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 
 const theme = createTheme({
-  palette: { primary: { main: '#fc3d54' } } // pink
+  palette: { primary: { main: '#fc5a3dff' } } // pink
 })
 
 export default function TherapistPage() {
@@ -35,7 +35,7 @@ export default function TherapistPage() {
           entries={therapistEntries}
           //hoursNeeded={300}
           onEntryToggle={useEntries().toggleEntry}
-          //renderExtra={e =>/* your old TherapistNameInput */null}
+        //renderExtra={e =>/* your old TherapistNameInput */null}
         />
       </div>
     </ThemeProvider>

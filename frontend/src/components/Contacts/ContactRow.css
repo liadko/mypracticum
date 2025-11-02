@@ -10,9 +10,10 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
     direction: rtl;
-    height: 125px;
+    height: 140px;
     width: 100%;
 
+    cursor: pointer;
 
 }
 
@@ -47,4 +48,5 @@
     cursor: pointer;
     aspect-ratio: 1;
     width: 1.2rem;
+    margin-top: 3px;
 }

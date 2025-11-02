@@ -5,7 +5,7 @@ import type { ContactType, FormMode } from '../../types'
 import { ContactRow } from './ContactRow'
 import { ContactForm } from './ContactForm'
 import './EditContactsModal.css'
-import { contactLabelSingularDefinite } from '../../i18n/he'
+import { contactLabelSingularBigenderIndefinite, contactLabelSingularDefinite } from '../../i18n/he'
 
 interface Props {
     initialType: ContactType
@@ -76,9 +76,9 @@ export function EditContactsModal({ initialType, isInitialCreation, onCloseModal
     function headerText(): string {
 
         if (formMode)
-            return "עריכת פרטי " + contactLabelSingularDefinite[currentPage];
+            return "עריכת " + contactLabelSingularBigenderIndefinite[currentPage];
 
-        return "עריכת אנשי קשר";
+        return "אנשי קשר | פרקטיקום";
     }
 
     function onCloseForm(closeEntireModal?: boolean) {

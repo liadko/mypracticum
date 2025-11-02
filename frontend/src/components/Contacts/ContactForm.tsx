@@ -121,133 +121,134 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
     }
 
     return (
-
-        <form className="contact-form" onSubmit={handleSubmit} noValidate>
+        <>
             <div className='contact-form__fake-navbar' />
+            <form className="contact-form" onSubmit={handleSubmit} noValidate>
 
-            <div className="contact-form__field">
-                <label className="contact-form__label">
-                    {type === 'client' ? 'שם המטופל בראשי תיבות' : 'שם מלא'}
-                    < input
-                        ref={nameRef}
-                        type="text"
-                        placeholder={type == 'client' ? 'א.ב' : ''}
-                        className="contact-form__input"
-                        value={name}
-                        onChange={e => handleChange('name', e.target.value)}
-                        required
-                    />
-                </label>
-            </div>
-
-            {type === 'mentor' && (
                 <div className="contact-form__field">
                     <label className="contact-form__label">
-                        אימייל
-                        <input
-                            type="email"
+                        {type === 'client' ? 'שם המטופל בראשי תיבות' : 'שם מלא'}
+                        < input
+                            ref={nameRef}
+                            type="text"
+                            placeholder={type == 'client' ? 'א.ב' : ''}
                             className="contact-form__input"
-                            value={email}
-                            onChange={e => handleChange('email', e.target.value)}
+                            value={name}
+                            onChange={e => handleChange('name', e.target.value)}
                             required
                         />
                     </label>
                 </div>
 
-            )}
-
-            {type !== 'client' && (
-                <>
+                {type === 'mentor' && (
                     <div className="contact-form__field">
                         <label className="contact-form__label">
-                            טלפון
+                            אימייל
                             <input
-                                type="tel"
+                                type="email"
                                 className="contact-form__input"
-                                value={phone}
-                                onChange={e => handleChange('phone', e.target.value)}
-                                required
-                                dir='rtl'
-                            />
-                        </label>
-                    </div>
-                    <div className="contact-form__field">
-                        <label className="contact-form__label">
-                            הכשרה
-                            <input
-                                type="text"
-                                className="contact-form__input"
-                                value={specialty}
-                                onChange={e => handleChange('specialty', e.target.value)}
+                                value={email}
+                                onChange={e => handleChange('email', e.target.value)}
                                 required
                             />
                         </label>
                     </div>
-                </>
-            )}
 
+                )}
 
-            {type === 'client' && (
-                <>
-                    <div className='contact-form__gap' />
-                    <div className="contact-form__field">
-                        <label className="contact-form__label">
-                            מסגרת טיפול
-                            <div className="contact-form__radio-group">
-                                <label className="contact-form__radio">
-                                    <input
-                                        type="radio"
-                                        name="clientInstitution"
-                                        value="individual"
-                                        checked={clientInstitution == 'privateClinic'}
-                                        onChange={() => handleChange('clientInstitution', 'privateClinic')}
-                                    />
-                                    קליניקה פרטית
-                                </label>
-                                <label className="contact-form__radio">
-                                    <input
-                                        type="radio"
-                                        name="clientInstitution"
-                                        value="group"
-                                        checked={clientInstitution == 'trainingCenter'}
-                                        onChange={() => handleChange('clientInstitution', 'trainingCenter')}
-                                    />
-                                    מרכז הכשרה
-                                </label>
-                            </div>
-                        </label>
-                    </div>
-                    {clientInstitution == 'trainingCenter' &&
+                {type !== 'client' && (
+                    <>
                         <div className="contact-form__field">
                             <label className="contact-form__label">
-                                שם ומיקום המרכז
+                                טלפון
                                 <input
                                     type="tel"
                                     className="contact-form__input"
-                                    placeholder='עמותת הלל, אשדוד'
-                                    value={clientTrainingCenterInfo}
-                                    onChange={e => handleChange('clientTrainingCenterInfo', e.target.value)}
+                                    value={phone}
+                                    onChange={e => handleChange('phone', e.target.value)}
                                     required
                                     dir='rtl'
                                 />
                             </label>
-                        </div>}
-                </>
+                        </div>
+                        <div className="contact-form__field">
+                            <label className="contact-form__label">
+                                הכשרה
+                                <input
+                                    type="text"
+                                    className="contact-form__input"
+                                    value={specialty}
+                                    onChange={e => handleChange('specialty', e.target.value)}
+                                    required
+                                />
+                            </label>
+                        </div>
+                    </>
+                )}
 
-            )}
 
-            <div className="contact-form__buttons">
-                <button
-                    type="button"
-                    className="contact-form__cancel-button"
-                    onClick={() => onCloseForm(isInitialCreation)} // close entire modal if was initial creation
-                >
-                    ביטול
-                </button>
-                <button type="submit" className="contact-form__save-button">
-                    שמירה
-                </button>
-            </div>
-        </form>
+                {type === 'client' && (
+                    <>
+                        <div className='contact-form__gap' />
+                        <div className="contact-form__field">
+                            <label className="contact-form__label">
+                                מסגרת טיפול
+                                <div className="contact-form__radio-group">
+                                    <label className="contact-form__radio">
+                                        <input
+                                            type="radio"
+                                            name="clientInstitution"
+                                            value="individual"
+                                            checked={clientInstitution == 'privateClinic'}
+                                            onChange={() => handleChange('clientInstitution', 'privateClinic')}
+                                        />
+                                        קליניקה פרטית
+                                    </label>
+                                    <label className="contact-form__radio">
+                                        <input
+                                            type="radio"
+                                            name="clientInstitution"
+                                            value="group"
+                                            checked={clientInstitution == 'trainingCenter'}
+                                            onChange={() => handleChange('clientInstitution', 'trainingCenter')}
+                                        />
+                                        מרכז הכשרה
+                                    </label>
+                                </div>
+                            </label>
+                        </div>
+                        {clientInstitution == 'trainingCenter' &&
+                            <div className="contact-form__field">
+                                <label className="contact-form__label">
+                                    שם ומיקום המרכז
+                                    <input
+                                        type="tel"
+                                        className="contact-form__input"
+                                        placeholder='עמותת הלל, אשדוד'
+                                        value={clientTrainingCenterInfo}
+                                        onChange={e => handleChange('clientTrainingCenterInfo', e.target.value)}
+                                        required
+                                        dir='rtl'
+                                    />
+                                </label>
+                            </div>}
+                    </>
+
+                )}
+
+                <div className="contact-form__buttons">
+                    <button
+                        type="button"
+                        className="contact-form__cancel-button"
+                        onClick={() => onCloseForm(isInitialCreation)} // close entire modal if was initial creation
+                    >
+                        ביטול
+                    </button>
+                    <button type="submit" className="contact-form__save-button">
+                        שמירה
+                    </button>
+                </div>
+            </form>
+        </>
     )
 }

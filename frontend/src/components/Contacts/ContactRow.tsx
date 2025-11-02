@@ -3,13 +3,13 @@ import './ContactRow.css'
 
 interface Props {
   contact: Contact
-  onEdit: (id : string) => void
+  onEdit: (id: string) => void
   //onDelete: (id: string) => void
 }
 
 export function ContactRow({ contact, onEdit }: Props) {
   return (
-    <div className="contact-row">
+    <div className="contact-row" onClick={() => onEdit(contact.id)}>
       <div className="contact-row__details">
         <div className="contact-row__name">{contact.name}</div>
 
@@ -25,6 +25,12 @@ export function ContactRow({ contact, onEdit }: Props) {
           <div className="contact-row__extras">
             <div className="contact-row__phone">{contact.phone}</div>
             <div className="contact-row__specialty">{contact.specialty}</div>
+          </div>
+        )}
+
+        {contact.type === 'client' && (
+          <div className="contact-row__extras">
+            <div className="contact-row__institution">{contact.clientInstitution}</div>
           </div>
         )}
       </div>

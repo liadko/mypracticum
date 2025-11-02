@@ -1,7 +1,7 @@
 .calendar-with-list {
     display: flex;
     padding: 1rem;
-    padding-top: 1rem;
+    padding-top: clamp(0.5rem, 4vh, 1rem);
     justify-content: space-around;
 }
 
@@ -213,7 +213,7 @@
     width: 250px;
     border-radius: 8px;
     padding: 0.75rem 1.5rem;
-    
+
     font-weight: 600;
     font-size: 1rem;
 
@@ -225,6 +225,7 @@
 .first-contact-message__button:hover {
     background-color: #4a948c;
 }
+
 .first-contact-message__button:active {
     transform: scale(0.99);
 }
