@@ -7,6 +7,7 @@ import (
 	"log"
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -156,4 +157,91 @@ func (s *EntryService) BulkSetApproval(
 	log.Printf("[ENTRY][BulkSetApproval] done succeeded=%d notFound=%d errors=%d",
 		res.Succeeded, len(res.NotFound), len(res.Errors))
 	return res, nil
+}
+
+// AddManualEntry validates and inserts a new manual entry for a user.
+// This is for administrative adjustments (e.g., granting hours for a
+// special case) that fall outside the standard entry logging.
+//
+// Returns:
+//   - the created domain.ManualEntry
+//
+// Errors:
+//   - ValidationError if the cause is empty or hours are zero.
+//   - NotFoundError   if the user specified by newEntry.UserID does not exist.
+//   - DBError         for any underlying database failure.
+func (s *EntryService) AddManualEntry(
+	ctx context.Context,
+	newEntry domain.NewManualEntry,
+) (domain.ManualEntry, error) {
+
+	// 1) Business logic validation
+	if strings.TrimSpace(newEntry.Cause) == "" {
+		return domain.ManualEntry{},
+			ValidationError("cause cannot be empty")
+	}
+	if newEntry.Hours == 0 {
+		return domain.ManualEntry{},
+			ValidationError("hours cannot be zero")
+	}
+
+	// 2) Persist
+	entry, err := s.repo.CreateManualEntry(ctx, newEntry)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			// This error comes from the repo if the user_id FK fails
+			return domain.ManualEntry{},
+				NotFoundError{"user", newEntry.UserID.String()}
+		}
+		return domain.ManualEntry{}, DBError{Err: err}
+	}
+
+	return entry, nil
+}
+
+// BulkAddManualEntries attempts to create multiple manual entries in a single
+// operation. It does NOT run in a transaction, meaning some entries may
+// succeed while others fail.
+//
+// A summary of successful and failed operations is always returned,
+// and 'error' is only returned for a total, unrecoverable failure.
+func (s *EntryService) BulkAddManualEntries(
+	ctx context.Context,
+	adminID uuid.UUID, // for logging
+	entries []domain.NewManualEntry,
+) (domain.BulkAddManualEntriesResult, error) {
+
+	result := domain.BulkAddManualEntriesResult{
+		Failures: []domain.FailedManualEntry{}, // Ensure slice is not nil
+	}
+
+	for _, entry := range entries {
+		// We re-use the singular AddManualEntry method to ensure all
+		// validation and repository logic is applied consistently.
+		_, err := s.AddManualEntry(ctx, entry)
+
+		if err != nil {
+			// This entry failed, record it and continue
+			result.FailedCount++
+			result.Failures = append(result.Failures, domain.FailedManualEntry{
+				Input: entry,
+				Error: err.Error(),
+			})
+		} else {
+			// This entry succeeded
+			result.CreatedCount++
+		}
+	}
+
+	log.Printf(
+		"[SERVICE][BulkAddManual] admin=%s processed %d entries: %d created, %d failed",
+		adminID,
+		len(entries),
+		result.CreatedCount,
+		result.FailedCount,
+	)
+
+	// A partial success is still a "success" from the handler's
+	// perspective. We return the result and no error.
+	return result, nil
 }

@@ -11,6 +11,7 @@ import (
 	"mypracticum/backend/repository"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // PostgresEntryRepo “implements” EntryRepository
@@ -229,4 +230,52 @@ func (r *PostgresEntryRepo) IsEntryLinkedToMentor(
 		return false, err
 	}
 	return linked, nil
+}
+
+// CreateManualEntry inserts a new row into the manual_entries table.
+//
+// Returns:
+//   - the created domain.ManualEntry (with ID, CreatedAt populated)
+//
+// Errors:
+//   - repository.ErrNotFound if the user_id does not exist in the users table.
+//   - any other SQL error.
+func (r *PostgresEntryRepo) CreateManualEntry(
+	ctx context.Context,
+	entry domain.NewManualEntry,
+) (domain.ManualEntry, error) {
+
+	const q = `
+    INSERT INTO manual_entries (user_id, hours, cause, type)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, user_id, hours, cause, type, created_at
+    `
+
+	var createdEntry domain.ManualEntry
+	err := r.db.QueryRowContext(
+		ctx,
+		q,
+		entry.UserID,
+		entry.Hours,
+		entry.Cause,
+		entry.Type,
+	).Scan(
+		&createdEntry.ID,
+		&createdEntry.UserID,
+		&createdEntry.Hours,
+		&createdEntry.Cause,
+		&createdEntry.Type,
+		&createdEntry.CreatedAt,
+	)
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		// Check for foreign key violation (e.g., user_id doesn't exist)
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+			return domain.ManualEntry{}, repository.ErrNotFound
+		}
+		return domain.ManualEntry{}, err
+	}
+
+	return createdEntry, nil
 }

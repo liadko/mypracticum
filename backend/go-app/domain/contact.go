@@ -41,7 +41,6 @@ type Contact struct {
 	Email                    *string // only required mentors
 	Phone                    *string // mentors and therapists
 	Specialty                *string // mentors and therapists
-	MentorshipType           *string // mentors
 	ClientInstitution        *string // clients
 	ClientTrainingCenterInfo *string // clients
 
@@ -54,7 +53,6 @@ type NewContact struct {
 	Email                    *string
 	Phone                    *string
 	Specialty                *string
-	MentorshipType           *string
 	ClientInstitution        *string
 	ClientTrainingCenterInfo *string
 
@@ -77,9 +75,6 @@ func (contact Contact) Validate() error {
 	case MentorContact:
 		if contact.Email == nil || strings.TrimSpace(*contact.Email) == "" {
 			errs = append(errs, "email is required for mentors")
-		}
-		if contact.MentorshipType == nil || (*contact.MentorshipType != "group" && *contact.MentorshipType != "individual") {
-			errs = append(errs, "mentorshipType must be 'group' or 'individual'")
 		}
 		fallthrough
 	case TherapistContact:
@@ -122,7 +117,6 @@ func NewContactFrom(userID uuid.UUID, nc NewContact) (Contact, error) {
 		Email:                    nc.Email,
 		Phone:                    nc.Phone,
 		Specialty:                nc.Specialty,
-		MentorshipType:           nc.MentorshipType,
 		ClientInstitution:        nc.ClientInstitution,
 		ClientTrainingCenterInfo: nc.ClientTrainingCenterInfo,
 
@@ -145,7 +139,6 @@ func UpdatedContact(userID uuid.UUID, contactID uuid.UUID, nc NewContact) (Conta
 		Email:                    nc.Email,
 		Phone:                    nc.Phone,
 		Specialty:                nc.Specialty,
-		MentorshipType:           nc.MentorshipType,
 		ClientInstitution:        nc.ClientInstitution,
 		ClientTrainingCenterInfo: nc.ClientTrainingCenterInfo,
 

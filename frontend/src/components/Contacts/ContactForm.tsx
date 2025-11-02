@@ -19,7 +19,6 @@ interface FormValues {
     email: string
     phone: string
     specialty: string
-    mentorshipType: string
     clientInstitution: string
     clientTrainingCenterInfo: string
 }
@@ -56,7 +55,6 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
 
                 phone: isMentor || isTherapist ? existing.phone : '',
                 specialty: isMentor || isTherapist ? existing.specialty : '',
-                mentorshipType: isMentor ? existing.mentorshipType : '',
 
                 clientInstitution: isClient ? existing.clientInstitution : '',
                 clientTrainingCenterInfo: isClient ? existing.clientTrainingCenterInfo : '',
@@ -70,7 +68,6 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                 email: '',
                 phone: '',
                 specialty: '',
-                mentorshipType: '',
                 clientInstitution: '',
                 clientTrainingCenterInfo: '',
 
@@ -89,7 +86,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
     // while loading initial, render nothing (or a loader)
     if (!formValues) return null
 
-    const { type, name, email, phone, specialty, mentorshipType, clientInstitution, clientTrainingCenterInfo } = formValues
+    const { type, name, email, phone, specialty, clientInstitution, clientTrainingCenterInfo } = formValues
 
 
 
@@ -103,7 +100,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
             type,
             name,
             ...(type === 'client' && { clientInstitution, clientTrainingCenterInfo }),
-            ...(type === 'mentor' && { email, phone, specialty, mentorshipType }),
+            ...(type === 'mentor' && { email, phone, specialty }),
             ...(type === 'therapist' && { phone, specialty }),
         }
 
@@ -189,37 +186,6 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                 </>
             )}
 
-            {type === 'mentor' && (
-                <div className="contact-form__field">
-                    <label className="contact-form__label">
-                        סוג הדרכה
-                        <div className="contact-form__radio-group">
-                            <label className="contact-form__radio">
-                                <input
-                                    type="radio"
-                                    name="mentorshipType"
-                                    value="individual"
-                                    checked={mentorshipType == 'individual'}
-                                    onChange={() => handleChange('mentorshipType', 'individual')}
-                                />
-                                הדרכה אישית
-                            </label>
-                            <label className="contact-form__radio">
-                                <input
-                                    type="radio"
-                                    name="mentorshipType"
-                                    value="group"
-                                    checked={mentorshipType == 'group'}
-                                    onChange={() => handleChange('mentorshipType', 'group')}
-                                />
-                                הדרכה קבוצתית
-                            </label>
-                        </div>
-                    </label>
-                </div>
-
-            )}
-
 
             {type === 'client' && (
                 <>
@@ -231,7 +197,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                                 <label className="contact-form__radio">
                                     <input
                                         type="radio"
-                                        name="mentorshipType"
+                                        name="clientInstitution"
                                         value="individual"
                                         checked={clientInstitution == 'privateClinic'}
                                         onChange={() => handleChange('clientInstitution', 'privateClinic')}
@@ -241,7 +207,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                                 <label className="contact-form__radio">
                                     <input
                                         type="radio"
-                                        name="mentorshipType"
+                                        name="clientInstitution"
                                         value="group"
                                         checked={clientInstitution == 'trainingCenter'}
                                         onChange={() => handleChange('clientInstitution', 'trainingCenter')}

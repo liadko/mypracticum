@@ -30,28 +30,28 @@ func (r *PostgresContactRepo) Create(ctx context.Context, userID uuid.UUID, c do
 			id, user_id, type, name,
 			email, phone, specialty,
 			mentor_user_id,
-			mentorship_type, client_institution, client_training_center_info
+			client_institution, client_training_center_info
 		)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
 		RETURNING id, user_id, type, name,
 				email, phone, specialty,
 				mentor_user_id,
-				mentorship_type, client_institution, client_training_center_info`
+				client_institution, client_training_center_info`
 
-	row := r.db.QueryRowContext(ctx, query, c.ID, c.UserID, c.Type, c.Name, c.Email, c.Phone, c.Specialty, c.MentorUserID, c.MentorshipType, c.ClientInstitution, c.ClientTrainingCenterInfo)
+	row := r.db.QueryRowContext(ctx, query, c.ID, c.UserID, c.Type, c.Name, c.Email, c.Phone, c.Specialty, c.MentorUserID, c.ClientInstitution, c.ClientTrainingCenterInfo)
 
 	var out domain.Contact
 	if err := row.Scan(&out.ID, &out.UserID, &out.Type, &out.Name,
 		&out.Email, &out.Phone, &out.Specialty,
 		&out.MentorUserID,
-		&out.MentorshipType, &out.ClientInstitution, &out.ClientTrainingCenterInfo); err != nil {
+		&out.ClientInstitution, &out.ClientTrainingCenterInfo); err != nil {
 		return domain.Contact{}, fmt.Errorf("creating contact: %w", err)
 	}
 
 	return out, nil
 }
 
-// Update implements repository.ContactRepository.
+// Update implements repository.ContactRepository
 func (r *PostgresContactRepo) Update(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -66,15 +66,14 @@ func (r *PostgresContactRepo) Update(
 				phone                    = $4,
 				specialty                = $5,
 				mentor_user_id           = $6,
-				mentorship_type          = $7,
-				client_institution       = $8,
-				client_training_center_info = $9
-		WHERE user_id = $10
-			AND id      = $11
+				client_institution       = $7,
+				client_training_center_info = $8
+		WHERE user_id = $9
+			AND id      = $10
 		RETURNING id, user_id, type, name,
 				email, phone, specialty,
 				mentor_user_id,
-				mentorship_type, client_institution, client_training_center_info
+				client_institution, client_training_center_info
 	`
 	row := r.db.QueryRowContext(ctx, q,
 		c.Type,
@@ -83,7 +82,6 @@ func (r *PostgresContactRepo) Update(
 		c.Phone,
 		c.Specialty,
 		c.MentorUserID,
-		c.MentorshipType,
 		c.ClientInstitution,
 		c.ClientTrainingCenterInfo,
 		userID,
@@ -100,7 +98,6 @@ func (r *PostgresContactRepo) Update(
 		&out.Phone,
 		&out.Specialty,
 		&out.MentorUserID,
-		&out.MentorshipType,
 		&out.ClientInstitution,
 		&out.ClientTrainingCenterInfo,
 	); err != nil {
@@ -121,7 +118,7 @@ func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID uuid.UUID) 
         SELECT id, user_id, type, name,
                email, phone, specialty,
                mentor_user_id,
-               mentorship_type, client_institution, client_training_center_info
+               client_institution, client_training_center_info
           FROM contacts 
          WHERE user_id = $1
       ORDER BY name
@@ -145,7 +142,6 @@ func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID uuid.UUID) 
 			&c.Phone,
 			&c.Specialty,
 			&c.MentorUserID,
-			&c.MentorshipType,
 			&c.ClientInstitution,
 			&c.ClientTrainingCenterInfo,
 		); err != nil {
@@ -160,15 +156,14 @@ func (r *PostgresContactRepo) ListByUser(ctx context.Context, userID uuid.UUID) 
 	return contacts, nil
 }
 
-func (r *PostgresContactRepo) UserHasMentor(ctx context.Context, userID uuid.UUID, email string, mentorshipType string) (bool, error) {
-	return r.UserHasMentorExcept(ctx, userID, email, mentorshipType, uuid.Nil)
+func (r *PostgresContactRepo) UserHasMentor(ctx context.Context, userID uuid.UUID, email string) (bool, error) {
+	return r.UserHasMentorExcept(ctx, userID, email, uuid.Nil)
 }
 
 func (r *PostgresContactRepo) UserHasMentorExcept(
 	ctx context.Context,
 	userID uuid.UUID,
 	email string,
-	mentorshipType string,
 	exceptContactID uuid.UUID,
 ) (bool, error) {
 	const q = `
@@ -177,12 +172,11 @@ func (r *PostgresContactRepo) UserHasMentorExcept(
 		WHERE user_id			= $1
 			AND type			= 'mentor'
 			AND email   		= $2
-			AND mentorship_type	= $3
-			AND id  		   <> $4
+			AND id  		   <> $3
 		LIMIT 1;
 	`
 	var dummy int
-	err := r.db.QueryRowContext(ctx, q, userID, email, mentorshipType, exceptContactID).Scan(&dummy)
+	err := r.db.QueryRowContext(ctx, q, userID, email, exceptContactID).Scan(&dummy)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
@@ -197,7 +191,6 @@ func (r *PostgresContactRepo) GetMentor(ctx context.Context, userID, contactID u
 		SELECT id, user_id, type, name,
 			   email, phone, specialty,
 			   mentor_user_id,
-			   mentorship_type
 		  FROM contacts
 		 WHERE user_id = $1
 		   AND id = $2
@@ -213,7 +206,6 @@ func (r *PostgresContactRepo) GetMentor(ctx context.Context, userID, contactID u
 		&c.Phone,
 		&c.Specialty,
 		&c.MentorUserID,
-		&c.MentorshipType,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return domain.Contact{}, repository.ErrNotFound

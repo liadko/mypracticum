@@ -50,7 +50,6 @@ func (h *ContactHandler) List(ctx *gin.Context) {
 			Email:                    d.Email,
 			Phone:                    d.Phone,
 			Specialty:                d.Specialty,
-			MentorshipType:           d.MentorshipType,
 			ClientInstitution:        d.ClientInstitution,
 			ClientTrainingCenterInfo: d.ClientTrainingCenterInfo,
 		}
@@ -83,7 +82,6 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 		Email:                    req.Email,
 		Phone:                    req.Phone,
 		Specialty:                req.Specialty,
-		MentorshipType:           req.MentorshipType,
 		ClientInstitution:        req.ClientInstitution,
 		ClientTrainingCenterInfo: req.ClientTrainingCenterInfo,
 	}
@@ -116,7 +114,6 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 		Email:                    saved.Email,
 		Phone:                    saved.Phone,
 		Specialty:                saved.Specialty,
-		MentorshipType:           saved.MentorshipType,
 		ClientInstitution:        saved.ClientInstitution,
 		ClientTrainingCenterInfo: saved.ClientTrainingCenterInfo,
 	}
@@ -143,7 +140,6 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 		Email:                    req.Email,
 		Phone:                    req.Phone,
 		Specialty:                req.Specialty,
-		MentorshipType:           req.MentorshipType,
 		ClientInstitution:        req.ClientInstitution,
 		ClientTrainingCenterInfo: req.ClientTrainingCenterInfo,
 	}
@@ -176,7 +172,6 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 		Email:                    saved.Email,
 		Phone:                    saved.Phone,
 		Specialty:                saved.Specialty,
-		MentorshipType:           saved.MentorshipType,
 		ClientInstitution:        saved.ClientInstitution,
 		ClientTrainingCenterInfo: saved.ClientTrainingCenterInfo,
 	}

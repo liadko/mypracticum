@@ -19,14 +19,12 @@ export interface MentorContact extends BaseContact {
     email: string
     specialty: string
     phone: string
-    mentorshipType: string // 'group' | 'individual'
 }
 
 export interface TherapistContact extends BaseContact {
     type: 'therapist'
     specialty: string
     phone: string
-
 }
 
 
@@ -50,7 +48,6 @@ export interface NewContact {
     email?: string
     phone?: string
     specialty?: string
-    mentorshipType?: string
     clientInstitution?: string // 'privateClinic' | 'trainingCenter'
     clientTrainingCenterInfo?: string
 
@@ -69,6 +66,17 @@ export interface NewEntry {
     contactId: string
     date: string       // "YYYY-MM-DD"
 }
+
+export interface ManualEntry {
+    id: string;        // uuid
+    userId: string;    // FK -> User.id
+    hours: number;
+    cause: string;
+    type: ContactType;      // 'client', 'mentor', or 'therapist'
+    createdAt: string; // ISO date string "YYYY-MM-DDTHH:mm:ssZ"
+}
+
+
 
 // For Editing Contacts
 export type AddMode = { mode: 'add'; type: ContactType }
@@ -92,6 +100,8 @@ export interface User {
     signature?: string  // Base64 jpeg
 
     roles: UserRole[]
+
+    pastTherapyHours: number
 }
 
 export interface FullName {

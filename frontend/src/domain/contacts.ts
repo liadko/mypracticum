@@ -29,13 +29,10 @@ export function validateContact(c: NewContact): Error | null {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const phoneRegex = /^[0-9+\-\s()]{5,20}$/
 
-  // 2) Mentor must have a valid email and mentorshipType
+  // 2) Mentor must have a valid email
   if (c.type === 'mentor') {
     if (!c.email || !emailRegex.test(c.email)) {
       return new Error('יש להזין כתובת אימייל תקינה למדריך')
-    }
-    if (c.mentorshipType !== 'group' && c.mentorshipType !== 'individual') {
-      return new Error('נא לבחור סוג הדרכה')
     }
   }
 

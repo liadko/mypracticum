@@ -16,6 +16,7 @@ type User struct {
 	Email     string
 	Semester  string
 	Signature []byte
+
 	CreatedAt time.Time
 	CreatedBy uuid.UUID
 

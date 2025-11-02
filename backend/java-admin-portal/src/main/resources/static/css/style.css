@@ -102,3 +102,83 @@ button:disabled {
     box-sizing: border-box;
     resize: vertical;
 }
+
+/* --- Create Group Styles --- */
+
+#group-title-input,
+#mentor-select,
+#student-search-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    box-sizing: border-box; /* Ensures padding doesn't break layout */
+}
+
+/* Container for the scrollable student list */
+.student-list-container {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    background-color: #fdfdfd;
+    padding: 8px;
+    margin: 10px 0;
+}
+
+.loading-text {
+    color: #888;
+    font-style: italic;
+    padding: 10px;
+}
+
+/* Styles for each student row in the list */
+.student-list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 15px; /* Creates space between items */
+}
+.student-list-item:last-child {
+    border-bottom: none;
+}
+
+.student-list-item input[type="checkbox"] {
+    /* Make the checkbox bigger and easier to click */
+    transform: scale(1.3);
+    margin-left: 5px;
+}
+
+.student-info {
+    flex-grow: 1; /* This makes the info block take up available space */
+    line-height: 1.4;
+}
+
+.student-info .name {
+    font-weight: 600;
+    color: #222;
+}
+
+.student-info .email,
+.student-info .uuid {
+    font-size: 0.85em;
+    color: #555;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+.student-hours-input {
+    width: 70px; /* Small input for hours */
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Style for when the hours input is disabled */
+.student-hours-input:disabled {
+    background-color: #f4f4f4;
+    color: #aaa;
+    border-color: #eee;
+}

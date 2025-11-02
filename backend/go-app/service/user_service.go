@@ -244,3 +244,11 @@ func (s *UserService) BulkUpsertStudents(
 	}
 	return res, nil
 }
+
+func (s *UserService) ListStudents(ctx context.Context) ([]domain.User, error) {
+	users, err := s.userRepo.ListStudents(ctx)
+	if err != nil {
+		return nil, DBError{Err: err}
+	}
+	return users, nil
+}

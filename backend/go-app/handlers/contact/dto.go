@@ -15,7 +15,6 @@ type ContactResponse struct {
 	Email                    *string `json:"email,omitempty"`
 	Phone                    *string `json:"phone,omitempty"`
 	Specialty                *string `json:"specialty,omitempty"`
-	MentorshipType           *string `json:"mentorshipType,omitempty"`
 	ClientInstitution        *string `json:"clientInstitution,omitempty"`
 	ClientTrainingCenterInfo *string `json:"clientTrainingCenterInfo,omitempty"`
 }
@@ -26,7 +25,6 @@ type NewContactDTO struct {
 	Email                    *string            `json:"email,omitempty"`
 	Phone                    *string            `json:"phone,omitempty"`
 	Specialty                *string            `json:"specialty,omitempty"`
-	MentorshipType           *string            `json:"mentorshipType,omitempty"`
 	ClientInstitution        *string            `json:"clientInstitution,omitempty"`
 	ClientTrainingCenterInfo *string            `json:"clientTrainingCenterInfo,omitempty"`
 }

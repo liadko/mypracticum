@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Practicum Admin Portal</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
 
@@ -39,6 +40,28 @@ id2
 id3" required></textarea>
             </div>
             <button type="submit" id="approve-button">Approve Listed Entries</button>
+        </form>
+    </section>
+
+    <section class="admin-card">
+        <h2>Bulk Add Manual Hours (by Group)</h2>
+        <form id="create-group-form">
+
+            <div class="form-group">
+                <label for="group-title-input">Group Title (used as "Cause")</label>
+                <input type="text" id="group-title-input" placeholder="e.g., 'Spring 2025 Cohort A'" required>
+            </div>
+
+            <div class="form-group">
+                <label for="student-search-input">Select Students</label>
+                <input type="search" id="student-search-input" placeholder="Search by name, email, or ID...">
+            </div>
+
+            <div id="student-list-container" class="student-list-container">
+                <p class="loading-text">Loading students...</p>
+            </div>
+
+            <button type="submit" id="create-group-button">Add Manual Hours for Group</button>
         </form>
     </section>
 

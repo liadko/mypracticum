@@ -14,6 +14,7 @@ type UserRepo interface {
 	FetchRoles(ctx context.Context, userID uuid.UUID) ([]string, error)
 	GetIDByEmail(ctx context.Context, email string) (uuid.UUID, error)
 
+	ListStudents(ctx context.Context) ([]domain.User, error)
 	ListStudentsForMentor(ctx context.Context, mentorUserID uuid.UUID) ([]domain.User, error)
 
 	UpdateSignature(ctx context.Context, userID uuid.UUID, sig []byte) ([]byte, error)

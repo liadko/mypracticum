@@ -62,7 +62,7 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 10px;
+  bottom: 15px;
 
   margin-top: 1rem;
   font-size: 0.875rem;
@@ -78,7 +78,7 @@
   justify-content: flex-start;
   gap: 1rem;
   flex: 1;
-  padding: 2rem;
+  /* padding: 2rem; */
   align-items: center
 }
 
@@ -122,11 +122,19 @@
   margin: 0.3rem 0 2em;
   padding-bottom: 4rem;
   letter-spacing: 1px;
+  font-weight: 300;
   width: 240px;
 }
 
+.login-form__input:focus::placeholder {
+  color: transparent;
+}
+
 .login-form__button {
+  
+  margin-top: 34px;
   padding: 0.75rem;
+
   background-color: #3c8d80;
   color: #fff;
   border: none;

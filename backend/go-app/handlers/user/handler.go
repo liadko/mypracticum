@@ -224,3 +224,38 @@ func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, res)
 }
+
+// Add this method to user/handler.go
+
+// GetStudents handles GET /admin/students
+// It is used by the admin portal to populate the student list.
+func (h *UserHandler) GetStudents(ctx *gin.Context) {
+	// 1) Admin-only check
+	roles := ctx.MustGet("roles").([]string)
+	if !slices.Contains(roles, "admin") {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	// 2) Call service
+	users, err := h.svc.ListStudents(ctx.Request.Context())
+	if err != nil {
+		fmt.Printf("GetStudents: failed to list students: %v\n", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+
+	// 3) Map domain.User -> UserResponse DTO
+	resp := make([]UserResponse, 0, len(users))
+	for _, user := range users {
+		resp = append(resp, UserResponse{
+			ID:        user.ID,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+			Email:     user.Email,
+		})
+	}
+
+	// 4) Return JSON
+	ctx.JSON(http.StatusOK, resp)
+}

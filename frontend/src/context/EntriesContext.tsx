@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
-import type { Entry, NewEntry } from '../types'
+import type { Entry, ManualEntry, NewEntry } from '../types'
 import * as domain from '../domain/entries'         // pure helpers: addEntry, removeEntry (sorted)
 import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, deleteEntry
 import { showAsyncToast, showError } from '../utils/toast'
@@ -13,6 +13,7 @@ interface EntriesProviderProps {
 
 interface EntriesContextType {
     entries: Entry[]
+    manualEntries: ManualEntry[]
     loadingE: boolean
     errorE: Error | null
     pending: Set<string>       // set of entry‐ids currently being toggled
@@ -26,31 +27,47 @@ const EntriesContext = createContext<EntriesContextType | null>(null)
 
 export function EntriesProvider({ children }: EntriesProviderProps) {
     const [entries, setEntries] = useState<Entry[]>([])
+    const [manualEntries, setManualEntries] = useState<ManualEntry[]>([]);
     const [loading, setLoading] = useState<boolean>(true)
     const [error, setError] = useState<Error | null>(null) // fatal error
     const [pending, setPending] = useState<Set<string>>(new Set())
 
     // 1️⃣ Initial load of all entries
     useEffect(() => {
-        let isMounted = true
-        setLoading(true)
-        api.fetchAllEntries()
-            .then(fetched => {
-                if (!isMounted) return
-                setEntries(fetched)
-            })
-            .catch(err => {
-                if (!isMounted) return
-                console.error(err)
-                setError(Error(`Oops! Something happened: ${err}`))
-            })
-            .finally(() => {
-                if (isMounted) setLoading(false)
-            })
+        let isMounted = true;
+
+        const loadAllData = async () => {
+            setLoading(true);
+            try {
+                // Fetch both sets of data in parallel
+                const [fetchedEntries, fetchedManualEntries] = await Promise.all([
+                    api.fetchAllEntries(),
+                    api.fetchManualEntries(), // <-- ADDED
+                ]);
+
+                // Only update state if the component is still mounted
+                if (isMounted) {
+                    setEntries(fetchedEntries);
+                    setManualEntries(fetchedManualEntries); // <-- ADDED
+                }
+            } catch (err) {
+                if (isMounted) {
+                    console.error(err);
+                    setError(err instanceof Error ? err : new Error('Failed to load data'));
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadAllData();
+
         return () => {
-            isMounted = false
-        }
-    }, [])
+            isMounted = false;
+        };
+    }, []); // Empty dependency array means this runs once on mount
 
 
     // 2️⃣ Helper: delete an existing entry
@@ -193,7 +210,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
 
     return (
-        <EntriesContext.Provider value={{ entries, loadingE: loading, errorE: error, pending, toggleEntry, toggleApproved, unapprovedCounts }}>
+        <EntriesContext.Provider value={{ entries, manualEntries, loadingE: loading, errorE: error, pending, toggleEntry, toggleApproved, unapprovedCounts }}>
             {children}
         </EntriesContext.Provider>
     )

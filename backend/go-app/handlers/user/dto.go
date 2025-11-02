@@ -10,7 +10,7 @@ type UserResponse struct {
 	Email     string    `json:"email"`
 
 	Signature []byte   `json:"signature,omitempty"` // raw png bytes
-	Roles     []string `json:"roles"`
+	Roles     []string `json:"roles,omitempty"`
 }
 
 type SignatureUpdateRequest struct {

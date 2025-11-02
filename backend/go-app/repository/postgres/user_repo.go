@@ -313,3 +313,45 @@ func maskEmail(e string) string {
 	}
 	return name + "@" + dom
 }
+
+// ListStudents fetches all users with the 'student' role.
+// This is a simple, single-query implementation that does NOT
+// populate the Roles field on the returned users.
+func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, error) {
+	// 1. Get all users who have the 'student' role.
+	//    We use the same baseUserQuery from your loadUser helper.
+	const studentQuery = baseUserQuery + `
+    WHERE id IN (
+        SELECT ur.user_id
+        FROM user_roles ur
+        JOIN roles r ON ur.role_id = r.id
+        WHERE r.name = 'student'
+    )
+    ORDER BY last_name, first_name
+    `
+
+	rows, err := r.db.QueryContext(ctx, studentQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// 2. Scan directly into a slice. No map or second query needed.
+	var users []domain.User
+	for rows.Next() {
+		var u domain.User
+		if err := rows.Scan(
+			&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt, &u.CreatedBy,
+		); err != nil {
+			return nil, err
+		}
+		// u.Roles will be nil
+		users = append(users, u)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// 3. Return the simple list.
+	return users, nil
+}

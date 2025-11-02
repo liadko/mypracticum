@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Maps to the BulkStudentsResult struct from the Go backend.
  */
-public record ImportResponse(
+public record StudentImportResponse(
 		@JsonProperty("created") int created,
 		@JsonProperty("updated") int updated,
 		@JsonProperty("skipped") int skipped,

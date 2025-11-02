@@ -239,3 +239,73 @@ func (h *EntryHandler) BulkApprove(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, res)
 }
+
+// BulkAddManualEntries handles POST /admin/entries/manual
+func (h *EntryHandler) BulkAddManualEntries(ctx *gin.Context) {
+	// 1) Get Admin UserID and Roles from context
+	adminID := ctx.MustGet("userID").(uuid.UUID)
+	roles := ctx.MustGet("roles").([]string)
+
+	// 2) Check for admin permissions
+	if !hasRole(roles, "admin") {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "admin role required"})
+		return
+	}
+
+	// 3) Bind the request payload
+	var req BulkAddManualEntriesRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil || req.Entries == nil || len(req.Entries) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload: require non-empty 'entries' array"})
+		return
+	}
+
+	// 4) Parse DTOs into Domain Objects, failing fast on any invalid item
+	newEntries := make([]domain.NewManualEntry, 0, len(req.Entries))
+	for i, item := range req.Entries {
+		userID, err := uuid.Parse(strings.TrimSpace(item.UserID))
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "invalid 'userId'",
+				"value": item.UserID,
+				"index": i,
+			})
+			return
+		}
+
+		// Add any other simple, fast-fail validation here
+		if item.Hours == 0 {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "invalid 'hours': must not be zero",
+				"index": i,
+			})
+			return
+		}
+		if strings.TrimSpace(item.Cause) == "" {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "invalid 'cause': must not be empty",
+				"index": i,
+			})
+			return
+		}
+		// You could also add a check for valid 'type' here
+
+		newEntries = append(newEntries, domain.NewManualEntry{
+			UserID: userID,
+			Hours:  item.Hours,
+			Cause:  item.Cause,
+			Type:   item.Type,
+		})
+	}
+
+	log.Printf("[ENTRY][BulkAddManual] admin=%s count=%d", adminID, len(newEntries))
+
+	result, err := h.svc.BulkAddManualEntries(ctx.Request.Context(), adminID, newEntries)
+	if err != nil {
+		log.Printf("[ENTRY][BulkAddManual] svc error: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+
+	// 6) Return the result from the service
+	ctx.JSON(http.StatusOK, result)
+}

@@ -22,13 +22,13 @@ interface AuthContextType {
   submitEmail: (email: string) => Promise<void>
   verifyOtp: (code: string) => Promise<void>
   logout: () => void
-  saveProfile:  (fullName: FullName) => Promise<void>
+  saveProfile: (fullName: FullName) => Promise<void>
   secondsLeft: number
   submittedEmail: string | null
 
 
   updateSignature: (sig: string) => Promise<void>
-
+  getPastTherapyHours: () => number
 
 }
 
@@ -195,6 +195,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser({ ...user, signature })  // now holds base64 JPEG
   }
 
+  function getPastTherapyHours() {
+    return user ? user.pastTherapyHours : 0
+  }
 
 
   return (
@@ -210,7 +213,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         secondsLeft,
         submittedEmail,
 
-        updateSignature
+        updateSignature,
+        getPastTherapyHours,
       }}
     >
       {children}

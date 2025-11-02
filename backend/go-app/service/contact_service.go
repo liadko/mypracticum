@@ -81,8 +81,8 @@ func (s *ContactService) handleMentorContact(
 	existingContactID *uuid.UUID, // nil for Add, non-nil for Update
 	newContact *domain.NewContact,
 ) error {
-	if newContact.Email == nil || newContact.MentorshipType == nil {
-		return ValidationError("mentor must have both email and mentorshipType")
+	if newContact.Email == nil {
+		return ValidationError("mentor must have email")
 	}
 
 	// Email must not equal the user's own email
@@ -103,7 +103,7 @@ func (s *ContactService) handleMentorContact(
 		excludedUUID = uuid.Nil
 	}
 
-	exists, err := s.repo.UserHasMentorExcept(ctx, userID, *newContact.Email, *newContact.MentorshipType, excludedUUID)
+	exists, err := s.repo.UserHasMentorExcept(ctx, userID, *newContact.Email, excludedUUID)
 	if err != nil {
 		return DBError{Err: err}
 	}

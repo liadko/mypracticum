@@ -1,4 +1,4 @@
-package com.practicum.admin.dto;
+package com.practicum.admin.dto.approve;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;

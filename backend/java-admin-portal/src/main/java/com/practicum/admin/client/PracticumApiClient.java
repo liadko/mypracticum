@@ -1,21 +1,23 @@
 package com.practicum.admin.client;
 
-import com.practicum.admin.dto.BulkApproveRequest;
-import com.practicum.admin.dto.BulkResultApproval;
-import com.practicum.admin.dto.ImportResponse;
+import com.practicum.admin.dto.approve.BulkApproveRequest;
+import com.practicum.admin.dto.approve.BulkApproveResult;
+import com.practicum.admin.dto.StudentImportResponse;
+import com.practicum.admin.dto.UserResponse;
+import com.practicum.admin.dto.manual_entry.BulkAddManualEntriesRequest;
+import com.practicum.admin.dto.manual_entry.BulkAddManualEntriesResult;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @FeignClient(name="go-practicum-api", url="${practicum.api.base-url}")
 public interface PracticumApiClient {
 
 	@PostMapping(value = "/admin/students/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	ImportResponse importStudents(
+    StudentImportResponse importStudents(
 			@RequestPart("file") MultipartFile file,
 			@RequestParam("dryRun") boolean dryRun
 	);
@@ -23,6 +25,22 @@ public interface PracticumApiClient {
 	@PostMapping(value = "/admin/entries/approve",
 			consumes = MediaType.APPLICATION_JSON_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	BulkResultApproval bulkApprove(@RequestBody BulkApproveRequest request);
+    BulkApproveResult bulkApprove(@RequestBody BulkApproveRequest request);
+
+    /**
+     * Calls the Go API's GET /admin/students endpoint.
+     */
+    @GetMapping(value = "/admin/students", produces = MediaType.APPLICATION_JSON_VALUE)
+    List<UserResponse> getStudents();
+
+    /**
+     * Calls the Go API's POST /admin/entries/manual endpoint.
+     */
+    @PostMapping(value = "/admin/entries/manual",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    BulkAddManualEntriesResult bulkAddManualEntries(
+            @RequestBody BulkAddManualEntriesRequest request
+    );
 
 }

@@ -4,9 +4,10 @@ import MentorPage from './MentorPage'
 import ClientPage from './ClientPage'
 import '../DesktopApp.css'
 import { pageTitle } from '../../i18n/he'
-import { contactTypes } from '../../types'
+import { contactTypes, type ContactType } from '../../types'
 import { useEntries } from '../../context/EntriesContext'
 import { useContacts } from '../../context/ContactsContext'
+import { useAuth } from '../../context/AuthContext'
 
 
 const countGoals = { 'client': 300, 'mentor': 150, 'therapist': 100 }
@@ -15,6 +16,7 @@ export default function StudentLayout() {
 
     const { entries } = useEntries()
     const { activePage, setActivePage, getContactById } = useContacts()
+    const { getPastTherapyHours } = useAuth()
 
     const entryCounts = useMemo(() => {
         const m: Record<string, number> = { 'client': 0, 'mentor': 0, 'therapist': 0 };
@@ -30,6 +32,47 @@ export default function StudentLayout() {
         return entries.filter(e => getContactById(e.contactId)?.type === "mentor" && !e.approved).length;
     }, [entries]);
 
+    const pastHours = getPastTherapyHours() ?? 0;
+
+    const tooltip = (page: ContactType) => {
+
+        return (
+            <span
+                className='tooltip-text'
+                onMouseDown={(e: any) => e.stopPropagation()}
+                onClick={(e: any) => e.stopPropagation()}
+            >
+                {(() => {
+                    switch (page) {
+                        case 'mentor':
+                            return (
+                                <>
+                                    דיווחים מאושרים: {entryCounts[page]}<br />
+                                    ממתינים לאישור: {awaitingApproval}<br />
+                                </>
+                            )
+                        case 'therapist':
+                            return (
+                                <>
+                                    שעות שדווחו: {entryCounts[page]}<br />
+                                    {pastHours > 0 && (
+                                        <>שעות טיפול עבר: {pastHours}<br /></>
+                                    )}
+                                </>
+                            )
+                        case 'client':
+                            return (
+                                <>
+                                    שעות שדווחו: {entryCounts[page]}<br />
+                                </>
+                            )
+                    }
+                })()}
+            </span>
+        )
+
+    }
+
     return (
         <>
             {/* NAV BAR */}
@@ -41,10 +84,7 @@ export default function StudentLayout() {
                         onClick={() => setActivePage(page)}
                     >
 
-                        {page === "mentor" ?
-                            <span className='tooltip-text' onMouseDown={(e: any) => e.stopPropagation()} onClick={(e: any) => e.stopPropagation()}>דיווחים מאושרים: {entryCounts[page]}<br />ממתינים לאישור: {awaitingApproval}<br />כמות נדרשת: {countGoals[page]}</span> :
-                            <span className='tooltip-text' onMouseDown={(e: any) => e.stopPropagation()} onClick={(e: any) => e.stopPropagation()}>שעות שדווחו: {entryCounts[page]}<br />כמות נדרשת: {countGoals[page]}</span>
-                        }
+                        {tooltip(page)}
                         <span className="nav-button--title">
                             {pageTitle[page]}
                         </span>

@@ -1,4 +1,4 @@
-import type { Entry, NewEntry } from '../types'
+import type { Entry, ManualEntry, NewEntry } from '../types'
 import { apiFetch } from './client'
 
 /**
@@ -13,6 +13,21 @@ export async function fetchAllEntries(
     }
     const data: Entry[] = await res.json()
     return data
+}
+
+/**
+ * Fetch all manual entries for the current user.
+ */
+export async function fetchManualEntries(): Promise<ManualEntry[]> {
+    // I'm assuming the Go endpoint is /api/v1/manual-entries
+    // and that it's protected by the same auth as /entries
+    const res = await apiFetch(`/api/v1/manual-entries`);
+
+    if (!res.ok) {
+        throw new Error(`Failed to load manual entries: ${res.status} ${res.statusText}`);
+    }
+    const data: ManualEntry[] = await res.json();
+    return data;
 }
 
 
@@ -51,17 +66,17 @@ export async function deleteEntry(
 
 
 export async function setEntryApproval(
-  entryId: string,
-  approved: boolean
+    entryId: string,
+    approved: boolean
 ): Promise<Entry> {
-  const res = await apiFetch(`/api/v1/entries/${encodeURIComponent(entryId)}/approval`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ approved }),
-  })
-  if (!res.ok) {
-    throw new Error(`Failed to set approval: ${res.status} ${res.statusText}`)
-  }
-  const entry: Entry = await res.json()
-  return entry
+    const res = await apiFetch(`/api/v1/entries/${encodeURIComponent(entryId)}/approval`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approved }),
+    })
+    if (!res.ok) {
+        throw new Error(`Failed to set approval: ${res.status} ${res.statusText}`)
+    }
+    const entry: Entry = await res.json()
+    return entry
 }

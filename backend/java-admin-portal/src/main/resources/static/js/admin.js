@@ -12,6 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const approveIdsInput = document.getElementById('approve-ids-input');
     const approveButton = document.getElementById('approve-button');
 
+    // --- NEW ELEMENTS FOR GROUP CREATION ---
+    const createGroupForm = document.getElementById('create-group-form');
+    const groupTitleInput = document.getElementById('group-title-input');
+    const studentSearchInput = document.getElementById('student-search-input');
+    const studentListContainer = document.getElementById('student-list-container');
+    const createGroupButton = document.getElementById('create-group-button');
+
+    let allStudents = [];
+
     // --- Attach Event Listener for Student Import ---
     if (importForm) {
         importForm.addEventListener('submit', handleImportSubmit);
@@ -19,7 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (approveForm) {
         approveForm.addEventListener('submit', handleApproveSubmit);
     }
+    if (createGroupForm) {
+        // Handle form submission
+        createGroupForm.addEventListener('submit', handleGroupSubmit);
 
+        // Handle live searching in the student list
+        studentSearchInput.addEventListener('input', handleStudentSearch);
+    }
+
+    loadInitialData();
     /**
      * Handles the submission of the student import form.
      */
@@ -140,6 +157,240 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+    /**
+     * Fetches students from the server on page load.
+     */
+    async function loadInitialData() {
+        try {
+            logMessage('Loading initial data...');
+            // Fetch students
+            const studentResponse = await fetch('/admin-portal/students');
+
+            if (!studentResponse.ok) {
+                throw new Error(`Failed to load students: ${studentResponse.status}`);
+            }
+            allStudents = await studentResponse.json();
+            // Store the initial checked state on the object itself
+            allStudents.forEach(s => s.isSelected = false);
+            renderStudents(allStudents); // Render all students initially
+            logMessage(`Loaded ${allStudents.length} students.`);
+
+        } catch (error) {
+            logMessage(`FATAL ERROR: ${error.message}`);
+            if (studentListContainer) studentListContainer.innerHTML = '<p class="loading-text">Error loading data</p>';
+        }
+    }
+
+
+    /**
+     * Renders the list of students into the container.
+     * @param {Array} studentsToRender - The list of student objects to display.
+     */
+    function renderStudents(studentsToRender) {
+        if (!studentListContainer) return;
+
+        studentListContainer.innerHTML = ''; // Clear the list
+
+        if (studentsToRender.length === 0) {
+            studentListContainer.innerHTML = '<p class="loading-text">No students found matching search.</p>';
+            return;
+        }
+
+        studentsToRender.forEach(student => {
+            const item = document.createElement('div');
+            item.className = 'student-list-item';
+
+            // We will store the student's ID on the checkbox
+            item.innerHTML = `
+                <input type="checkbox" 
+                       class="student-select-check" 
+                       data-id="${student.id}"
+                       ${student.isSelected ? 'checked' : ''}>
+                
+                <div class="student-info">
+                    <div class="name">${student.firstName} ${student.lastName}</div>
+                    <div class="email">${student.email}</div>
+                    <div class="uuid">${student.id}</div>
+                </div>
+                
+                <input type="number" 
+                       class="student-hours-input" 
+                       placeholder="Hrs" 
+                       value="${student.hoursAssigned || ''}"
+                       ${student.isSelected ? '' : 'disabled'}>
+            `;
+
+            // --- Add event listeners for this new row ---
+            const checkbox = item.querySelector('.student-select-check');
+            const hoursInput = item.querySelector('.student-hours-input');
+
+            // 1. Toggle the 'disabled' state of the hours input
+            checkbox.addEventListener('change', () => {
+                const studentId = checkbox.dataset.id;
+                // Find the student in our main array to update its state
+                const studentInState = allStudents.find(s => s.id === studentId);
+
+                if (checkbox.checked) {
+                    hoursInput.disabled = false;
+                    studentInState.isSelected = true;
+                    // Default to 10 hours if it's empty
+                    if (!hoursInput.value) {
+                        hoursInput.value = 10;
+                        studentInState.hoursAssigned = 10;
+                    }
+                } else {
+                    hoursInput.disabled = true;
+                    studentInState.isSelected = false;
+                }
+            });
+
+            // 2. Update the state when hours are changed
+            hoursInput.addEventListener('input', () => {
+                const studentId = checkbox.dataset.id;
+                const studentInState = allStudents.find(s => s.id === studentId);
+                studentInState.hoursAssigned = parseInt(hoursInput.value) || 0;
+            });
+
+            studentListContainer.appendChild(item);
+        });
+    }
+
+    /**
+     * Handles the 'input' event on the student search bar.
+     * When cleared, it re-sorts the list to show selected students first.
+     */
+    function handleStudentSearch(event) {
+        const searchTerm = event.target.value.toLowerCase().trim();
+
+        // If search is empty, show all students, with selected ones on top
+        if (!searchTerm) {
+            // Create a sorted copy
+            const sortedList = [...allStudents].sort((a, b) => {
+                // 1. Primary sort: selected status (selected ones on top)
+                if (a.isSelected && !b.isSelected) {
+                    return -1; // a comes first
+                }
+                if (!a.isSelected && b.isSelected) {
+                    return 1; // b comes first
+                }
+
+                // 2. Secondary sort: alphabetical by last name (if status is the same)
+                const nameA = `${a.lastName} ${a.firstName}`.toLowerCase();
+                const nameB = `${b.lastName} ${b.firstName}`.toLowerCase();
+
+                if (nameA < nameB) return -1;
+                if (nameA > nameB) return 1;
+                return 0;
+            });
+
+            renderStudents(sortedList);
+            return;
+        }
+
+        // --- Filter logic remains the same ---
+        // Filter the main list
+        const filteredStudents = allStudents.filter(student => {
+            const name = `${student.firstName} ${student.lastName}`.toLowerCase();
+            const email = student.email.toLowerCase();
+            const id = student.id.toLowerCase();
+            return name.includes(searchTerm) ||
+                email.includes(searchTerm) ||
+                id.includes(searchTerm);
+        });
+
+        // We do NOT sort the filtered list, as it would
+        // be confusing while the user is actively searching.
+        renderStudents(filteredStudents);
+    }
+
+    /**
+     * Handles submission of the new group form.
+     */
+    async function handleGroupSubmit(event) {
+        event.preventDefault();
+
+        const titleAsCause = groupTitleInput.value.trim();
+        if (!titleAsCause) {
+            logMessage("Error: Please provide a Group Title to use as the 'cause'.");
+            return;
+        }
+
+        // Find all selected students *from the state*
+        // This works even if they are hidden by the search filter
+        const selectedStudents = allStudents
+            .filter(student => student.isSelected)
+            .map(student => ({
+                studentId: student.id,
+                hoursAssigned: parseInt(student.hoursAssigned) || 0
+            }));
+
+        if (selectedStudents.length === 0) {
+            logMessage("Error: No students selected. Please check at least one student.");
+            return;
+        }
+
+        // --- NEW ---
+        // Transform the selected students into the
+        // BulkAddManualEntriesRequest payload.
+        const entriesPayload = selectedStudents.map(student => ({
+            userId: student.studentId,
+            hours: student.hoursAssigned,
+            cause: titleAsCause,
+            type: 'client' // Hardcoding 'client' as the default type
+        }));
+
+        const payload = {
+            entries: entriesPayload
+        };
+
+        // This is the new endpoint we created in the service
+        const url = '/admin-portal/entries/manual';
+        createGroupButton.disabled = true;
+        createGroupButton.textContent = 'Adding Entries...';
+        logMessage(`Adding ${entriesPayload.length} manual entries with cause: '${titleAsCause}'...`);
+
+        try {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const contentType = resp.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await resp.json(); // This will be the BulkAddManualEntriesResult
+                if (resp.ok) {
+                    logMessage('SUCCESS: Bulk manual entry complete.');
+                    logMessage(JSON.stringify(data, null, 2));
+                    // Optional: reset the form after success
+                    // createGroupForm.reset();
+                    // allStudents.forEach(s => {
+                    //    s.isSelected = false;
+                    //    s.hoursAssigned = 0;
+                    // });
+                    // renderStudents(allStudents);
+                } else {
+                    logMessage(`ERROR (${resp.status}): ${data.error || 'request failed'}`);
+                    if (data.failures) {
+                        logMessage(`Details: ${JSON.stringify(data.failures, null, 2)}`);
+                    } else if (data.details) {
+                        logMessage(`Details: ${JSON.stringify(data.details, null, 2)}`);
+                    }
+                }
+            } else {
+                const text = await resp.text();
+                logMessage(`ERROR (${resp.status}): Unexpected response from server.`);
+                logMessage(text);
+            }
+
+        } catch (e) {
+            logMessage('FATAL ERROR: Could not reach server.');
+            logMessage(e.message);
+        } finally {
+            createGroupButton.disabled = false;
+            createGroupButton.textContent = 'Add Manual Hours for Group';
+        }
+    }
     /**
      * A helper function to print messages to the log box on the page.
      * @param {string} message - The message to log.

@@ -21,6 +21,24 @@ type NewEntry struct {
 	DateStr   string // "YYYY-MM-DD"
 }
 
+// ManualEntry represents an administrative adjustment to a user's hours.
+type ManualEntry struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID // The user this entry belongs to
+	Hours     int
+	Cause     string // The administrative reason for the entry
+	Type      string // "client", "mentor", or "therapist"
+	CreatedAt time.Time
+}
+
+// NewManualEntry is the input struct for creating a new manual entry.
+type NewManualEntry struct {
+	UserID uuid.UUID
+	Hours  int
+	Cause  string
+	Type   string
+}
+
 // Validate checks all business rules and returns a ValidationError if anything is wrong.
 func (e Entry) Validate() error {
 	var errs []string
@@ -72,4 +90,18 @@ func NewEntryFrom(userID uuid.UUID, ne NewEntry) (Entry, error) {
 	}
 
 	return entry, nil
+}
+
+// FailedManualEntry details a single entry that failed to be created
+// during a bulk operation.
+type FailedManualEntry struct {
+	Input NewManualEntry `json:"input"`
+	Error string         `json:"error"`
+}
+
+// BulkAddManualEntriesResult summarizes the outcome of the bulk operation.
+type BulkAddManualEntriesResult struct {
+	CreatedCount int                 `json:"createdCount"`
+	FailedCount  int                 `jsonL:"failedCount"`
+	Failures     []FailedManualEntry `json:"failures"`
 }
