@@ -8,6 +8,8 @@ interface Props {
 }
 
 export function ContactRow({ contact, onEdit }: Props) {
+  const isTrainingCenter = contact.type == 'client' && contact.clientInstitution === 'trainingCenter';
+
   return (
     <div className="contact-row" onClick={() => onEdit(contact.id)}>
       <div className="contact-row__details">
@@ -30,8 +32,12 @@ export function ContactRow({ contact, onEdit }: Props) {
 
         {contact.type === 'client' && (
           <div className="contact-row__extras">
-            <div className="contact-row__institution">{contact.clientInstitution}</div>
-          </div>
+            <div className="contact-row__institution">{isTrainingCenter ? "מרכז הכשרה" : "קליניקה פרטית"}</div>
+            {isTrainingCenter && contact.clientTrainingCenterInfo && (
+              <div className="contact-row__training-center">
+                {contact.clientTrainingCenterInfo}
+              </div>
+            )}          </div>
         )}
       </div>
 

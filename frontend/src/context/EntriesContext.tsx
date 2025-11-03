@@ -200,6 +200,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
     }, [entries, setApproval])
 
+
     const unapprovedCounts = useMemo(() => {
         const m: Record<string, number> = {};
         for (const e of entries) {

@@ -50,3 +50,10 @@
     width: 1.2rem;
     margin-top: 3px;
 }
+
+/* Add this to ContactRow.css */
+.contact-row__training-center {
+    font-size: 0.95em;
+
+    /* For RTL text, this adds space */
+}

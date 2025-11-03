@@ -27,7 +27,6 @@ export default function StudentLayout() {
         return m;
     }, [entries]);
 
-    // the same thing for manual entries
     const manualEntryCount = useMemo(() => {
         const m: Record<string, number> = { 'client': 0, 'mentor': 0, 'therapist': 0 };
         for (const me of manualEntries) {

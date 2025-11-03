@@ -42,7 +42,7 @@ export function EditContactsModal({ initialType, isInitialCreation, onCloseModal
     function renderMainView() {
         return (
             <>
-                <nav className="edit-modal__nav">
+                <nav className={`edit-modal__nav ${currentPage}-page-theme`}>
                     <button
                         className={`edit-modal__nav-button ${currentPage === 'client' ? 'active' : ''}`}
                         onClick={() => setPage('client')}
@@ -57,7 +57,7 @@ export function EditContactsModal({ initialType, isInitialCreation, onCloseModal
                     >מטפלים אישיים</button>
                 </nav>
 
-                <div className="edit-modal__content">
+                <div className={`edit-modal__content ${currentPage}-page-theme`}>
                     {contacts.map(c => (
                         <ContactRow
                             key={c.id}
