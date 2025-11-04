@@ -44,7 +44,7 @@ export default function SignatureModal({
         </h2>
 
         <p className="signature-modal__text">
-          האתר מיועד לדיווח על שעות הדרכה מעשית
+          .האתר מיועד לדיווח על שעות הדרכה מעשית
           <br />
           בחתימתכם אתם מאשרים כי כל הדיווחים שיתבצעו באתר הם נכונים ומדויקים
         </p>
@@ -62,7 +62,7 @@ export default function SignatureModal({
               width: 300,
               height: 150,
               className: 'signature-modal__canvas',
-              
+
             }}
             onEnd={handleEnd}
           />

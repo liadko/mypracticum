@@ -50,3 +50,9 @@ export const pageTitle: Record<ContactType, string> = {
   mentor: 'הדרכה',
   therapist: 'טיפול אישי',
 }
+
+export const pageTitleDefinite: Record<ContactType, string> = {
+  client: 'המטופלים הפרטיים',
+  mentor: 'ההדרכה',
+  therapist: 'הטיפול האישי',
+}

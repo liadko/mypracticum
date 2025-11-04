@@ -4,11 +4,10 @@ import "log"
 
 // AppConfig aggregates all sub-configs.
 type AppConfig struct {
-	Port   string       `mapstructure:"port"`
-	Auth   AuthConfig   `mapstructure:"auth"`
-	Smoove SmooveConfig `mapstructure:"smoove"`
-	SMTP   SMTPConfig   `mapstructure:"smtp"`
-	OTP    OTPConfig    `mapstructure:"otp"`
+	Port string     `mapstructure:"port"`
+	Auth AuthConfig `mapstructure:"auth"`
+	SMTP SMTPConfig `mapstructure:"smtp"`
+	OTP  OTPConfig  `mapstructure:"otp"`
 }
 
 // Validate fails fast if any required config value is missing or invalid.
@@ -27,12 +26,6 @@ func (c AppConfig) Validate() {
 	}
 	if c.Auth.JWTIssuer == "" {
 		missing = append(missing, "auth.jwtIssuer")
-	}
-	if c.Smoove.BaseURL == "" {
-		missing = append(missing, "smoove.baseURL")
-	}
-	if c.Smoove.APIKey == "" {
-		missing = append(missing, "smoove.apiKey")
 	}
 
 	// smtp fields (ensure all required smtp configs are present)

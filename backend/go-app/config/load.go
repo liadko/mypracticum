@@ -18,7 +18,6 @@ func Load() AppConfig {
 	viper.BindEnv("port", "PORT")
 	viper.BindEnv("auth.databaseURL", "DATABASE_URL")
 	viper.BindEnv("auth.jwtSecret", "JWT_SECRET")
-	viper.BindEnv("smoove.apiKey", "SMOOVE_API_KEY")
 	// optional SMTP bindings
 	viper.BindEnv("smtp.host", "SMTP_HOST")
 	viper.BindEnv("smtp.port", "SMTP_PORT")
@@ -34,7 +33,6 @@ func Load() AppConfig {
 	required := []string{
 		"auth.databaseURL",
 		"auth.jwtSecret",
-		"smoove.apiKey",
 	}
 	for _, key := range required {
 		if !viper.IsSet(key) || viper.GetString(key) == "" {

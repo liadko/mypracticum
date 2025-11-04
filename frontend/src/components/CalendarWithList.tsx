@@ -5,7 +5,7 @@ import { format, parseISO } from 'date-fns'
 import type { Contact, Entry } from '../types'
 import './CalendarWithList.css'
 import { EditContactsModal } from './Contacts/EditContactsModal'
-import { contactLabelPluralLong, contactLabelSingularGenderless, contactLabelSingularIndefinite, pageHeaderText } from '../i18n/he'
+import { contactLabelPluralLong, contactLabelSingularGenderless, contactLabelSingularIndefinite, pageHeaderText, pageTitle, pageTitleDefinite } from '../i18n/he'
 import { ContactDropdown } from './Contacts/ContactDropdown'
 import { useContacts } from '../context/ContactsContext'
 
@@ -140,16 +140,54 @@ export function CalendarWithList({
     }
 
     function createFirstContactMessage(): ReactNode {
+        let bodyText: ReactNode;
+
+        switch (contactType) {
+            case 'client':
+                bodyText = (
+                    <>
+                        כאן תוכלו לסמן את השעות שצברתם עם המטופלים שלכם
+                        ולעקוב אחרי ההתקדמות שלכם במהלך השנה.
+                        <br />
+                        כדי להתחיל, יש ליצור מטופל/ת פרטי/ת חדש/ה
+                        כדי שנוכל לשייך אליו את השעות.
+                    </>
+                );
+                break;
+
+            case 'mentor':
+                bodyText = (
+                    <>
+                        כאן תוכלו לסמן את השעות שצברתם עם המדריכים
+                        המלווים אתכם במהלך השנה.
+                        <br />
+                        כדי להתחיל, יש ליצור מדריך/ה חדש/ה
+                        כדי שנוכל לשייך אליו את השעות.
+                    </>
+                );
+                break;
+
+            case 'therapist':
+                bodyText = (
+                    <>
+                        כאן תוכלו לסמן את השעות שצברתם במסגרת הטיפול האישי שלכם,
+                        עם המטפל/ת שמלווה אתכם לאורך השנה.
+                        <br />
+                        כדי להתחיל, יש ליצור מטפל/ת אישי/ת חדש/ה
+                        כדי שנוכל לשייך אליו את השעות.
+                    </>
+                );
+                break;
+
+        }
+
         return (
             <div className="first-contact-message" dir="rtl">
                 <h2 className="first-contact-message__title">
-                    ברוכים הבאים לתמורות פרקטיקום
+                    ברוכים הבאים לאזור  {pageTitleDefinite[contactType]}
                 </h2>
                 <p className="first-contact-message__text">
-                    כאן תוכלו לסמן את השעות שצברתם עם {contactLabelPluralLong[contactType]}.
-                    <br />
-                    לפני שמתחילים,
-                    צריך ליצור {contactLabelSingularIndefinite[contactType]} חדש כדי שנוכל לשייך אליו את השעות.
+                    {bodyText}
                 </p>
                 <button className="first-contact-message__button" onClick={() => setEditOpen(true)}>
                     צרו {contactLabelSingularGenderless[contactType]} חדש/ה
