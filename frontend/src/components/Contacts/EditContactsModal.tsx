@@ -5,7 +5,7 @@ import type { ContactType, FormMode } from '../../types'
 import { ContactRow } from './ContactRow'
 import { ContactForm } from './ContactForm'
 import './EditContactsModal.css'
-import { contactLabelSingularBigenderIndefinite, contactLabelSingularDefinite } from '../../i18n/he'
+import { contactLabelSingularBigenderIndefinite } from '../../i18n/he'
 
 interface Props {
     initialType: ContactType

@@ -1,7 +1,6 @@
 import { useEntries } from '../context/EntriesContext'
 import { useContacts } from '../context/ContactsContext'
 import './DesktopApp.css'
-import { type User } from '../types'
 import { useAuth } from '../context/AuthContext'
 import SignatureModal from '../components/Profile/SignatureModal'
 import StudentLayout from './StudentSide/StudentLayout'

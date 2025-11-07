@@ -5,7 +5,7 @@ import { format, parseISO } from 'date-fns'
 import type { Contact, Entry } from '../types'
 import './CalendarWithList.css'
 import { EditContactsModal } from './Contacts/EditContactsModal'
-import { contactLabelPluralLong, contactLabelSingularGenderless, contactLabelSingularIndefinite, pageHeaderText, pageTitle, pageTitleDefinite } from '../i18n/he'
+import { contactLabelSingularGenderless, pageHeaderText, pageTitleDefinite } from '../i18n/he'
 import { ContactDropdown } from './Contacts/ContactDropdown'
 import { useContacts } from '../context/ContactsContext'
 
