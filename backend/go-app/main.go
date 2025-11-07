@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"log"
 	"os"
 
@@ -22,6 +23,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
+
+// This tells Go to embed the files into the 'otpTemplate'
+// and 'inviteTemplate' string variables at compile time.
+//
+//go:embed "pkg/notifier/smtp/templates/otp.html"
+var otpTemplate string
+
+//go:embed "pkg/notifier/smtp/templates/invite.html"
+var inviteTemplate string
 
 func main() {
 	log.Print("------ [SERVER RESTARTING] ------")
@@ -48,7 +58,6 @@ func main() {
 
 	jwtMgr := jwt.NewManager(cfg.Auth)
 
-	otpTemplate, inviteTemplate := loadSMTPTemplates("pkg/notifier/smtp/templates/otp.html", "pkg/notifier/smtp/templates/invite.html")
 	smtpNotifier := smtpPkg.NewSMTPNotifier(cfg.SMTP, otpTemplate, inviteTemplate)
 
 	// 3. Build services

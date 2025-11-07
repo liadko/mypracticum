@@ -9,7 +9,7 @@ smoove:
 otp:
   codeLength:          6
   expiry:             "5m"
-  sendWindow:         "2m"
+  sendWindow:         "10s"
   globalOTPWindow:    "3s"
 smtp:
   host: "mail.temurot.com"
