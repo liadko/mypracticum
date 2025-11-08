@@ -95,3 +95,17 @@ export async function updateSignature(
   if (!res.ok) throw new Error(`update failed: ${res.status}`)
   return res.json()  // { signature: "<base64-string>" }
 }
+
+
+/**
+ * Pings the Cloud Run instance to wake it up.
+ * we don't care about the response.
+ */
+export function pingServer(): void {
+  fetch('/api/v1/ping')
+    .catch(err => {
+      // Non-critical. If this fails, the user just
+      // experiences the cold start on the first real API call.
+      console.warn('Server pre-warm ping failed:', err)
+    })
+}

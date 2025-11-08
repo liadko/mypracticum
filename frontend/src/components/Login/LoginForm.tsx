@@ -40,7 +40,6 @@ export default function LoginForm({ onSubmit, previouslySubmittedEmail, secondsL
         placeholder="Email"
         value={email}
         onChange={e => setEmail(e.target.value)}
-        //onBlur={() => setTouched(true)}
         required
       />
       <button

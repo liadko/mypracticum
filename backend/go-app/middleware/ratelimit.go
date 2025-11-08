@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"log"
 	"mypracticum/backend/pkg/cache"
 	"net/http"
 
@@ -14,6 +15,7 @@ func OTPRateLimit(limiter cache.Limiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// build a key for this client
 		key := fmt.Sprintf("otp_rl:%s", c.ClientIP())
+		log.Printf("OTPRateLimit key: %s", key)
 
 		ok, err := limiter.Allow(key)
 		if err != nil {
@@ -22,6 +24,7 @@ func OTPRateLimit(limiter cache.Limiter) gin.HandlerFunc {
 			return
 		}
 		if !ok {
+			log.Printf("[WARN] OTPRateLimit (the global sending one) blocked for key: %s", key)
 			c.JSON(http.StatusTooManyRequests, gin.H{
 				"error": "please wait a couple of seconds before requesting a new code",
 			})

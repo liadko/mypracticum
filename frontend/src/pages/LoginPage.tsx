@@ -35,7 +35,6 @@ export default function LoginPage() {
     }
 
 
-    //setLoading(true)
     try {
       await submitEmail(enteredEmail)
       setIsOtpPage(true)
@@ -56,8 +55,8 @@ export default function LoginPage() {
     //setLoading(true)
     try {
       await verifyOtp(code)
-    } catch (err : unknown) {
-      if(err instanceof AuthError)
+    } catch (err: unknown) {
+      if (err instanceof AuthError)
         showError(err.message, 2000)
       else
         showError('בדיקות הקוד נכשלה. צרו קשר אם הבעיה מתמשכת')
@@ -93,7 +92,7 @@ export default function LoginPage() {
 
         <div className="login-modal__body">
           {!isOtpPage ? (
-            <LoginForm onSubmit={handleEmailSubmit}  previouslySubmittedEmail={submittedEmail ?? ""} secondsLeft={secondsLeft}/>
+            <LoginForm onSubmit={handleEmailSubmit} previouslySubmittedEmail={submittedEmail ?? ""} secondsLeft={secondsLeft} />
           ) : (
             <OtpForm
               email={submittedEmail!}
@@ -105,11 +104,19 @@ export default function LoginPage() {
 
         </div>
         {/* countdown / resend notice */}
-        {secondsLeft > 0 && (
-          <div className="login-modal__timer">
-            ניתן לבקש קוד חדש בעוד {fmt(secondsLeft)}
-          </div>
-        )}
+
+        {isOtpPage
+          ? (
+            <div className="login-modal__resend">
+              לא קיבלת קוד? <button className="login-modal__resend-button" onClick={() => setIsOtpPage(false)}>שלח שוב</button>
+            </div>
+          )
+          : (secondsLeft > 0 &&
+            <div className="login-modal__timer">
+              ניתן לבקש קוד חדש בעוד {fmt(secondsLeft)}
+            </div>
+          )
+        }
       </div>
     </div>
   )

@@ -38,6 +38,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true)    // ← start “loading”
   const OTP_TIMEOUT = 2 * 60 * 1000  // 2 minutes in ms
 
+  // wake up server on app start
+  useEffect(() => {
+    authApi.pingServer()
+  }, [])
+
   // load any previous timestamp
   const [otpSentAt, setOtpSentAt] = useState<number>(() => {
     const saved = localStorage.getItem('otpSentAt')

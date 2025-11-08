@@ -87,7 +87,7 @@ func main() {
 
 	// 6. Mount routes
 	limiterMw := middleware.OTPRateLimit(globalOTPLimiter)
-	handlers.RegisterPublic(r, otpH, limiterMw)
+	handlers.RegisterOTPPublic(r, otpH, limiterMw)
 
 	authMw := middleware.JWTMiddleware(tokenSvc)
 	handlers.RegisterProtected(r, entryH, contactH, userH, authMw)

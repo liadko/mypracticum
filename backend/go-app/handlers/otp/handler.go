@@ -80,3 +80,8 @@ func (h *OTPHandler) Verify(ctx *gin.Context) {
 	}
 	ctx.JSON(200, gin.H{"token": token})
 }
+
+// Ping handles GET on '/ping' to wake server up
+func (h *OTPHandler) Ping(ctx *gin.Context) {
+	ctx.JSON(200, gin.H{"message": "pong"})
+}

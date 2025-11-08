@@ -9,15 +9,15 @@ import (
 	userPkg "mypracticum/backend/handlers/user"
 )
 
-// RegisterPublic mounts all public endpoints
-// ADD parameter oauthH *oauthPkg.OAuthHandler
-func RegisterPublic(r *gin.Engine, otpH *otpPkg.OTPHandler, otpLimiter gin.HandlerFunc) {
+// RegisterOTPPublic mounts all public endpoints for OTP handling
+func RegisterOTPPublic(r *gin.Engine, otpH *otpPkg.OTPHandler, otpLimiter gin.HandlerFunc) {
 	pub := r.Group("/api/v1")
 	pub.Use(otpLimiter)
 
 	pub.POST("/otp/send", otpH.Send)
 	pub.POST("/otp/verify", otpH.Verify)
 
+	pub.GET("/ping", otpH.Ping)
 }
 
 // RegisterProtected mounts everything behind auth
