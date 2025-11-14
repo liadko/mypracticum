@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
 } from 'react'
 import * as authApi from '../api/authApi'
 import type { FullName, User } from '../types'
@@ -17,6 +18,8 @@ interface AuthProviderProps {
 interface AuthContextType {
   token: string | null
   user: User | null
+
+  isMobile: boolean
   isLoading: boolean
 
   submitEmail: (email: string) => Promise<void>
@@ -36,7 +39,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [token, setToken] = useState<string | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)    // ← start “loading”
-  const OTP_TIMEOUT = 2 * 60 * 1000  // 2 minutes in ms
+  const OTP_TIMEOUT = 60 * 1000  // 1 minutes in ms
 
   // wake up server on app start
   useEffect(() => {
@@ -70,6 +73,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setToken(t)
     }
   }, [])
+
+  const isMobile = useMemo(() => {
+    const MOBILE_BREAKPOINT = 768;
+    return window.innerWidth < MOBILE_BREAKPOINT
+  }, []);
 
   // ② Whenever token changes, fetch (or clear) the user (with up to 3 retries)
   useEffect(() => {
@@ -205,6 +213,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       value={{
         token,
         user,
+        isMobile,
         isLoading,
         submitEmail,
         verifyOtp,

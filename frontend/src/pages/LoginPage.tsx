@@ -6,11 +6,12 @@ import '../components/Login/LoginPage.css'
 import { showError, showSuccess } from '../utils/toast'
 import { isValidEmail } from '../domain/user'
 import { AuthError } from '../api/errors'
+import { MobileBlocker } from '../components/Login/MobileBlocker'
 
 
 export default function LoginPage() {
   //const navigate = useNavigate()
-  const { submitEmail, verifyOtp, secondsLeft, submittedEmail } = useAuth()
+  const { submitEmail, verifyOtp, secondsLeft, submittedEmail, isMobile } = useAuth()
 
   const [isOtpPage, setIsOtpPage] = useState<boolean>(false)
 
@@ -74,7 +75,7 @@ export default function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-modal">
-        <div className="login-modal__header">
+        <div className="login-modal__header" dir="rtl">
           {isOtpPage && (
             <button
               className="login-modal__close"
@@ -91,28 +92,28 @@ export default function LoginPage() {
         </div>
 
         <div className="login-modal__body">
-          {!isOtpPage ? (
+          {isMobile ? (
+            <MobileBlocker />
+          ) : !isOtpPage ? (
             <LoginForm onSubmit={handleEmailSubmit} previouslySubmittedEmail={submittedEmail ?? ""} secondsLeft={secondsLeft} />
           ) : (
             <OtpForm
               email={submittedEmail!}
               onSubmitOtp={handleOtpSubmit}
             />
-          )}
-
-
-
+          )
+          }
         </div>
-        {/* countdown / resend notice */}
 
+        {/* countdown / resend notice */}
         {isOtpPage
           ? (
-            <div className="login-modal__resend">
-              לא קיבלת קוד? <button className="login-modal__resend-button" onClick={() => setIsOtpPage(false)}>שלח שוב</button>
+            <div className="login-modal__subtext">
+              'לא קיבלת קוד? המתן מספר שניות ובדוק ב'ספאם
             </div>
           )
           : (secondsLeft > 0 &&
-            <div className="login-modal__timer">
+            <div className="login-modal__subtext">
               ניתן לבקש קוד חדש בעוד {fmt(secondsLeft)}
             </div>
           )
