@@ -14,8 +14,10 @@ export default function ProfileModal({
 
     const { logout, user, saveProfile } = useAuth()
 
-    const [firstName, setFirstName] = useState(user?.firstName || '')
-    const [lastName, setLastName] = useState(user?.lastName || '')
+    if (!user) return <div>שגיאה בטעינת המשתמש</div>
+
+    const [firstName, setFirstName] = useState(user.firstName || '')
+    const [lastName, setLastName] = useState(user.lastName || '')
     const [saving, setSaving] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
 
@@ -91,9 +93,11 @@ export default function ProfileModal({
                         יציאה מהחשבון
                     </button>
 
-                    <button className="profile-modal__hyperlink" onClick={() => navigate('/admin', { replace: true })}>
-                        כניסה לעמוד הניהול
-                    </button>
+                    {user.roles.includes('admin') &&
+                        <button className="profile-modal__hyperlink" onClick={() => navigate('/admin', { replace: true })}>
+                            כניסה לעמוד הניהול
+                        </button>
+                    }
                 </div>
 
                 {showConfirm && (

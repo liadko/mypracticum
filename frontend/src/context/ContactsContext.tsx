@@ -9,8 +9,9 @@ import React, {
 import { contactTypes, type Contact, type ContactType, type NewContact } from '../types'
 import * as domain from '../domain/contacts'
 import * as api from '../api/contactsApi'
-import { showAsyncToast } from '../utils/toast'
+import { showAsyncToast, showAsyncToastWithError } from '../utils/toast'
 import { useSelected } from './useSelected'
+import { HttpError } from '../api/errors'
 
 interface ContactsProviderProps {
   children: React.ReactNode
@@ -72,7 +73,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
 
 
   const addContact = useCallback(async (newC: NewContact) => {
-    return showAsyncToast(
+    return showAsyncToastWithError(
       api.createContact(newC).then(created => {
         setContacts(cs => domain.addContact(cs, created))
         return created
@@ -80,7 +81,14 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
       {
         loading: "מוסיף...",
         success: "נוסף בהצלחה",
-        error: "נכשל בהוספה",
+        error: (err: unknown) => {
+          if (err instanceof HttpError && err.status === 409) {
+            return "איש קשר עם אימייל זה כבר קיים";
+          }
+
+          // Return a generic message for all other errors
+          return "נכשל בהוספה";
+        },
       }
     )
   }, [])

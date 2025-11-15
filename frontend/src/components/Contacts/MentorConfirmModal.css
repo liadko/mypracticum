@@ -1,0 +1,120 @@
+/* This is the full-screen background overlay */
+.mentor-confirm__overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+
+/* This is the white popup box */
+.mentor-confirm__content {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* The text content of the modal */
+.mentor-confirm__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    text-align: center;
+}
+
+/* Container for the fields */
+.mentor-confirm__details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    /* Space between "Name" and "Email" fields */
+    width: 100%;
+}
+
+/* A single field (label + value) */
+.mentor-confirm__field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    /* Small gap between label and value */
+}
+
+/* The label (e.g., "מייל") */
+.mentor-confirm__label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #666;
+    /* Lighter color */
+}
+
+/* The value (e.g., "מרום כהן") */
+.mentor-confirm__value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #000;
+    /* For long emails */
+    word-break: break-all;
+}
+
+/* Container for the buttons */
+.mentor-confirm__actions {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    margin: 0.8rem 0 0.4rem 0;
+}
+
+/* Base style for all buttons in this modal */
+.mentor-confirm__btn {
+    flex: 1;
+    /* Make buttons share space equally */
+    font-weight: 500;
+
+    min-width: 120px;
+    padding: 0.75rem 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s,
+        box-shadow 0.2s;
+
+}
+
+/* The main, green "Confirm" button */
+.mentor-confirm__btn--primary {
+    background-color: #00A495;
+    /* A green color like the image */
+    color: white;
+}
+
+.mentor-confirm__btn--primary:hover {
+    background-color: hsl(175, 100%, 28%);
+}
+
+/* The white "Back" button */
+.mentor-confirm__btn--ghost {
+    background-color: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+.mentor-confirm__btn--ghost:hover {
+    background-color: #f9f9f9;
+}

@@ -1,5 +1,6 @@
 import type { Contact, NewContact } from '../types'
 import { apiFetch } from './client'
+import { HttpError } from './errors'
 
 
 export async function fetchAllContacts(
@@ -16,7 +17,22 @@ export async function createContact(newC: NewContact): Promise<Contact> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newC)
     })
-    if (!res.ok) throw new Error(res.statusText)
+    if (!res.ok) {
+        let errorData = null;
+        try {
+            // Try to get the JSON error message from the response body
+            errorData = await res.json();
+        } catch (e) {
+            // Ignore if there's no JSON body
+        }
+
+        // Throw our custom error with the status code
+        throw new HttpError(
+            errorData?.error || res.statusText, // Use server message or fallback
+            res.status,
+            errorData,
+        );
+    }
     return res.json()
 }
 

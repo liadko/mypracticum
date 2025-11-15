@@ -176,9 +176,13 @@
 }
 
 .extra-message {
-    font-weight: 500;
-    width: 350px;
+    width: 100%;
     text-align: right;
+
+    line-height: 1.6rem;
+    margin-bottom: 2rem;
+    color: #222;
+
 }
 
 .first-contact-message {

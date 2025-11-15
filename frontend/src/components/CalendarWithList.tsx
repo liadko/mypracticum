@@ -89,28 +89,7 @@ export function CalendarWithList({
 
 
 
-    return (
-        <div className="calendar-with-list">
-            <div className="calender-side">
-                {selectedContactId && renderCalendar()}
-            </div>
-            <div className="list-side">
-                {
-                    selectedContactId ?
-                        selectedList() :
-                        createFirstContactMessage()
-                }
-            </div>
-            {/* render the modal when “edit” clicked */}
-            {isEditOpen && (
-                <EditContactsModal
-                    initialType={contactType}
-                    isInitialCreation={!selectedContactId}
-                    onCloseModal={() => setEditOpen(false)}
-                />
-            )}
 
-        </div>);
 
     // intercept the “edit” item
     function handleContactChange(id: string) {
@@ -122,10 +101,61 @@ export function CalendarWithList({
     }
 
     function extraMessage(): ReactNode {
-        let message = "סמנו תאריכים בלוח השנה"
-        if (selectedContactId == '') message = "הוסיפו אנשי קשר"
+        let message: ReactNode;
 
+        // 1. מצא את איש הקשר הנבחר (בהנחה ש-'contacts' ו-'selectedContactId' זמינים בסקופ)
+        const selectedContact = contacts.find(c => c.id === selectedContactId);
+        const contactName = selectedContact?.name;
 
+        // 2. הגדר את ההודעות
+        const baseMessage = "סמנו תאריכים בלוח השנה משמאל עבור ";
+        const endMessage = "סימון כל יום מוסיף שעה אחת. הימים שתבחרו יופיעו כאן כרשימה.";
+
+        switch (contactType) {
+            case 'client':
+                message = (
+                    <>
+                        {baseMessage}שעות טיפול שעשיתם עם{' '}
+                        <strong>{contactName ?? 'מטופל.ת'}</strong>. {endMessage}
+                    </>
+                );
+                break;
+
+            case 'mentor':
+                message = (
+                    <>
+                        {baseMessage}שעות הדרכה שקיבלתם מ
+                        <strong>{contactName ?? 'המדריך.ה'}</strong>. {endMessage}
+                    </>
+                );
+                break;
+
+            case 'therapist':
+                message = (
+                    <>
+                        {baseMessage}שעות טיפול אישי שהיו לכם עם{' '}
+                        <strong>{contactName ?? 'המטפל.ת'}</strong>. {endMessage}
+                    </>
+                );
+                break;
+
+            default:
+                // מטפל במקרה ששום איש קשר לא נבחר, או סוג לא ידוע
+                if (!selectedContactId) {
+                    // (בהנחה ש-'contacts' זמין בסקופ)
+                    if (contacts.length === 0) {
+                        message = "הוסיפו אנשי קשר ברשימה מימין כדי להתחיל.";
+                    } else {
+                        message = "בחרו איש קשר מהרשימה מימין.";
+                    }
+                } else {
+                    // נבחר איש קשר אבל אין לו סוג
+                    message = "סמנו תאריכים בלוח השנה.";
+                }
+                break;
+        }
+
+        // 3. החזר את הרנדור (כמו בקוד המקורי שלך)
         return (
             <div dir='rtl'>
                 <div className='extra-message'>
@@ -136,7 +166,6 @@ export function CalendarWithList({
                 </div>
             </div>
         )
-
     }
 
     function createFirstContactMessage(): ReactNode {
@@ -248,4 +277,30 @@ export function CalendarWithList({
                 onHighlightedDateChange={(date) => setHighlightedDate(date || '')} />
         </div>
     }
+
+
+
+    return (
+        <div className="calendar-with-list">
+            <div className="calender-side">
+                {selectedContactId && renderCalendar()}
+            </div>
+            <div className="list-side">
+                {
+                    selectedContactId ?
+                        selectedList() :
+                        createFirstContactMessage()
+                }
+            </div>
+            {/* render the modal when “edit” clicked */}
+            {isEditOpen && (
+                <EditContactsModal
+                    initialType={contactType}
+                    isInitialCreation={!selectedContactId}
+                    onCloseModal={() => setEditOpen(false)}
+                />
+            )}
+
+        </div>
+    );
 }

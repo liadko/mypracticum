@@ -4,6 +4,7 @@ import type { ContactType, FormMode, NewContact } from '../../types'
 import './ContactForm.css'
 import { validateContact } from '../../domain/contacts'
 import { showError } from '../../utils/toast'
+import { MentorConfirmModal } from './MentorConfirmModal'
 
 
 interface ContactFormProps {
@@ -32,6 +33,9 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
     const nameRef = useRef<HTMLInputElement>(null)
 
     const [alreadyFocusedNameFlag, setFocusedNameFlag] = useState(false);
+
+    const [showMentorConfirm, setShowMentorConfirm] = useState(false);
+    const [addedMentor, setAddedMentor] = useState<NewContact | null>(null);
 
     // initialize once on mount
     useEffect(() => {
@@ -94,6 +98,11 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
         setFormValues(fv => ({ ...fv!, [field]: value }))
     }
 
+    async function handleAddNewContact(newContact: NewContact) {
+        const created = await addContact(newContact)
+        onCloseAndSelectContact(type, created.id)
+
+    }
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         const newContact: NewContact = {
@@ -114,9 +123,12 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
         if (formMode.mode === 'edit') {
             await updateContact(formMode.id, newContact)
             onCloseForm(false)
-        } else {
-            const created = await addContact(newContact)
-            onCloseAndSelectContact(type, created.id)
+        } else if (type === 'mentor') {
+            setAddedMentor(newContact)
+            setShowMentorConfirm(true)
+        }
+        else {
+            await handleAddNewContact(newContact)
         }
     }
 
@@ -249,6 +261,14 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                     </button>
                 </div>
             </form>
+
+            {showMentorConfirm && addedMentor && (
+                <MentorConfirmModal
+                    mentor={addedMentor}
+                    onClose={() => setShowMentorConfirm(false)}
+                    onConfirm={() => handleAddNewContact(addedMentor)}
+                />
+            )}
         </>
     )
 }

@@ -1,4 +1,4 @@
-export type AuthErrorCode = 
+export type AuthErrorCode =
   | 'invalid-email'
   | 'invalid-code'
   | 'too-many-requests'
@@ -22,5 +22,17 @@ export class TimeoutError extends Error {
     super(message)
     this.name = 'TimeoutError'
     Object.setPrototypeOf(this, TimeoutError.prototype)
+  }
+}
+
+export class HttpError extends Error {
+  status: number;
+  data: any;
+
+  constructor(message: string, status: number, data: any = null) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status;
+    this.data = data;
   }
 }
