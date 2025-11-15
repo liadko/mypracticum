@@ -107,3 +107,65 @@ export interface FullName {
     firstName: string
     lastName: string
 }
+
+
+
+/**
+ * Basic student information returned by the admin endpoint.
+ */
+export interface StudentResponse {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    // Add any other fields you return, like 'roles'
+    roles: string[];
+}
+
+/**
+ * The response object after importing students from a CSV.
+ */
+export interface StudentImportResponse {
+    created: number;
+    updated: number;
+    failures: number;
+    errors: Array<{ line: number; error: string; email: string }>;
+    parseWarnings: string[];
+}
+
+/**
+ * The payload object for a single manual entry in a bulk request.
+ */
+export interface ManualEntryPayload {
+    userId: string;
+    hours: number;
+    cause: string;
+    type: string; // 'mentor', 'client', or 'therapist'
+}
+
+/**
+ * The result of a bulk approval request.
+ */
+export interface BulkApproveResult {
+    approved: number;
+    notFound: number;
+    errors: Array<{ id: string; error: string }>;
+}
+
+/**
+ * The result of a bulk add manual entries request.
+ */
+export interface BulkAddManualEntriesResult {
+    created: number;
+    failures: Array<{ userId: string; error: string }>;
+    batchId: string; // The batch ID for all created entries
+}
+
+/**
+ * The result of a delete manual entries request.
+ */
+export interface DeleteManualEntriesResult {
+    deleted: number;
+    notFound: number;
+    errors: Array<{ id: string; error: string }>;
+}

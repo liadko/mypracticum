@@ -61,7 +61,51 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-		</plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                <annotationProcessorPaths>
+                    <path>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
+                        <version>${lombok.version}</version>
+                    </path>
+                </annotationProcessorPaths>
+            </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.panteleyev</groupId>
+                <artifactId>jpackage-maven-plugin</artifactId>
+                <version>1.7.1</version>
+
+                <configuration>
+                    <name>Practicum Admin</name>
+                    <appVersion>1.0.0</appVersion>
+                    <destination>target/installer</destination>
+
+                    <input>target</input>
+                    <mainJar>practicum-admin-portal-0.0.1-SNAPSHOT.jar</mainJar>
+                    <mainClass>org.springframework.boot.loader.launch.JarLauncher</mainClass>
+
+                    <addModules>
+                        <module>java.desktop</module>
+                    </addModules>
+
+                    <type>MSI</type>
+
+                    <winConsole>true</winConsole>
+
+                    <winMenu>true</winMenu>
+
+                    <winShortcut>true</winShortcut>
+
+                </configuration>
+            </plugin>
+        </plugins>
 	</build>
 
 </project>

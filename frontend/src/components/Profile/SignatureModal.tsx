@@ -46,7 +46,10 @@ export default function SignatureModal({
         <p className="signature-modal__text">
           .האתר מיועד לדיווח על שעות הדרכה מעשית
           <br />
-          בחתימתכם אתם מאשרים כי כל הדיווחים שיתבצעו באתר הם נכונים ומדויקים
+
+          בחתימתכם אתם מאשרים כי כל הדיווחים שיתבצעו
+          <br />
+          .באתר הם נכונים ומדויקים
         </p>
         <div className="signature-modal__canvas-container">
           {isSigned && <img

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './ProfileModal.css'
 import { useAuth } from '../../context/AuthContext'
 import { showError } from '../../utils/toast'
@@ -10,9 +11,9 @@ type Props = {
 export default function ProfileModal({
     onClose,
 }: Props) {
-    
+
     const { logout, user, saveProfile } = useAuth()
-    
+
     const [firstName, setFirstName] = useState(user?.firstName || '')
     const [lastName, setLastName] = useState(user?.lastName || '')
     const [saving, setSaving] = useState(false)
@@ -21,14 +22,15 @@ export default function ProfileModal({
     const firstRef = useRef<HTMLInputElement>(null)
     // useEffect(() => { firstRef.current?.focus() }, [])
 
+    const navigate = useNavigate();
 
 
     async function handleSave() {
-        if(!firstName.trim()){
+        if (!firstName.trim()) {
             showError('אנא הזינו שם פרטי')
             return
         }
-        if(!lastName.trim()){
+        if (!lastName.trim()) {
             showError('אנא הזינו שם משפחה')
             return
         }
@@ -83,9 +85,16 @@ export default function ProfileModal({
                     </button>
                 </div>
 
-                <button className="profile-modal__signout" onClick={() => setShowConfirm(true)}>
-                    יציאה מהחשבון
-                </button>
+                <div className='profile-modal__hyperlink-container'>
+
+                    <button className="profile-modal__hyperlink" onClick={() => setShowConfirm(true)}>
+                        יציאה מהחשבון
+                    </button>
+
+                    <button className="profile-modal__hyperlink" onClick={() => navigate('/admin', { replace: true })}>
+                        כניסה לעמוד הניהול
+                    </button>
+                </div>
 
                 {showConfirm && (
                     <div className="profile-modal__confirm-overlay" onClick={() => setShowConfirm(false)}>

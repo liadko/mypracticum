@@ -10,8 +10,9 @@ export async function apiFetch(url: string, options: RequestInit = {}, timeoutMs
         headers.append('Authorization', `Bearer ${token}`);
     }
     // Ensure we always send JSON
-    headers.append('Content-Type', 'application/json');
-
+    if (!(options.body instanceof FormData)) {
+        headers.append('Content-Type', 'application/json');
+    }
 
     // timeout via AbortController
     const controller = new AbortController()

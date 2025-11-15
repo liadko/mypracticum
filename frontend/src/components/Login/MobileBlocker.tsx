@@ -1,4 +1,3 @@
-import React from 'react';
 import './LoginPage.css'; // Reuse existing styles
 
 export function MobileBlocker() {

@@ -1,20 +1,27 @@
 // src/App.tsx
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import LoginPage from './pages/LoginPage'
+import LoginPage from './pages/Login/LoginPage'
+import { AdminRoute } from './pages/Login/AdminRoute'
 import { Toaster } from 'react-hot-toast'
 import { ToastLimiter } from './components/Toast/ToastLimiter'
-import { ProtectedRoute, ProvidersWrapper } from './pages/SpecialRoutes'
-import { useEffect } from 'react'
+import { ProtectedRoute, ProvidersWrapper } from './pages/Login/SpecialRoutes'
+import { lazy, Suspense, useEffect } from 'react'
 import DesktopLayout from './pages/DesktopLayout'
+
+const AdminPage = lazy(() => import('./pages/AdminSide/AdminPage'));
 
 function AppRoutes() {
   const { isLoading, user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation(); // Get the current location
 
 
   useEffect(() => {
     if (!user) return
+
+    if (user.roles.includes('admin') && location.pathname == '/admin') return
+
     const dest = user.roles.includes('student')
       ? '/student'
       : '/mentor'
@@ -47,6 +54,16 @@ function AppRoutes() {
           />
         </Route>
 
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Suspense fallback={<div>Loading Admin...</div>}>
+                <AdminPage />
+              </Suspense>
+            </AdminRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Route>
     </Routes>

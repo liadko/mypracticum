@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { ContactsProvider } from '../context/ContactsContext'
-import { EntriesProvider } from '../context/EntriesContext'
+import { useAuth } from '../../context/AuthContext'
+import { ContactsProvider } from '../../context/ContactsContext'
+import { EntriesProvider } from '../../context/EntriesContext'
 
 export function ProtectedRoute() {
   const { user } = useAuth()
