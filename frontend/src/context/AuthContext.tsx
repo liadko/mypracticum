@@ -4,7 +4,6 @@ import {
   useState,
   useEffect,
   useCallback,
-  useMemo,
 } from 'react'
 import * as authApi from '../api/authApi'
 import type { FullName, User } from '../types'
@@ -39,6 +38,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [token, setToken] = useState<string | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)    // ← start “loading”
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768
+    }
+    return false
+  })
   const OTP_TIMEOUT = 60 * 1000  // 1 minutes in ms
 
   // wake up server on app start
@@ -74,10 +79,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
-  const isMobile = useMemo(() => {
-    const MOBILE_BREAKPOINT = 768;
-    return window.innerWidth < MOBILE_BREAKPOINT
-  }, []);
+
+  // Add an event listener to update state on resize
+  useEffect(() => {
+    const MOBILE_BREAKPOINT = 768
+
+    const handleResize = () => {
+      const isNowMobile = window.innerWidth < MOBILE_BREAKPOINT
+
+      // Only update state if the value actually changed to prevent unnecessary re-renders
+      setIsMobile(prev => {
+        if (prev !== isNowMobile) return isNowMobile
+        return prev
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    // Cleanup: remove listener when the component unmounts
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // ② Whenever token changes, fetch (or clear) the user (with up to 3 retries)
   useEffect(() => {

@@ -158,8 +158,10 @@
 }
 
 .mobile-blocker__text {
-  font-size: 1.1rem;
-  font-weight: 500;
+
+  direction: rtl;
+  font-size: 1.15rem;
+  font-weight: 600;
   text-align: center;
   padding: 0 1rem;
   line-height: 2rem;
@@ -167,6 +169,7 @@
 }
 
 .mobile-blocker__bold-text {
+  direction: rtl;
   margin: 2.6rem;
   margin-bottom: 1rem;
   font-size: 2rem;
