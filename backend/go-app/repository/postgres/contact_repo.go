@@ -190,7 +190,7 @@ func (r *PostgresContactRepo) GetMentor(ctx context.Context, userID, contactID u
 	const q = `
 		SELECT id, user_id, type, name,
 			   email, phone, specialty,
-			   mentor_user_id,
+			   mentor_user_id
 		  FROM contacts
 		 WHERE user_id = $1
 		   AND id = $2
