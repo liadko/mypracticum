@@ -221,15 +221,24 @@ func (s *UserService) BulkUpsertStudents(
 
 		if dryRun {
 			// probe only
-			_, err := s.userRepo.FindByEmail(ctx, email)
-			if err == nil {
+			_, emailErr := s.userRepo.FindByEmail(ctx, email)
+			_, tazErr := s.userRepo.FindByTaz(ctx, r.Taz)
+			if emailErr == nil || tazErr == nil {
 				res.Failed++
 				res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: "user already exists"})
 				continue
 			}
-			if err != nil && !errors.Is(err, repository.ErrNotFound) {
+			probeFailed := false
+			if !errors.Is(emailErr, repository.ErrNotFound) {
+				probeFailed = true
+				res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: emailErr.Error()})
+			}
+			if !errors.Is(tazErr, repository.ErrNotFound) {
+				probeFailed = true
+				res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: tazErr.Error()})
+			}
+			if probeFailed {
 				res.Failed++
-				res.Errors = append(res.Errors, StudentRowError{Row: i + 2, Email: email, Err: err.Error()})
 			}
 			continue
 		}

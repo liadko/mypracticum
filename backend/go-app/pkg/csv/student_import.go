@@ -27,7 +27,7 @@ func ParseStudentsCSV(r io.Reader) ([]domain.NewStudent, []service.StudentRowErr
 	for i, h := range records[0] {
 		idx[strings.ToLower(strings.TrimSpace(h))] = i
 	}
-	required := []string{"firstname", "lastname", "email", "class"}
+	required := []string{"firstname", "lastname", "email", "class", "taz"}
 	for _, k := range required {
 		if _, ok := idx[k]; !ok {
 			return nil, []service.StudentRowError{{Row: 0, Err: "missing header: " + k}}
@@ -52,8 +52,9 @@ func ParseStudentsCSV(r io.Reader) ([]domain.NewStudent, []service.StudentRowErr
 		last := get("lastname")
 		email := strings.ToLower(get("email"))
 		sem := get("class")
+		taz := get("taz")
 
-		if first == "" || last == "" || email == "" || sem == "" {
+		if first == "" || last == "" || email == "" || sem == "" || taz == "" {
 			errs = append(errs, service.StudentRowError{Row: row + 1, Email: email, Err: "missing required field"})
 			continue
 		}
@@ -67,6 +68,7 @@ func ParseStudentsCSV(r io.Reader) ([]domain.NewStudent, []service.StudentRowErr
 			LastName:  last,
 			Email:     email,
 			Class:     sem,
+			Taz:       taz,
 		})
 	}
 	return out, errs

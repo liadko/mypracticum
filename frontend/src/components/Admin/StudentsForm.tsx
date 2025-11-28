@@ -45,12 +45,13 @@ export function StudentsForm({ logMessage }: Props) {
                 warnings.length === 0
             ) {
                 window.alert(
-                    'בדיקת היבוא הסתיימה בהצלחה!\n\nלא נמצאו שגיאות. אפשר להוריד את הסימון ולהעלות בבטחה.',
+                    'בדיקת ההוספה הסתיימה בהצלחה!\n\nלא נמצאו שגיאות. אפשר להוריד את הסימון ולהעלות בבטחה.',
                 );
             } else if (dryRun) {
-                window.alert('נמצאו בעיות במהלך בדיקת היבוא. בדוק את יומן ההודעות.');
+                window.alert('נמצאו בעיות במהלך בדיקת ההוספה. בדוק את יומן ההודעות.');
             }
         } catch (err: unknown) {
+            window.alert('נמצאו בעיות במהלך בדיקת ההוספה. בדוק את יומן ההודעות.');
             logMessage(`FATAL ERROR: ${err instanceof Error ? err.message : 'Unknown error'}`);
         } finally {
             setIsLoading(false);

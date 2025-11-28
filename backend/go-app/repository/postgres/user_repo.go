@@ -68,6 +68,13 @@ func (r *PostgresUserRepo) FindByEmail(ctx context.Context, email string) (domai
 	return r.loadUser(ctx, "email = $1", email)
 }
 
+func (r *PostgresUserRepo) FindByTaz(ctx context.Context, taz string) (domain.User, error) {
+	if taz == "" {
+		return domain.User{}, fmt.Errorf("taz can't be empty")
+	}
+	return r.loadUser(ctx, "taz = $1", taz)
+}
+
 func (r *PostgresUserRepo) FindByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
 	return r.loadUser(ctx, "id = $1", id)
 }
@@ -261,11 +268,11 @@ func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStude
 	var userID uuid.UUID
 	// Insert or do nothing on conflict. RETURNING only when inserted.
 	err = tx.QueryRowContext(ctx, `
-		INSERT INTO users (id, first_name, last_name, email, class, created_by)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO users (id, first_name, last_name, email, class, taz, created_by)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (email) DO NOTHING
 		RETURNING id
-	`, uuid.New(), ns.FirstName, ns.LastName, email, ns.Class, ns.CreatedBy).Scan(&userID)
+	`, uuid.New(), ns.FirstName, ns.LastName, email, ns.Class, ns.Taz, ns.CreatedBy).Scan(&userID)
 
 	if err == sql.ErrNoRows {
 		// Row already exists → skip, signal duplicate to caller.

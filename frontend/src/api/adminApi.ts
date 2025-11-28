@@ -34,11 +34,11 @@ export async function importStudents(
         method: 'POST',
         body: formData,
         // Do not set Content-Type; the browser handles it for FormData
-    });
+    }, 30000); // 30s timeout for file uploads
 
     if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.error || 'Failed to import students');
+        throw new Error(JSON.stringify(errData, null, '\t'));
     }
     return res.json();
 }
