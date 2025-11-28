@@ -3,7 +3,7 @@ package main
 import (
 	_ "embed"
 	"log"
-	"os"
+	"time"
 
 	"mypracticum/backend/config"
 	"mypracticum/backend/db"
@@ -76,14 +76,17 @@ func main() {
 	// 5. Configure CORS
 	r := gin.Default()
 
-	// r.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     []string{"http://localhost:5173"},
-	// 	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-	// 	AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-	// 	AllowCredentials: true,
-	// }))
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"https://practicum.temurot.com",
+			"http://localhost:5173",
+		},
 
-	r.Use(cors.Default()) // temporary: allow all origins until i have a stable domain
+		AllowMethods:  []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:  []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders: []string{"Content-Length"},
+		MaxAge:        12 * time.Hour, // preflight request cache duration
+	}))
 
 	// 6. Mount routes
 	limiterMw := middleware.OTPRateLimit(globalOTPLimiter)
@@ -94,24 +97,4 @@ func main() {
 
 	// 7. Start server
 	r.Run(":" + cfg.Port)
-}
-
-func loadSMTPTemplates(otpTmplPath, inviteTmplPath string) (string, string) {
-	var otpTemplate, inviteTemplate string
-
-	if b, err := os.ReadFile(otpTmplPath); err != nil {
-		log.Printf("warning: couldn't read OTP template %s: %v", otpTmplPath, err)
-	} else {
-		otpTemplate = string(b)
-		log.Printf("loaded OTP template (%d bytes) from %s", len(otpTemplate), otpTmplPath)
-	}
-
-	if b, err := os.ReadFile(inviteTmplPath); err != nil {
-		log.Printf("warning: couldn't read invite template %s: %v", inviteTmplPath, err)
-	} else {
-		inviteTemplate = string(b)
-		log.Printf("loaded invite template (%d bytes) from %s", len(inviteTemplate), inviteTmplPath)
-	}
-
-	return otpTemplate, inviteTemplate
 }
