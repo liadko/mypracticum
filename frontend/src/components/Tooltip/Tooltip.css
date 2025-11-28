@@ -91,6 +91,10 @@
     font-weight: 700;
 }
 
+.thin-number {
+    font-weight: 400;
+}
+
 /* Style for the hour number (e.g., "8") */
 .tooltip-list li strong {
     color: #333;

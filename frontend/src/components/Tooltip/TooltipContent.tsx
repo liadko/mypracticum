@@ -19,7 +19,6 @@ const ManualEntryList: React.FC<{ entries: ManualEntry[] }> = ({ entries }) => {
     return (
         <div className="tooltip-manual-entries">
             <hr className="tooltip-divider" />
-            <span className="tooltip-list-title">שעות נוספות</span>
             <ul className="tooltip-list">
                 {entries.map(entry => (
                     <li key={entry.id}>
@@ -65,7 +64,7 @@ export default function TooltipContent({
                         return (
                             <>
                                 דיווחים מאושרים: <div className='number'>{entryCounts[page]}</div><br />
-                                ממתינים לאישור: <div className='number'>{awaitingApproval}</div><br />
+                                ממתינים לאישור: <div className='number thin-number'>{awaitingApproval}</div><br />
                             </>
                         );
                     case 'therapist':
@@ -83,7 +82,7 @@ export default function TooltipContent({
                 }
             })()}
 
-            {/* 3. Render the new list of manual entries */}
+            {/* 3. Render the list of manual entries */}
             <ManualEntryList entries={relevantManualEntries} />
         </span>
     );
