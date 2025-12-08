@@ -34,7 +34,7 @@ export async function importStudents(
         method: 'POST',
         body: formData,
         // Do not set Content-Type; the browser handles it for FormData
-    }, 30000); // 30s timeout for file uploads
+    }, 5 * 60 * 1000); // 5min timeout for file uploads
 
     if (!res.ok) {
         const errData = await res.json();

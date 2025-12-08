@@ -85,7 +85,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const MOBILE_BREAKPOINT = 768
 
     const handleResize = () => {
-      const isNowMobile = window.innerWidth < MOBILE_BREAKPOINT
+      const isNowMobile =
+        Math.min(window.innerWidth, window.innerHeight) < MOBILE_BREAKPOINT
 
       // Only update state if the value actually changed to prevent unnecessary re-renders
       setIsMobile(prev => {
