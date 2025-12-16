@@ -95,7 +95,7 @@ func (s *SMTPNotifier) SendInvite(ctx context.Context, destination, firstName st
 		firstName = "רב"
 	}
 
-	link := "http://192.168.68.124:5173/login?email=" + destination
+	link := "https://practicum.temurot.com/login?email=" + destination
 
 	htmlBody := strings.ReplaceAll(s.inviteHTML, "{{firstName}}", firstName)
 	htmlBody = strings.ReplaceAll(htmlBody, "{{link}}", link)
