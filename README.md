@@ -51,48 +51,12 @@ Built in Go with Gin and PostgreSQL, following a layered architecture:
 - **Handler**: thin HTTP layer (Gin binds → calls services → JSON)  
 - **Middleware**: CORS + AuthMiddleware (resolves `studentId` → `userID`)  
 
-**Quick start**  
-```bash
-# 1. Run Postgres
-docker run -d --name practicum-pg -e POSTGRES_PASSWORD=mypassword \
-  -e POSTGRES_DB=mypracticum -p 5432:5432 postgres:15-alpine
-
-# 2. Apply migrations
-psql postgres://postgres:mypassword@localhost:5432/mypracticum \
-  -f migrations/0001_init_schema.up.sql \
-  -f migrations/0002_add_date_and_drop_hours.up.sql
-
-# 3. Start backend
-cd backend
-go run main.go
-````
-
----
-
-## 🌐 Frontend
-
-React + Vite + TypeScript SPA featuring:
-
-* Contexts for Contacts & Entries state
-* Calendar-based entry logging with optimistic UI
-* Select dropdowns and list layouts
-
-**Quick start**
-
-```bash
-cd frontend
-npm install
-npm run dev
-# Ensure VITE_API_BASE_URL=http://localhost:8080/api
-```
-
----
 
 ## 🔜 Roadmap
 
-1. **Mentor approvals** via email links
-2. **Admin dashboard** for progress reports & late-hour alerts
-3. **Notifications** (email/SMS reminders)
+1. **Mentor approvals** via email links - DONE, mentor page now available
+2. **Admin dashboard** for progress reports & late-hour alerts - DONE, Live Google sheets for this data
+3. **Notifications** (email/SMS reminders) - 
 4. **Automated tests** (unit, integration, handler)
 
 

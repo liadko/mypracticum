@@ -73,6 +73,8 @@ func main() {
 	userH := userHandlerPkg.NewUserHandler(userSvc)
 	otpH := OTPHandlerPkg.NewOTPHandler(otpSvc, tokenSvc)
 
+	gin.SetMode(gin.ReleaseMode)
+
 	// 5. Configure CORS
 	r := gin.Default()
 
