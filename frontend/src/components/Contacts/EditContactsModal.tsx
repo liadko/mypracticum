@@ -46,7 +46,7 @@ export function EditContactsModal({ initialType, isInitialCreation, onCloseModal
                     <button
                         className={`edit-modal__nav-button ${currentPage === 'client' ? 'active' : ''}`}
                         onClick={() => setPage('client')}
-                    >מטופלים פרטיים</button>
+                    >מטופלים שלי</button>
                     <button
                         className={`edit-modal__nav-button ${currentPage === 'mentor' ? 'active' : ''}`}
                         onClick={() => setPage('mentor')}

@@ -190,7 +190,7 @@ export function ManualEntriesForm({ logMessage }: Props) {
                         onChange={(e) => setType(e.target.value)}
                     >
                         <option value="mentor">הדרכה (mentor)</option>
-                        <option value="client">מטופלים פרטיים (client)</option>
+                        <option value="client">מטופלים שלי (client)</option>
                         <option value="therapist">טיפול אישי (therapist)</option>
                     </select>
                 </div>

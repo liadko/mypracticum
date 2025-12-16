@@ -15,9 +15,9 @@ export default function MentorShareModal({
     onClose
 }: MentorShareModalProps) {
 
-    const {inviteContact} = useContacts()
+    const { inviteContact } = useContacts()
 
-    const handleSend = async() => {
+    const handleSend = async () => {
         await inviteContact(mentorId)
         onClose()
     }
@@ -37,12 +37,11 @@ export default function MentorShareModal({
                 </h2>
 
                 <p className="mentor-share-modal__text">
-                    לחיצה על הכפתור תשלח מייל למדריך/ה עם לינק לכניסה למערכת פרקטיקום
-                    כדי שיוכלו לאשר לכם את הפגישות.
+                    לחיצה על הכפתור תשלח מייל למדריך/ה עם לינק לכניסה למערכת פרקטיקום.
                 </p>
 
                 <p className="mentor-share-modal__text">
-                    שימו לב לא לשלוח את המייל יותר מדי פעמים כדי לא להעמיס.
+                    מומלץ לשלוח את המייל אחת לחודשיים.
                 </p>
 
                 <p className="mentor-share-modal__text">

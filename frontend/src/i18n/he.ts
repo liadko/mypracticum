@@ -2,21 +2,8 @@ import type { ContactType } from '../types'
 
 
 
-export const contactLabelSingularDefinite: Record<ContactType, string> = {
-  client: 'המטופל הפרטי',
-  mentor: 'המדריך',
-  therapist: 'המטפל האישי שלי',
-}
-
-
-export const contactLabelSingularIndefinite: Record<ContactType, string> = {
-  client: 'מטופל פרטי',
-  mentor: 'מדריך',
-  therapist: 'מטפל אישי',
-}
-
 export const contactLabelSingularBigenderIndefinite: Record<ContactType, string> = {
-  client: 'מטופל/ת פרטי/ת',
+  client: 'מטופל/ת שלי',
   mentor: 'מדריך/ה',
   therapist: 'מטפל/ת אישי/ת',
 }
@@ -34,7 +21,7 @@ export const contactLabelPluralShort: Record<ContactType, string> = {
 }
 
 export const contactLabelPluralLong: Record<ContactType, string> = {
-  client: 'מטופלים פרטיים',
+  client: 'מטופלים שלי',
   mentor: 'מדריכים',
   therapist: 'מטפלים אישיים',
 }
@@ -46,13 +33,13 @@ export const pageHeaderText: Record<ContactType, string> = {
 }
 
 export const pageTitle: Record<ContactType, string> = {
-  client: 'מטופלים פרטיים',
+  client: 'מטופלים שלי',
   mentor: 'הדרכה',
   therapist: 'טיפול אישי',
 }
 
 export const pageTitleDefinite: Record<ContactType, string> = {
-  client: 'המטופלים הפרטיים',
+  client: 'המטופלים שלך',
   mentor: 'ההדרכה',
   therapist: 'הטיפול האישי',
 }
