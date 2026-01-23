@@ -3,7 +3,7 @@ package user
 import (
 	"encoding/base64"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -30,17 +30,18 @@ func NewUserHandler(
 
 // GetMe handles GET /users/me
 func (h *UserHandler) GetMe(ctx *gin.Context) {
+	log.Printf("[UserHandler.GetMe] Retrieving user profile")
 	// 1) get userID from the context
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	// 2) Lookup user by ID
 	user, err := h.svc.GetUserByID(ctx.Request.Context(), userID)
 	if err != nil {
+		log.Printf("[UserHandler.GetMe] Failed to fetch user %s: %v", userID, err)
 		switch err.(type) {
 		case service.NotFoundError:
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		default:
-			fmt.Printf("GetMe: failed to fetch user %s: %v", userID, err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return
@@ -64,17 +65,20 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 
 // UpdateProfile handles PATCH /users/me
 func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
+	log.Printf("[UserHandler.UpdateProfile] Updating user profile")
 	// 1) get userID from the context
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	var req ProfileUpdateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Printf("[UserHandler.UpdateProfile] Invalid payload: %v", err)
 		ctx.JSON(400, gin.H{"error": "invalid payload"})
 		return
 	}
 
 	updatedFirstName, updatedLastName, err := h.svc.UpdateProfile(ctx.Request.Context(), userID, req.FirstName, req.LastName)
 	if err != nil {
+		log.Printf("[UserHandler.UpdateProfile] Failed to update profile for user %s: %v", userID, err)
 		var nf service.NotFoundError
 		var ve domain.ValidationError
 		switch {
@@ -83,7 +87,6 @@ func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
 		case errors.As(err, &nf):
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		default:
-			fmt.Printf("UpdateProfile: failed to update profile for user %s: %v", userID, err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return
@@ -97,9 +100,12 @@ func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
 
 // AddUser handles POST /users
 func (h *UserHandler) AddUser(ctx *gin.Context) {
+	log.Printf("[UserHandler.AddUser] Creating new user")
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 	roles := ctx.MustGet("roles").([]string)
+
 	if !slices.Contains(roles, "admin") {
+		log.Printf("[UserHandler.AddUser] Forbidden: user not admin")
 		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
@@ -107,6 +113,7 @@ func (h *UserHandler) AddUser(ctx *gin.Context) {
 	// 1) Bind input
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Printf("[UserHandler.AddUser] Invalid input: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
@@ -123,14 +130,13 @@ func (h *UserHandler) AddUser(ctx *gin.Context) {
 	// 3) Call service
 	created, err := h.svc.CreateUserWithRole(ctx.Request.Context(), newUser)
 	if err != nil {
+		log.Printf("[UserHandler.AddUser] Failed to add user: %v", err)
 		var ae service.AlreadyExistsError
 		if errors.As(err, &ae) {
 			ctx.JSON(http.StatusConflict, gin.H{"error": ae.Error()})
 			return
 		}
 
-		// log unexpected errors
-		fmt.Printf("AddUser: failed to add user: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
@@ -149,10 +155,12 @@ func (h *UserHandler) AddUser(ctx *gin.Context) {
 
 // UpdateSignature handles PATCH /users/me/signature
 func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
+	log.Printf("[UserHandler.UpdateSignature] Updating user signature")
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	var req SignatureUpdateRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Printf("[UserHandler.UpdateSignature] Invalid payload: %v", err)
 		ctx.JSON(400, gin.H{"error": "invalid payload"})
 		return
 	}
@@ -160,18 +168,19 @@ func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 	// decode base64 → raw []byte
 	data, err := base64.StdEncoding.DecodeString(req.Signature)
 	if err != nil {
+		log.Printf("[UserHandler.UpdateSignature] Bad base64: %v", err)
 		ctx.JSON(400, gin.H{"error": "bad base64"})
 		return
 	}
 
 	saved, err := h.svc.UpdateSignature(ctx.Request.Context(), userID, data)
 	if err != nil {
+		log.Printf("[UserHandler.UpdateSignature] Failed to update signature for user %s: %v", userID, err)
 		var nf service.NotFoundError
 		switch {
 		case errors.As(err, &nf):
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		default:
-			fmt.Printf("UpdateSignature: failed to update signature for user %s: %v", userID, err)
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		}
 		return
@@ -184,27 +193,35 @@ func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 
 // POST /admin/students/import
 func (h *UserHandler) ImportStudents(ctx *gin.Context) {
+	log.Printf("[UserHandler.ImportStudents] Importing students from CSV")
 	userID := ctx.MustGet("userID").(uuid.UUID)
 	roles := ctx.MustGet("roles").([]string)
+
 	if !slices.Contains(roles, "admin") {
+		log.Printf("[UserHandler.ImportStudents] Forbidden: user not admin")
 		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
 
 	fileHeader, err := ctx.FormFile("file")
 	if err != nil {
+		log.Printf("[UserHandler.ImportStudents] Missing file: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "missing file"})
 		return
 	}
 	f, err := fileHeader.Open()
 	if err != nil {
+		log.Printf("[UserHandler.ImportStudents] Cannot open file: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "cannot open file"})
 		return
 	}
 	defer f.Close()
 
 	rows, parseErrs := csv.ParseStudentsCSV(f) // []domain.NewStudent + []error
+	log.Printf("[UserHandler.ImportStudents] CSV parsed - rows: %d, errors: %d", len(rows), len(parseErrs))
+
 	if len(rows) == 0 && len(parseErrs) > 0 {
+		log.Printf("[UserHandler.ImportStudents] CSV parse failed")
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "csv parse error", "details": parseErrs})
 		return
 	}
@@ -213,7 +230,7 @@ func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 
 	res, err := h.svc.BulkUpsertStudents(ctx.Request.Context(), rows, userID, dry)
 	if err != nil {
-		fmt.Printf("ImportStudents: bulk upsert failed: %v\n", err)
+		log.Printf("[UserHandler.ImportStudents] Bulk upsert failed: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
@@ -230,9 +247,12 @@ func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 // GetStudents handles GET /admin/students
 // It is used by the admin portal to populate the student list.
 func (h *UserHandler) GetStudents(ctx *gin.Context) {
+	log.Printf("[UserHandler.GetStudents] Retrieving student list")
 	// 1) Admin-only check
 	roles := ctx.MustGet("roles").([]string)
+
 	if !slices.Contains(roles, "admin") {
+		log.Printf("[UserHandler.GetStudents] Forbidden: user not admin")
 		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 		return
 	}
@@ -240,7 +260,7 @@ func (h *UserHandler) GetStudents(ctx *gin.Context) {
 	// 2) Call service
 	users, err := h.svc.ListStudents(ctx.Request.Context())
 	if err != nil {
-		fmt.Printf("GetStudents: failed to list students: %v\n", err)
+		log.Printf("[UserHandler.GetStudents] Failed to list students: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}

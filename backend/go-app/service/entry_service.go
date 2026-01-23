@@ -25,10 +25,12 @@ func (s *EntryService) AddEntry(
 	userID uuid.UUID,
 	newEntry domain.NewEntry, // or just (contactID, dateStr string)
 ) (domain.Entry, error) {
+	log.Printf("[EntryService.AddEntry] Creating entry for user %s, contactID: %s, date: %s", userID, newEntry.ContactID, newEntry.DateStr)
 
 	// build & validate in one shot
 	entry, err := domain.NewEntryFrom(userID, newEntry)
 	if err != nil {
+		log.Printf("[EntryService.AddEntry] Failed to create entry: %v", err)
 		return domain.Entry{}, err
 	}
 
@@ -36,50 +38,65 @@ func (s *EntryService) AddEntry(
 	createdEntry, err := s.repo.Create(ctx, entry)
 
 	if err != nil {
+		log.Printf("[EntryService.AddEntry] Failed to persist entry: %v", err)
 		return domain.Entry{}, DBError{Err: err}
 	}
 
+	log.Printf("[EntryService.AddEntry] Entry created: %s", createdEntry.ID)
 	return createdEntry, nil
 }
 
 func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID uuid.UUID) error {
+	log.Printf("[EntryService.RemoveEntry] Removing entry %s for user %s", entryID, userID)
 	if entryID == uuid.Nil {
+		log.Printf("[EntryService.RemoveEntry] Invalid entry ID")
 		return fmt.Errorf("invalid entry id")
 	}
 	if userID == uuid.Nil {
+		log.Printf("[EntryService.RemoveEntry] Missing user ID")
 		return fmt.Errorf("missing user")
 	}
 
 	err := s.repo.DeleteIfNotApproved(ctx, entryID, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
+			log.Printf("[EntryService.RemoveEntry] Entry not found: %s", entryID)
 			// tell handler to return 404
 			return NotFoundError{"entry", entryID.String()}
 		}
 		if errors.Is(err, repository.ErrAlreadyApproved) {
+			log.Printf("[EntryService.RemoveEntry] Cannot remove approved entry: %s", entryID)
 			// tell handler to return 400
 			return ValidationError("cannot remove an approved entry")
 		}
+		log.Printf("[EntryService.RemoveEntry] Failed to delete entry: %v", err)
 		// wrap real DB errors into 500
 		return DBError{Err: err}
 	}
 
+	log.Printf("[EntryService.RemoveEntry] Successfully removed entry %s", entryID)
 	return nil
 }
 
 func (s *EntryService) ListStudentEntries(ctx context.Context, studentUserID uuid.UUID) ([]domain.Entry, error) {
+	log.Printf("[EntryService.ListStudentEntries] Listing entries for student %s", studentUserID)
 	list, err := s.repo.ListByStudent(ctx, studentUserID)
 	if err != nil {
+		log.Printf("[EntryService.ListStudentEntries] Failed to list entries: %v", err)
 		return nil, DBError{Err: err}
 	}
+	log.Printf("[EntryService.ListStudentEntries] Retrieved %d entries", len(list))
 	return list, nil
 }
 
 func (s *EntryService) ListMentorEntries(ctx context.Context, mentorUserID uuid.UUID) ([]domain.Entry, error) {
+	log.Printf("[EntryService.ListMentorEntries] Listing entries for mentor %s", mentorUserID)
 	list, err := s.repo.ListByMentor(ctx, mentorUserID)
 	if err != nil {
+		log.Printf("[EntryService.ListMentorEntries] Failed to list entries: %v", err)
 		return nil, DBError{Err: err}
 	}
+	log.Printf("[EntryService.ListMentorEntries] Retrieved %d entries", len(list))
 	return list, nil
 }
 
@@ -89,16 +106,20 @@ func (s *EntryService) SetApproval(
 	entryID uuid.UUID,
 	approved bool,
 ) (domain.Entry, error) {
+	log.Printf("[EntryService.SetApproval] Setting approval=%t for entry %s by mentor %s", approved, entryID, mentorID)
 
 	// fetch entry + its mentor link
 	linked, err := s.repo.IsEntryLinkedToMentor(ctx, entryID, mentorID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
+			log.Printf("[EntryService.SetApproval] Entry not found: %s", entryID)
 			return domain.Entry{}, NotFoundError{"entry", entryID.String()}
 		}
+		log.Printf("[EntryService.SetApproval] Failed to check mentor link: %v", err)
 		return domain.Entry{}, DBError{Err: err}
 	}
 	if !linked {
+		log.Printf("[EntryService.SetApproval] Mentor %s not linked to entry %s", mentorID, entryID)
 		return domain.Entry{}, ForbiddenError{"not mentor of this entry"}
 	}
 
@@ -111,8 +132,10 @@ func (s *EntryService) SetApproval(
 	updated, err := s.repo.UpdateApproval(ctx, entryID, approver)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
+			log.Printf("[EntryService.SetApproval] Entry not found during update: %s", entryID)
 			return domain.Entry{}, NotFoundError{"entry", entryID.String()}
 		}
+		log.Printf("[EntryService.SetApproval] Failed to update approval: %v", err)
 		return domain.Entry{}, DBError{Err: err}
 	}
 	return updated, nil
@@ -174,13 +197,16 @@ func (s *EntryService) AddManualEntry(
 	ctx context.Context,
 	newEntry domain.NewManualEntry,
 ) (domain.ManualEntry, error) {
+	log.Printf("[EntryService.AddManualEntry] Adding manual entry for user %s, hours: %d, cause: %s", newEntry.UserID, newEntry.Hours, newEntry.Cause)
 
 	// 1) Business logic validation
 	if strings.TrimSpace(newEntry.Cause) == "" {
+		log.Printf("[EntryService.AddManualEntry] Validation error: cause cannot be empty")
 		return domain.ManualEntry{},
 			ValidationError("cause cannot be empty")
 	}
 	if newEntry.Hours == 0 {
+		log.Printf("[EntryService.AddManualEntry] Validation error: hours cannot be zero")
 		return domain.ManualEntry{},
 			ValidationError("hours cannot be zero")
 	}
@@ -189,13 +215,16 @@ func (s *EntryService) AddManualEntry(
 	entry, err := s.repo.CreateManualEntry(ctx, newEntry)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
+			log.Printf("[EntryService.AddManualEntry] User not found: %s", newEntry.UserID)
 			// This error comes from the repo if the user_id FK fails
 			return domain.ManualEntry{},
 				NotFoundError{"user", newEntry.UserID.String()}
 		}
+		log.Printf("[EntryService.AddManualEntry] Failed to persist entry: %v", err)
 		return domain.ManualEntry{}, DBError{Err: err}
 	}
 
+	log.Printf("[EntryService.AddManualEntry] Manual entry created: %s", entry.ID)
 	return entry, nil
 }
 
@@ -227,7 +256,7 @@ func (s *EntryService) BulkAddManualEntries(
 			// This entry failed, record it and continue
 			result.FailedCount++
 			// Log at debug level
-			log.Printf("[SERVICE][BulkAddManual] admin=%s entry=%+v err=%v", adminID, entry, err)
+			log.Printf("[EntryService.BulkAddManualEntries] admin=%s entry=%+v err=%v", adminID, entry, err)
 			result.Failures = append(result.Failures, domain.FailedManualEntry{
 				Input: entry,
 				Error: err.Error(),
@@ -239,7 +268,7 @@ func (s *EntryService) BulkAddManualEntries(
 	}
 
 	log.Printf(
-		"[SERVICE][BulkAddManual] admin=%s processed %d entries: %d created, %d failed. batchID=%s",
+		"[EntryService.BulkAddManualEntries] admin=%s processed %d entries: %d created, %d failed. batchID=%s",
 		adminID,
 		len(entries),
 		result.CreatedCount,
@@ -261,13 +290,16 @@ func (s *EntryService) ListManualEntries(
 	ctx context.Context,
 	userID uuid.UUID,
 ) ([]domain.ManualEntry, error) {
+	log.Printf("[EntryService.ListManualEntries] Listing manual entries for user %s", userID)
 
 	entries, err := s.repo.ListManualEntriesByUserID(ctx, userID)
 	if err != nil {
+		log.Printf("[EntryService.ListManualEntries] Failed to list entries: %v", err)
 		// No need to check for ErrNotFound, an empty slice is a valid response
 		return nil, DBError{Err: err}
 	}
 
+	log.Printf("[EntryService.ListManualEntries] Retrieved %d manual entries", len(entries))
 	return entries, nil
 }
 
@@ -278,12 +310,15 @@ func (s *EntryService) DeleteManualEntriesByIDs(
 	ctx context.Context,
 	ids []uuid.UUID,
 ) (domain.DeleteManualEntriesResult, error) {
+	log.Printf("[EntryService.DeleteManualEntriesByIDs] Deleting %d manual entries", len(ids))
 
 	entriesDeleted, batchesDeleted, err := s.repo.DeleteManualEntriesByIDs(ctx, ids)
 	if err != nil {
+		log.Printf("[EntryService.DeleteManualEntriesByIDs] Failed to delete entries: %v", err)
 		return domain.DeleteManualEntriesResult{}, DBError{Err: err}
 	}
 
+	log.Printf("[EntryService.DeleteManualEntriesByIDs] Deleted %d entries, %d batches", entriesDeleted, batchesDeleted)
 	return domain.DeleteManualEntriesResult{
 		EntriesDeleted: entriesDeleted,
 		BatchesDeleted: batchesDeleted,
