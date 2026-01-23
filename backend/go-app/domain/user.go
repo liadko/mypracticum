@@ -104,3 +104,13 @@ func ValidateNames(firstName, lastName string) error {
 	}
 	return nil
 }
+
+// IsMentor checks if the user has the "mentor" role.
+func (u *User) IsMentor() bool {
+	for _, r := range u.Roles {
+		if r == "mentor" {
+			return true
+		}
+	}
+	return false
+}

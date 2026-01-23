@@ -140,7 +140,7 @@ func (s *ContactService) handleMentorContact(
 	if email != "" {
 		first, last := splitName(newContact.Name)
 		log.Printf("[ContactService.handleMentorContact] Ensuring mentor user exists: email: %s, name: %s %s", email, first, last)
-		mentorUserID, err := s.userSvc.EnsureUserIDByEmailWithRole(ctx, email, "mentor", first, last, userID)
+		mentorUserID, err := s.userSvc.EnsureMentorUserExistsWithEmail(ctx, email, first, last, userID)
 		if err != nil {
 			log.Printf("[ContactService.handleMentorContact] Failed to ensure mentor user: %v", err)
 			return err

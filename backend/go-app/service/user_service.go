@@ -148,52 +148,65 @@ func (s *UserService) GetRolesByID(ctx context.Context, userID uuid.UUID) ([]str
 	return roles, nil
 }
 
-// EnsureUserIDByEmailWithRole returns the user's ID if exists;
-// otherwise creates the user with the role and returns its ID.
-func (s *UserService) EnsureUserIDByEmailWithRole(
+// EnsureMentorUserExistsWithEmail returns the user's ID if a mentor user exists.
+// otherwise creates the mentor user with the role and returns its ID.
+// throws AlreadyExistsError if a non-mentor user exists with that email.
+func (s *UserService) EnsureMentorUserExistsWithEmail(
 	ctx context.Context,
-	email, role, firstName, lastName string,
+	email, firstName, lastName string,
 	createdBy uuid.UUID,
 ) (uuid.UUID, error) {
-	log.Printf("[UserService.EnsureUserIDByEmailWithRole] Ensuring user exists: email: %s, role: %s", email, role)
-	id, err := s.userRepo.GetIDByEmail(ctx, email)
+	log.Printf("[UserService.EnsureMentorUserExistsWithEmail] Ensuring mentor user exists: email: %s", email)
+	// 1. Check if user exists
+	existingUser, err := s.userRepo.FindByEmail(ctx, email)
 	if err == nil {
-		log.Printf("[UserService.EnsureUserIDByEmailWithRole] User already exists: %s", id)
-		return id, nil
+		// User exists: Check role
+		if !existingUser.IsMentor() {
+			log.Printf("[UserService.EnsureMentorUserExistsWithEmail] Conflict: User %s exists but is not a mentor", email)
+			return uuid.Nil, AlreadyExistsError{
+				Resource: "user (but not a mentor)",
+				Field:    "email",
+				Value:    email, // User exists, but wrong role
+			}
+		}
+		log.Printf("[UserService.EnsureMentorUserExistsWithEmail] Mentor user already exists: %s", existingUser.ID)
+		return existingUser.ID, nil
 	}
+
+	// 2. If error is NOT "Not Found", fail
 	if !errors.Is(err, repository.ErrNotFound) {
-		log.Printf("[UserService.EnsureUserIDByEmailWithRole] Failed to check if user exists: %v", err)
+		log.Printf("[UserService.EnsureMentorUserExistsWithEmail] Failed to lookup user: %v", err)
 		return uuid.Nil, DBError{Err: err}
 	}
 
-	log.Printf("[UserService.EnsureUserIDByEmailWithRole] Creating new user: email: %s, role: %s", email, role)
+	log.Printf("[UserService.EnsureMentorUserExistsWithEmail] Creating new mentor user: email: %s", email)
 	created, err := s.CreateUserWithRole(ctx, domain.NewUserWithRole{
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
-		Role:      role,
+		Role:      "mentor",
 		CreatedBy: createdBy,
 	})
 	if err == nil {
-		log.Printf("[UserService.EnsureUserIDByEmailWithRole] User created: %s", created.ID)
+		log.Printf("[UserService.EnsureMentorUserExistsWithEmail] User created: %s", created.ID)
 		return created.ID, nil
 	}
 
 	var dup AlreadyExistsError
 	if errors.As(err, &dup) {
-		log.Printf("[UserService.EnsureUserIDByEmailWithRole] Race condition detected, retrying lookup for email: %s", email)
+		log.Printf("[UserService.EnsureMentorUserExistsWithEmail] Race condition detected, retrying lookup for email: %s", email)
 		id2, err2 := s.userRepo.GetIDByEmail(ctx, email)
 		if err2 != nil {
 			if errors.Is(err2, repository.ErrNotFound) {
-				log.Printf("[UserService.EnsureUserIDByEmailWithRole] Failed to create and lookup user: %v", err)
+				log.Printf("[UserService.EnsureMentorUserExistsWithEmail] Failed to create and lookup user: %v", err)
 				return uuid.Nil, DBError{Err: err}
 			}
-			log.Printf("[UserService.EnsureUserIDByEmailWithRole] Failed on retry: %v", err2)
+			log.Printf("[UserService.EnsureMentorUserExistsWithEmail] Failed on retry: %v", err2)
 			return uuid.Nil, DBError{Err: err2}
 		}
 		return id2, nil
 	}
-	log.Printf("[UserService.EnsureUserIDByEmailWithRole] Failed to create user: %v", err)
+	log.Printf("[UserService.EnsureMentorUserExistsWithEmail] Failed to create user: %v", err)
 	return uuid.Nil, err
 }
 
