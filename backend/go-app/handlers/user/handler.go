@@ -60,6 +60,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 		resp.Roles = append(resp.Roles, string(r))
 	}
 
+	log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s", user.ID, user.FirstName, user.LastName, user.Email)
 	ctx.JSON(http.StatusOK, resp)
 }
 

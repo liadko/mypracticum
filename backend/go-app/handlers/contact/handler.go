@@ -210,7 +210,7 @@ func (h *ContactHandler) InviteMentor(ctx *gin.Context) {
 	log.Printf("[ContactHandler.InviteMentor] Starting - inviting mentor")
 	// 1) get userID from the context
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
-	log.Printf("[ContactHandler.InviteMentor] Extracted userID: %s", userID)
+	log.Printf("[ContactHandler.InviteMentor] Inviter User id: %s", userID)
 
 	contactID, err := uuid.Parse(ctx.Param("contactId"))
 	if err != nil {
@@ -218,7 +218,7 @@ func (h *ContactHandler) InviteMentor(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid contact ID"})
 		return
 	}
-	log.Printf("[ContactHandler.InviteMentor] Parsed contactID: %s", contactID)
+	log.Printf("[ContactHandler.InviteMentor] Invitee contactID: %s", contactID)
 
 	// directly call service with userID and contactID
 	log.Printf("[ContactHandler.InviteMentor] Calling service to send invitation")
