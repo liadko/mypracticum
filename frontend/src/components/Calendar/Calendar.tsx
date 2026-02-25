@@ -6,11 +6,19 @@ import { he } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
 import './Calendar.css';
 
-
-
-
 import type { Entry } from '../../types';
 import Day from './Day';
+
+const ARROW_ICON_CONTENT = (
+    <g transform="translate(14 20) rotate(180)">
+        <g transform="translate(0)">
+            <path
+                d="M13.62,9.22,3.015.32A1.43,1.43,0,0,0,2.093,0a1.43,1.43,0,0,0-.922.32L.391.975a.976.976,0,0,0,0,1.547L9.3,10,.381,17.478a.977.977,0,0,0,0,1.547l.781.655a1.43,1.43,0,0,0,.922.32,1.43,1.43,0,0,0,.922-.32L13.62,10.772a.983.983,0,0,0,0-1.553Z"
+                fill="currentColor"
+            />
+        </g>
+    </g>
+);
 
 
 interface CalendarProps {
@@ -79,6 +87,7 @@ export default function Calendar({ entries, handleDayToggle, highlightedDate, on
                         <div className="calendar-header">
                             <svg
                                 className="calendar-header__button flipped"
+                                viewBox="0 0 14 20"
                                 onClick={() => {
                                     const newMonth = addMonths(currentMonth, -1);
                                     onHighlightedDateChange(undefined);
@@ -88,7 +97,7 @@ export default function Calendar({ entries, handleDayToggle, highlightedDate, on
                                 aria-label="Previous month"
 
                             >
-                                <use href='/left-arrow.svg' fill='currentColor' />
+                                {ARROW_ICON_CONTENT}
                             </svg>
                             <div className="calendar-header__title">
                                 <div className={`calendar-header__title-content ${titleAnimation}`}>
@@ -97,6 +106,7 @@ export default function Calendar({ entries, handleDayToggle, highlightedDate, on
                             </div>
                             <svg
                                 className="calendar-header__button"
+                                viewBox="0 0 14 20"
                                 onClick={() => {
                                     const newMonth = addMonths(currentMonth, 1);
                                     onHighlightedDateChange(undefined);
@@ -106,7 +116,7 @@ export default function Calendar({ entries, handleDayToggle, highlightedDate, on
                                 aria-label="Next month"
 
                             >
-                                <use href='/left-arrow.svg' fill='currentColor' />
+                                {ARROW_ICON_CONTENT}
                             </svg>
                         </div>
                     )
