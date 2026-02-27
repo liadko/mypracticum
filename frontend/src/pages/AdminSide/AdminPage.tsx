@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import './AdminPage.css';
 import { StudentsForm } from '../../components/Admin/StudentsForm';
 import { EntriesForm } from '../../components/Admin/EntriesForm';
@@ -14,11 +14,10 @@ export default function AdminPage() {
     const [activeTab, setActiveTab] = useState<AdminTab>('page-import-students');
 
     // A single, shared logging function passed to all components
-    const logMessage = (message: string) => {
+    const logMessage = useCallback((message: string) => {
         const timestamp = new Date().toLocaleTimeString();
-        // Use callback form of setState to get the latest 'logs'
-        setLogs((prevLogs) => `[${timestamp}] ${message}\n\n` + prevLogs);
-    };
+        setLogs((prevLogs) => `[${timestamp}] ${message}\n` + prevLogs);
+    }, []); // Empty array: the function reference never changes
 
     const renderTabContent = () => {
         switch (activeTab) {

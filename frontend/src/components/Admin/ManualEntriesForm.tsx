@@ -36,23 +36,25 @@ export function ManualEntriesForm({ logMessage }: Props) {
                 setIsLoading(true);
                 setError(null);
                 const students = await adminApi.getStudents();
-                // Map to our selection state
+
                 setAllStudents(
                     students.map((s) => ({
                         ...s,
                         isSelected: false,
-                        hoursAssigned: 10, // Default hours
+                        hoursAssigned: 10,
                     })),
                 );
             } catch (err: unknown) {
-                setError(err instanceof Error ? err.message : 'Failed to load students');
-                logMessage(`Error loading students: ${error}`);
+                const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred while loading students';
+                setError(errorMsg);
+                logMessage(`Error loading students: ${errorMsg}`);
             } finally {
                 setIsLoading(false);
             }
         };
+
         loadStudents();
-    }, [error, logMessage]); // Be careful with dependencies
+    }, [logMessage]);
 
     // --- Student List Management ---
     const toggleStudent = (studentId: string) => {
