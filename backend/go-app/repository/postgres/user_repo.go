@@ -28,6 +28,7 @@ SELECT id
      , first_name
      , last_name
      , email
+	 , taz
      , signature
      , created_at
 	 , created_by
@@ -44,14 +45,22 @@ func (r *PostgresUserRepo) loadUser(
 	// 1) fetch the main row
 	q := baseUserQuery + " WHERE " + where
 	var u domain.User
+	var nullTaz sql.NullString // Intermediate variable for nullable DB column
+
 	if err := r.db.
 		QueryRowContext(ctx, q, arg).
-		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt, &u.CreatedBy); err != nil {
+		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy); err != nil {
 
 		if err == sql.ErrNoRows {
 			return domain.User{}, repository.ErrNotFound
 		}
 		return domain.User{}, err
+	}
+
+	if nullTaz.Valid {
+		u.Taz = nullTaz.String
+	} else {
+		u.Taz = "" // Explicitly empty if NULL in DB
 	}
 
 	// 2) fetch & attach roles
@@ -347,11 +356,20 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 	var users []domain.User
 	for rows.Next() {
 		var u domain.User
+		var nullTaz sql.NullString // Intermediate variable for nullable DB column
+
 		if err := rows.Scan(
-			&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt, &u.CreatedBy,
+			&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy,
 		); err != nil {
 			return nil, err
 		}
+
+		if nullTaz.Valid {
+			u.Taz = nullTaz.String
+		} else {
+			u.Taz = "" // Explicitly empty if NULL in DB
+		}
+
 		// u.Roles will be nil
 		users = append(users, u)
 	}

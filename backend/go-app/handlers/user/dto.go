@@ -8,6 +8,7 @@ type UserResponse struct {
 	FirstName string    `json:"firstName"`
 	LastName  string    `json:"lastName"`
 	Email     string    `json:"email"`
+	Taz       string    `json:"taz"`
 
 	Signature []byte   `json:"signature,omitempty"` // raw png bytes
 	Roles     []string `json:"roles,omitempty"`

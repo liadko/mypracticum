@@ -54,6 +54,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
+		Taz:       user.Taz,
 		Signature: user.Signature,
 	}
 	// flatten roles
@@ -277,6 +278,7 @@ func (h *UserHandler) GetStudents(ctx *gin.Context) {
 			FirstName: user.FirstName,
 			LastName:  user.LastName,
 			Email:     user.Email,
+			Taz:       user.Taz,
 		})
 	}
 
