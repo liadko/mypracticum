@@ -17,7 +17,7 @@ export default function AdminPage() {
     const logMessage = (message: string) => {
         const timestamp = new Date().toLocaleTimeString();
         // Use callback form of setState to get the latest 'logs'
-        setLogs((prevLogs) => `[${timestamp}] ${message}\n` + prevLogs);
+        setLogs((prevLogs) => `[${timestamp}] ${message}\n\n` + prevLogs);
     };
 
     const renderTabContent = () => {
@@ -65,9 +65,18 @@ export default function AdminPage() {
                 {renderTabContent()}
 
                 <section className="admin-card">
-                    <h2>Logs & Results</h2>
+                    <div className="logs-header">
+                        <h2>Logs & Results</h2>
+                        <button
+                            className="clear-logs-btn"
+                            onClick={() => setLogs('')}
+                            disabled={!logs}
+                        >
+                            Clear Logs
+                        </button>
+                    </div>
                     <div id="log-output">
-                        {logs || 'Logs will appear here...'}
+                        {logs}
                     </div>
                 </section>
             </main>
