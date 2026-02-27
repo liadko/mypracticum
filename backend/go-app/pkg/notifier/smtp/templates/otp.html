@@ -1,416 +1,102 @@
 <!DOCTYPE html
 	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
 	<meta http-equiv="Content-Language" content="he">
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<style type="text/css">
+		html,
+		body {
+			margin: 0;
+			padding: 0;
+			width: 100% !important;
+			min-width: 100% !important;
+			background-color: #f8f8f8;
+		}
+
+		img {
+			max-width: 100%;
+			height: auto !important;
+			border: 0;
+			outline: none;
+			text-decoration: none;
+		}
+
+		table {
+			border-collapse: collapse !important;
+			mso-table-lspace: 0pt;
+			mso-table-rspace: 0pt;
+		}
+
+		@media only screen and (max-width: 600px) {
+			.container {
+				width: 100% !important;
+				max-width: 100% !important;
+			}
+
+			.content-td {
+				padding: 20px 15px !important;
+			}
+		}
+	</style>
 </head>
 
-<body yahoo="fix">
-	<div style="display: none; max-height: 0px; overflow: hidden;">
-		‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;‌&zwnj;&nbsp;
-	</div><img src="https://content.smoove.io/53848488O851117157O63793O851031684O831266604/v/vpb.gif?v=1758283459"
-		width="1" height="1" style="vertical-align: bottom; display:block;" alt="" border="0">
-	<div dir="ltr" style="width: 100%;">
-		<table style="margin: auto;width:100%;" cellpadding="0" cellspacing="0">
-			<tr>
-				<td style="direction:0;">
-					<font color="black" size="12px" face="Arial" style="font-size:12px;"><!--[if gte mso 15]>
-			<style></style>
-			<![endif]-->
-						<style type="text/css">
-							html,
-							body,
-							form {
-								height: 100%;
-							}
-
-							.g_row {
-								float: right;
-								width: 100%;
-								clear: both;
-							}
-
-							html,
-							body {
-								min-width: 100% !important;
-								padding: 0;
-								margin: 0;
-								max-width: 100% !important;
-							}
-
-							body,
-							table,
-							td,
-							p,
-							a,
-							li,
-							blockquote {
-								-webkit-text-size-adjust: none !important;
-							}
-
-							body,
-							#wrapper,
-							#wrapperTd {
-								height: 100% !important;
-								margin: 0;
-								padding: 0;
-								width: 100% !important;
-							}
-
-							.templateMainWrapper {
-								margin: inherit;
-							}
-
-							table {
-								border-collapse: collapse;
-								border: none;
-								mso-table-lspace: 0pt;
-								mso-table-rspace: 0pt;
-							}
-
-							table td {
-								border-collapse: collapse;
-								mso-table-lspace: 0pt;
-								mso-table-rspace: 0pt;
-							}
-
-							img,
-							a img {
-								border: 0;
-								outline: none;
-								text-decoration: none;
-							}
-
-							.clrPx {
-								display: none;
-							}
-
-							map area {
-								outline: none;
-							}
-
-							strong {
-								font-weight: 700;
-							}
-
-							.showMobileMail {
-								display: none;
-							}
-
-							.showDesktopMail {
-								display: table-cell;
-							}
-
-							.showMobile>.sepBtwn:only-child,
-							.showDesktop>.sepBtwn:only-child {
-								display: none;
-							}
-
-							table.kLogo table td.contactDetails a {
-								color: inherit;
-								text-decoration: none;
-							}
-
-							table.socialBlock div {
-								display: inline-block;
-							}
-
-							img.fr-fic.fr-dii {
-								height: auto !important;
-							}
-
-
-							.ExternalClass p,
-							.ExternalClass span,
-							.ExternalClass font,
-							.ExternalClass td {
-								line-height: normal
-							}
-
-							.ExternalClass {
-								width: 100%;
-							}
-
-							.ExternalClass * {
-								line-height: normal;
-							}
-
-							p {
-								margin-block-start: unset;
-								margin-block-end: unset;
-							}
-
-							span>a {
-								color: inherit;
-							}
-
-							table.header u {
-								display: none;
-							}
-
-							table.header span {
-								direction: ltr;
-								display: inline-block;
-							}
-
-							table.subHeader u {
-								display: none;
-							}
-
-							table.subHeader span {
-								direction: ltr;
-								display: inline-block;
-							}
-
-							table.footer u {
-								display: none;
-							}
-
-							table.footer span {
-								direction: ltr;
-								display: inline-block;
-							}
-
-							.iconsBar img {
-								max-width: 200px !important;
-							}
-
-							body.forThumb #wrapperTd {
-								padding: 0 !important;
-							}
-
-							body.forThumb .topBR {
-								display: none;
-							}
-						</style><!--[if mso]>
-			<style>
-			table.article td.content ul,
-			table.article td.content ol,
-			table.paragraph td ul,
-			table.paragraph td ol,
-			table.event td.content_td ul,
-			table.event td.content_td ol,
-			table.youTube td.content_td ul,
-			table.youTube td.content_td ol{margin-right:1.4em;  padding:0;}
-			table.article td.content li,
-			table.paragraph td li,
-			table.event td.content_td li,
-			table.youTube td.content_td li{margin-top:0; margin-bottom:0;}
-
-			a:visited{color:}
-
-
-
-			</style>
-			<![endif]-->
-						<link rel="preconnect" href="https://fonts.googleapis.com">
-						<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
-						<link rel="stylesheet"
-							href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&amp;display=swap">
-						<link rel="stylesheet"
-							href="https://fonts.googleapis.com/css2?family=Assistant:wght@200;800&amp;display=swap">
-						<!--[if // start campaign content //-->
-						<table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#e37b46" height="100%"
-							style=" background-color:#f8f8f8">
-							<tr>
-								<td width="100%"
-									style="mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;margin: 0;height: 100% !important;width: 100% !important;">
-									<table border="0" dir="ltr" cellspacing="0" cellpadding="0" width="100%"
-										style="border-collapse:collapse;font-family: Arial; font-size: px; color:; mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%; width: 100% !important;"
-										id="wrapper" align="center">
-										<tr>
-											<td id="wrapperTd" width="100%"
-												style="mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;margin: 0;height: 100% !important;width: 100% !important; padding:0 30px;"
-												align="center" class="PagePositionCenter"><br>
-												<table border="0" cellspacing="0" cellpadding="0"
-													style="border-collapse:collapse; mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%; min-width:600px; font-family:Arial; background-color:#ffffff;"
-													id="container" width="600">
-													<tr>
-														<td width="100%"
-															style="mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"
-															class="zHeader">
-															<div class="showMobile showDesktop">
-																<table border="0" cellspacing="0" cellpadding="0"
-																	width="100%" class="logo"
-																	style="border-collapse:collapse; width:100% !important; mso-table-lspace:0pt; mso-table-rspace:0pt; -ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-																	<tr>
-																		<td style="mso-table-lspace:0;mso-table-rspace:0;vertical-align: top; border-collapse:collapse; width:100% !important; -ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"
-																			align="center">
-																			<table border="0" cellspacing="0"
-																				cellpadding="0" width="582"
-																				style="border-collapse:separate;">
-																				<tr>
-																					<td valign="top" width="582"
-																						align="center"
-																						style=" border-radius:0px; overflow:hidden;">
-																						<img width="582" border="0"
-																							onerror="imageError()"
-																							data-lang="he-IL"
-																							alt="image"
-																							src="https://content.viplus.com/info_temurot_com/Content/Header_582x204-r(3).jpg"
-																							style="display:block;"
-																							align="center" vspace="0"
-																							hspace="0" height="204">
-																					</td>
-																				</tr>
-																			</table>
-																		</td>
-																	</tr>
-																</table>
-															</div>
-														</td>
-													</tr>
-													<tr>
-														<td style="padding-bottom: 20px; padding-top: 15px; padding-left: 15px; padding-right: 15px; mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"
-															align="right">
-															<table border="0" cellspacing="0" cellpadding="0"
-																width="100%"
-																style="width:100%; border-collapse:collapse; mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%; background-color:#ffffff;">
-																<tr>
-																	<td>
-																		<div class="showMobile showDesktop">
-																			<table border="0" cellspacing="0"
-																				cellpadding="0" width="100%"
-																				class="spacer"
-																				style="border-collapse:collapse; width:100% !important; mso-table-lspace:0pt; mso-table-rspace:0pt; -ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-																				<tr>
-																					<td style="height: 10px; mso-table-lspace:0;mso-table-rspace:0;vertical-align: top; border-collapse:collapse; width:100% !important; -ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"
-																						align="center"></td>
-																				</tr>
-																			</table>
-																		</div>
-																		<div class="showMobile showDesktop">
-																			<table border="0" cellspacing="0"
-																				cellpadding="0" width="100%"
-																				class="paragraph rtl"
-																				style="border-collapse:separate; border:none; width:100% !important; font-size: 16px;">
-																				<tr>
-																					<td style="background-color:#ffffff; font-size:inherit; font-family: Arial; line-height:24px; color:#000000; font-weight:normal; padding:20px;  border-radius:0px;"
-																						align="right" class="rtl"
-																						dir="rtl">
-																						<div>שלום {{firstName}}!</div>
-																						<div style="margin-top:8px;">
-																							<strong>כדי להיכנס לאתר
-																								תמורות
-																								פרקטיקום,</strong></div>
-																						<div><strong>יש להשתמש בקוד
-																								האימות הבא:</strong>
-																						</div>
-																						<div
-																							style="margin:40px 0; text-align: center;">
-																							<div
-																								style="background-color:#f0f0f0; padding:20px 40px; display:inline-block; letter-spacing: 5px; font-size:22px; font-weight:bold; border-radius:6px; text-align:center; direction:ltr;">
-																								{{code}}</div>
-																						</div>
-																						<div>הקוד חד־פעמי ונועד לשימוש
-																							מיידי בלבד.</div>
-																						<div>במידה שנתקלת בקושי או שיש
-																							לך שאלה, אפשר להשיב למייל זה
-																							ואנו נשמח לעזור.</div>
-																					</td>
-																				</tr>
-																			</table>
-																		</div>
-																	</td>
-																</tr>
-															</table>
-														</td>
-													</tr>
-													<tr>
-														<td class="footer"
-															style="mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-															<div class="showMobile showDesktop">
-																<table border="0" cellspacing="0" cellpadding="0"
-																	width="100%" class="spacer"
-																	style="border-collapse:collapse; width:100% !important; mso-table-lspace:0pt; mso-table-rspace:0pt; -ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
-																	<tr>
-																		<td style="height: 30px; mso-table-lspace:0;mso-table-rspace:0;vertical-align: top; border-collapse:collapse; width:100% !important; -ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"
-																			align="center"></td>
-																	</tr>
-																</table>
-															</div>
-														</td>
-													</tr>
-												</table>
-												<p style="margin:0;"> </p>
-											</td>
-										</tr>
-									</table>
-								</td>
-							</tr>
-						</table><!--[if // end campaign content //-->
-					</font>
-				</td>
-			</tr>
-		</table>
-	</div>
-	<table cellspacing="0" cellpadding="0" border="0" width="100%" class="mailFooterTable">
+<body style="margin: 0; padding: 0; background-color: #f8f8f8;" dir="rtl">
+	<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8f8f8;">
 		<tr>
-			<td align="center" style="padding:0 30px;" class="mailFooterTd">
-				<table dir="ltr" width="600" class="mailFooter" cellspacing="0" cellpadding="0" border="0">
+			<td align="center" style="padding: 10px 0;">
+
+				<table border="0" cellspacing="0" cellpadding="0" class="container" width="600"
+					style="background-color: #ffffff; width: 600px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
 					<tr>
-						<td style="padding-top:30px; padding-bottom:25px; min-width:100%;">
-							<table cellspacing="0" cellpadding="0" border="0" align="center" width="100%"
-								style="border-top:1px dashed #ccc; height:0; min-width:100%;" dir="rtl">
-								<tr>
-									<td style="font-size:0; line-height:0; min-width:100%;">&nbsp;</td>
-								</tr>
-							</table>
+						<td align="center" style="line-height: 0;">
+							<img src="https://content.viplus.com/info_temurot_com/Content/Header_582x204-r(3).jpg"
+								width="600" border="0" alt="תמורות" style="display: block; width: 100%; height: auto;">
 						</td>
 					</tr>
+
 					<tr>
-						<td>
-							<table dir="rtl" align="center" cellspacing="0" cellpadding="0"
-								style="font-family:arial; font-size:12px; color:#707070; line-height:14pt;">
-								<tr>
-									<td align="center">אם אינכם רואים מייל זה - <a
-											href="https://members.smoove.io/view.ashx?message=h53848488O851117157O63793O851031684&r=1009"
-											target="_blank" style="text-decoration:none; color:#707070;">לחצו כאן</a>
-									</td>
-								</tr>
-								<tr>
-									<td align="center"><a
-											href="https://portal.smoove.io/otoko8n8gr4boi4et8b/profile/update/appebhczn3?c=he-IL"
-											target="_blank" style="text-decoration:none; color:#707070;">עדכון פרטים</a>
-										| <a href="https://portal.smoove.io/otoko8n8gr4boi4et8b/profile/unsubscribe/appebhczn3?c=he-IL"
-											target="_blank" style="text-decoration:none; color:#707070;">הסרה</a> | <a
-											href="https://members.viplus.com/abuse,he-IL,53848488O851117157O63793O851031684.aspx?r=1009"
-											target="_blank" style="text-decoration:none; color:#707070;">דיווח כספאם</a>
-									</td>
-								</tr>
-								<tr>
-									<td align="center">אוניברסיטת בר אילן</td>
-								</tr>
-								<tr>
-									<td>&nbsp;</td>
-								</tr>
+						<td class="content-td"
+							style="padding: 30px 30px 10px 30px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;"
+							align="right">
+
+							<p style="margin-top: 0; margin-bottom: 15px; font-size: 16px;">שלום
+								<strong>{{firstName}}</strong>!</p>
+
+							<p style="margin-bottom: 5px; font-size: 16px;">כדי להיכנס לאתר <strong>תמורות
+									פרקטיקום</strong>,</p>
+							<p style="margin-top: 0;  font-size: 16px;">יש להשתמש בקוד האימות הבא:</p>
+
+							<table border="0" cellspacing="0" cellpadding="0" width="100%" style="margin: 25px 0;">
 								<tr>
 									<td align="center">
-										<table cellspacing="0" cellpadding="0" border="0"
-											style="font-family:arial; font-size:12px; color:#707070; line-height:14pt;">
-											<tr>
-												<td valign="middle" height="16" style="vertical-align:middle;"> נשלח
-													באמצעות <a style="color:#470E8B; text-decoration:none;"
-														href="https://smoove.io/he">smoove&nbsp;</a></td>
-												<td valign="middle" height="16" width="18"
-													style="vertical-align:middle;"> <img
-														src="https://content.smoove.io/53848488O851117157O63793O851031684O831266604/v/smoove.gif?v=1758283459"
-														width="16" height="16"
-														style="vertical-align: bottom; display:block;" alt=""></td>
-											</tr>
-										</table>
+										<div
+											style="background-color: #f4f4f4; padding: 15px 40px; display: inline-block; letter-spacing: 5px; font-size: 28px; font-weight: bold; border-radius: 8px; border: 1px solid #eeeeee; color: #000000; direction: ltr;">
+											{{code}}
+										</div>
 									</td>
 								</tr>
-								<tr>
-									<td>&nbsp;</td>
-								</tr>
 							</table>
+
+							<p style="margin-top: 20px; margin-bottom: 5px; font-size: 16px;">קוד זה תקף לשימוש חד־פעמי
+								ומיידי.</p>
+
+							<p style="margin-top: 0; margin-bottom: 0; font-size: 16px;">
+								אם נתקלת בקושי או שיש לך שאלה, אנחנו כאן לכל דבר במייל:
+								<a href="mailto:office@temurot.com"
+									style="color: #e37b46; text-decoration: underline; font-size: 16px;">office@temurot.com</a>
+							</p>
 						</td>
 					</tr>
+
+					<tr>
+						<td style="height: 25px;"></td>
+					</tr>
 				</table>
+
 			</td>
 		</tr>
 	</table>
