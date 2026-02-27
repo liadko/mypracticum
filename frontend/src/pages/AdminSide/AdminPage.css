@@ -35,6 +35,7 @@ main {
     background-color: #ffffff;
     border-radius: 8px;
     padding: 25px;
+    min-width: 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
@@ -95,14 +96,54 @@ button:disabled {
     border-radius: 5px;
     min-height: 100px;
     max-height: 300px;
+
+    /* Enable both vertical and horizontal scrolling */
     overflow-y: auto;
-    white-space: pre-wrap;
-    /* Ensures long lines wrap */
-    word-wrap: break-word;
+    overflow-x: auto;
+
+    /* Keep text on a single line to enable horizontal scrolling */
+    white-space: pre;
+
+    /* Strictly cap the width to its parent container */
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
-#approve-ids-input,
-#delete-manual-ids-input {
+/* Container to align the header and the clear button */
+.logs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.logs-header h2 {
+    margin: 0;
+}
+
+/* Clear Logs button styling */
+.clear-logs-btn {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.clear-logs-btn:hover:not(:disabled) {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}
+
+.clear-logs-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.uuids-input {
     width: 100%;
     min-height: 140px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
@@ -265,16 +306,6 @@ p.description {
     margin-bottom: 15px;
 }
 
-.button-danger {
-    background-color: #dc3545;
-    /* A standard 'danger' red */
-}
-
-.button-danger:hover {
-    background-color: #c82333;
-    /* Darker red on hover */
-}
-
 
 /* --- Template Explainer Box --- */
 
@@ -315,4 +346,83 @@ p.description {
 
 .template-explainer li:last-child {
     margin-bottom: 0;
+}
+
+/* Divider between discrete form actions */
+.section-divider {
+    margin: 2rem 0;
+    border: 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Destructive action button */
+.button-danger {
+    background-color: #ef4444;
+    color: #ffffff;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+.button-danger:hover:not(:disabled) {
+    background-color: #dc2626;
+}
+
+.button-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Creates distance from the main form action and adds a subtle visual break */
+.csv-import-section {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed #cbd5e1;
+}
+
+/* Cleaner, slightly larger instruction text placed above the input */
+.csv-instruction-text {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+}
+
+/* Neutral, smaller button overriding the default blue primary styling */
+.csv-apply-btn {
+    padding: 0.35rem 0.75rem;
+    margin-right: 1.5rem;
+    font-size: 0.85rem;
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.csv-apply-btn:hover:not(:disabled) {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}
+
+.csv-apply-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Keep the row layout intact */
+.csv-import-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Student List TAZ Display */
+.student-info .taz {
+    font-size: 0.85em;
+    color: #64748b;
+    /* Subdued slate gray */
+    margin-top: 2px;
 }

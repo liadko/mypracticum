@@ -14,6 +14,7 @@ interface Props {
 
 export function ManualEntriesForm({ logMessage }: Props) {
     // State for the whole component
+    const [csvFile, setCsvFile] = useState<File | null>(null);
     const [allStudents, setAllStudents] = useState<StudentSelection[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -77,17 +78,89 @@ export function ManualEntriesForm({ logMessage }: Props) {
             const name = `${student.firstName} ${student.lastName}`.toLowerCase();
             return (
                 name.includes(lowerSearch) ||
-                student.email.toLowerCase().includes(lowerSearch)
+                student.email.toLowerCase().includes(lowerSearch) ||
+                student.taz.includes(lowerSearch)
             );
         })
         .sort((a, b) => {
             // Show selected students first, then sort by name
             if (a.isSelected && !b.isSelected) return -1;
             if (!a.isSelected && b.isSelected) return 1;
-            return a.lastName.localeCompare(b.lastName);
+            return a.firstName.localeCompare(b.firstName);
         });
 
     // --- Form Handlers ---
+    const handleCsvImport = () => {
+        if (!csvFile) {
+            logMessage('Error: No CSV file selected.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target?.result as string;
+            if (!text) return;
+
+            // Split by line, handle both \n and \r\n, ignore empty lines
+            const lines = text.split(/\r?\n/).filter((line) => line.trim() !== '');
+            const updates = new Map<string, number>();
+            let hasErrors = false;
+
+            lines.forEach((line, index) => {
+                const cols = line.split(',');
+                if (cols.length != 2) {
+                    logMessage(`CSV Error (Line ${index + 1}): Expected 2 columns, got ${cols.length}. Line content: "${line}"`);
+                    hasErrors = true;
+                    return;
+                }
+
+                const taz = cols[0].trim();
+                const hoursRaw = cols[1].trim();
+                const hours = parseFloat(hoursRaw);
+
+                if (isNaN(hours)) {
+                    logMessage(`CSV Error (Line ${index + 1}): Invalid hours '${hoursRaw}' for TAZ ${taz}`);
+                    hasErrors = true;
+                    return;
+                }
+
+                const studentExists = allStudents.some((s) => s.taz === taz);
+                if (!studentExists) {
+                    logMessage(`CSV Error (Line ${index + 1}): Student with TAZ ${taz} not found in the system.`);
+                    hasErrors = true;
+                    return;
+                }
+
+                updates.set(taz, hours);
+            });
+
+            if (hasErrors) {
+                logMessage('CSV Import aborted due to errors. No students were selected.');
+                return;
+            }
+
+            // Apply updates to the list
+            setAllStudents((current) =>
+                current.map((s) => {
+                    if (updates.has(s.taz)) {
+                        return { ...s, isSelected: true, hoursAssigned: updates.get(s.taz)! };
+                    }
+                    // Unselect anyone not in the CSV, don't touch hours
+                    return { ...s, isSelected: false };
+                })
+            );
+
+            logMessage(`SUCCESS: Selected ${updates.size} students from CSV and assigned hours.`);
+            setCsvFile(null); // Reset file selection
+        };
+
+        reader.onerror = () => {
+            logMessage('Error reading the CSV file.');
+        };
+
+        reader.readAsText(csvFile);
+    };
+
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title) {
@@ -229,7 +302,11 @@ export function ManualEntriesForm({ logMessage }: Props) {
                                             {student.firstName} {student.lastName}
                                         </div>
                                         <div className="email">{student.email}</div>
+                                        <div className="taz">
+                                            TAZ: {student.taz || 'NULL'}
+                                        </div>
                                     </label>
+
                                 </div>
                                 <input
                                     type="number"
@@ -248,6 +325,35 @@ export function ManualEntriesForm({ logMessage }: Props) {
                 <button type="submit" id="create-group-button" disabled={isSubmitting}>
                     {isSubmitting ? 'Adding...' : 'Add All Manual Hours'}
                 </button>
+
+                <div className="form-group csv-import-section">
+                    <label>Import Selections via CSV</label>
+                    <p className="csv-instruction-text">
+                        Format: No headers. (NO HEADER ROW!!! just the lines) <br />
+                        Column 1: taz, Column 2: Hours. <br />
+                        Example: <br />
+                        <code>215671066, 8</code> <br />
+                        <code>213598410, 23</code> <br />
+                        <code>423423562, 10</code>
+                    </p>
+
+                    <div className="csv-import-row">
+                        <input
+                            type="file"
+                            accept=".csv"
+                            onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+                            value={csvFile ? undefined : ''}
+                        />
+                        <button
+                            type="button"
+                            className="csv-apply-btn"
+                            onClick={handleCsvImport}
+                            disabled={!csvFile}
+                        >
+                            Apply CSV
+                        </button>
+                    </div>
+                </div>
             </form>
 
             <hr className="section-divider" />
@@ -264,6 +370,7 @@ export function ManualEntriesForm({ logMessage }: Props) {
                     </label>
                     <textarea
                         id="delete-manual-ids-input"
+                        className="uuids-input"
                         placeholder="entry_uuid_1...&#10;batch_uuid_1..."
                         required
                         value={deleteIds}
