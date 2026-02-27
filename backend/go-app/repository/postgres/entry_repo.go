@@ -378,3 +378,22 @@ func (r *PostgresEntryRepo) DeleteManualEntriesByIDs(
 
 	return entriesDeleted, batchesDeleted, nil
 }
+
+// DeleteEntriesByIDs deletes entries by their IDs regardless of approval status.
+func (r *PostgresEntryRepo) DeleteEntriesByIDs(ctx context.Context, ids []uuid.UUID) (int64, error) {
+	// Note: If you are using the 'github.com/lib/pq' driver instead of pgx,
+	// you must wrap 'ids' using pq.Array(ids) for Postgres slice binding to work.
+	const query = `DELETE FROM entries WHERE id = ANY($1)`
+
+	res, err := r.db.ExecContext(ctx, query, ids)
+	if err != nil {
+		return 0, fmt.Errorf("delete entries by ids: %w", err)
+	}
+
+	deleted, err := res.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("rows affected: %w", err)
+	}
+
+	return deleted, nil
+}

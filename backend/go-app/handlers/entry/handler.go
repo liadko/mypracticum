@@ -385,7 +385,55 @@ func (h *EntryHandler) DeleteManualEntries(ctx *gin.Context) {
 	result, err := h.svc.DeleteManualEntriesByIDs(ctx.Request.Context(), ids)
 	if err != nil {
 		log.Printf("[EntryHandler.DeleteManualEntries] Failed to delete entries: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error while deleting"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error while deleting: " + err.Error()})
+		return
+	}
+
+	// 5) Return the successful result
+	ctx.JSON(http.StatusOK, result)
+}
+
+// DeleteEntries handles the bulk deletion of regular entries by admin.
+func (h *EntryHandler) DeleteEntries(ctx *gin.Context) {
+	log.Printf("[EntryHandler.DeleteEntries] Deleting regular entries")
+
+	// 1) Admin-only check
+	adminID := ctx.MustGet("userID").(uuid.UUID)
+	roles := ctx.MustGet("roles").([]string)
+
+	if !hasRole(roles, "admin") {
+		log.Printf("[EntryHandler.DeleteEntries] Forbidden: user not admin")
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "admin role required"})
+		return
+	}
+
+	// 2) Bind the request payload
+	var req BulkUUIDRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil || req.IDs == nil || len(req.IDs) == 0 {
+		log.Printf("[EntryHandler.DeleteEntries] Invalid payload: %v", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload: require non-empty 'ids' array"})
+		return
+	}
+
+	// 3) Parse and validate all UUIDs
+	ids := make([]uuid.UUID, 0, len(req.IDs))
+	for _, s := range req.IDs {
+		id, err := uuid.Parse(strings.TrimSpace(s))
+		if err != nil {
+			log.Printf("[EntryHandler.DeleteEntries] Invalid UUID: %s - %v", s, err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid uuid", "value": s})
+			return
+		}
+		ids = append(ids, id)
+	}
+
+	log.Printf("[EntryHandler.DeleteEntries] Admin=%s Deleting %d entries", adminID, len(ids))
+
+	// 4) Call the Service
+	result, err := h.svc.DeleteEntriesByIDs(ctx.Request.Context(), ids)
+	if err != nil {
+		log.Printf("[EntryHandler.DeleteEntries] Failed to delete entries: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error while deleting: " + err.Error()})
 		return
 	}
 

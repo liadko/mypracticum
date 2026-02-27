@@ -324,3 +324,24 @@ func (s *EntryService) DeleteManualEntriesByIDs(
 		BatchesDeleted: batchesDeleted,
 	}, nil
 }
+
+// DeleteEntriesByIDs passes a list of UUIDs to the repository to be deleted.
+// This is an administrative function and bypasses approval locks.
+func (s *EntryService) DeleteEntriesByIDs(
+	ctx context.Context,
+	ids []uuid.UUID,
+) (domain.DeleteEntriesResult, error) {
+	log.Printf("[EntryService.DeleteEntriesByIDs] Deleting %d entries", len(ids))
+
+	deleted, err := s.repo.DeleteEntriesByIDs(ctx, ids)
+	if err != nil {
+		log.Printf("[EntryService.DeleteEntriesByIDs] Failed to delete entries: %v", err)
+		return domain.DeleteEntriesResult{}, DBError{Err: err}
+	}
+
+	log.Printf("[EntryService.DeleteEntriesByIDs] Successfully deleted %d entries", deleted)
+
+	return domain.DeleteEntriesResult{
+		Deleted: deleted,
+	}, nil
+}

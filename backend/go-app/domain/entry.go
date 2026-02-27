@@ -115,3 +115,8 @@ type DeleteManualEntriesResult struct {
 	EntriesDeleted int64 `json:"entriesDeleted"`
 	BatchesDeleted int64 `json:"batchesDeleted"`
 }
+
+// DeleteEntriesResult represents the JSON response for a bulk entry deletion
+type DeleteEntriesResult struct {
+	Deleted int64 `json:"deleted"`
+}

@@ -50,5 +50,6 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 	prot.POST("/admin/entries/approve", entryH.BulkApprove)
 	prot.POST("/admin/entries/manual", entryH.BulkAddManualEntries)
 	prot.POST("/admin/entries/manual/delete", entryH.DeleteManualEntries)
+	prot.POST("/admin/entries/delete", entryH.DeleteEntries)
 
 }
