@@ -20,4 +20,5 @@ type EntryRepo interface {
 	ListManualEntriesByUserID(ctx context.Context, userID uuid.UUID) ([]domain.ManualEntry, error)
 
 	DeleteManualEntriesByIDs(ctx context.Context, ids []uuid.UUID) (entriesDeleted int64, batchesDeleted int64, err error)
+	DeleteEntriesByIDs(ctx context.Context, ids []uuid.UUID) (int64, error)
 }
