@@ -118,7 +118,7 @@ export interface StudentResponse {
     firstName: string;
     lastName: string;
     email: string;
-    // Add any other fields you return, like 'roles'
+    taz: string;
     roles: string[];
 }
 
@@ -162,9 +162,9 @@ export interface BulkAddManualEntriesResult {
 }
 
 /**
- * The result of a delete manual entries request.
+ * The result of a delete entries request (manual or regular entries).
  */
-export interface DeleteManualEntriesResult {
+export interface DeleteEntriesResult {
     deleted: number;
     notFound: number;
     errors: Array<{ id: string; error: string }>;

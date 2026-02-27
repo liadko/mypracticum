@@ -5,7 +5,7 @@ import type {
     StudentImportResponse,
     BulkApproveResult,
     BulkAddManualEntriesResult,
-    DeleteManualEntriesResult,
+    DeleteEntriesResult,
     ManualEntryPayload,
 } from '../types';
 
@@ -87,8 +87,27 @@ export async function bulkAddManualEntries(
  */
 export async function deleteManualEntries(
     ids: string[],
-): Promise<DeleteManualEntriesResult> {
+): Promise<DeleteEntriesResult> {
     const res = await apiFetch('/api/v1/admin/entries/manual/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+    });
+
+    if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to delete entries');
+    }
+    return res.json();
+}
+
+/**
+ * Deletes a list of regular entries by their UUIDs.
+ */
+export async function deleteEntries(
+    ids: string[],
+): Promise<DeleteEntriesResult> {
+    const res = await apiFetch('/api/v1/admin/entries/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids }),
