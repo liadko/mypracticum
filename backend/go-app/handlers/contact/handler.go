@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"slices"
+	"strings"
+	"unicode"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/service"
@@ -88,6 +90,11 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 	}
 	log.Printf("[ContactHandler.Update] Successfully parsed request body")
 
+	if req.Email != nil {
+		cleanEmail := sanitizeEmail(*req.Email)
+		req.Email = &cleanEmail
+	}
+
 	// build the temporary NewContact
 	newContact := domain.NewContact{
 		Type:                     req.Type,
@@ -153,6 +160,11 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 		return
 	}
 	log.Printf("[ContactHandler.Create] Successfully parsed request body - Name: %s, Type: %s", req.Name, req.Type)
+
+	if req.Email != nil {
+		cleanEmail := sanitizeEmail(*req.Email)
+		req.Email = &cleanEmail
+	}
 
 	// build the temporary NewContact
 	nc := domain.NewContact{
@@ -236,4 +248,18 @@ func (h *ContactHandler) InviteMentor(ctx *gin.Context) {
 
 	log.Printf("[ContactHandler.InviteMentor] Invitation sent successfully for mentor %s to student %s", contactID, userID)
 	ctx.JSON(http.StatusOK, gin.H{"status": "invitation sent"})
+}
+
+// SanitizeEmail strips whitespace and invisible Unicode formatting
+// characters (like bidi markers U+202B, U+202C) from the input.
+func sanitizeEmail(email string) string {
+	if email == "" {
+		return ""
+	}
+	return strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) || unicode.Is(unicode.Cf, r) || unicode.IsControl(r) {
+			return -1 // Drop the character
+		}
+		return r
+	}, email)
 }

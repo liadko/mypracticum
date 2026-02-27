@@ -6,6 +6,8 @@ import (
 	"mypracticum/backend/domain"
 	"mypracticum/backend/service"
 	"net/http"
+	"strings"
+	"unicode"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,30 +30,32 @@ func (h *OTPHandler) Send(ctx *gin.Context) {
 		return
 	}
 
-	log.Printf("[OTPHandler.Send] Sending OTP to email: %s", req.Email)
-	if err := h.otpSvc.SendOTP(ctx.Request.Context(), req.Email); err != nil {
+	cleanEmail := sanitizeEmail(req.Email)
+
+	log.Printf("[OTPHandler.Send] Sending OTP to email: %s", cleanEmail)
+	if err := h.otpSvc.SendOTP(ctx.Request.Context(), cleanEmail); err != nil {
 		// 1) business “not found” (no user with that email)
 		var nf service.NotFoundError
 		if errors.As(err, &nf) {
-			log.Printf("[OTPHandler.Send] User not found: %s", req.Email)
+			log.Printf("[OTPHandler.Send] User not found: %s", cleanEmail)
 			ctx.JSON(404, gin.H{"error": nf.Error()})
 			return
 		}
 
 		var rl service.TooManyRequestsError
 		if errors.As(err, &rl) {
-			log.Printf("[OTPHandler.Send] Rate limited for: %s", req.Email)
+			log.Printf("[OTPHandler.Send] Rate limited for: %s", cleanEmail)
 			ctx.JSON(http.StatusTooManyRequests, gin.H{"error": rl.Error()})
 			return
 		}
 
 		// 2) external service failures (SMTP, Smoove, etc.)
-		log.Printf("[OTPHandler.Send] Failed to send OTP to %s: %v", req.Email, err)
+		log.Printf("[OTPHandler.Send] Failed to send OTP to %s: %v", cleanEmail, err)
 		ctx.JSON(503, gin.H{"error": "could not send OTP, please try again later"})
 		return
 	}
 
-	log.Printf("[OTPHandler.Send] OTP sent successfully to: %s", req.Email)
+	log.Printf("[OTPHandler.Send] OTP sent successfully to: %s", cleanEmail)
 	ctx.Status(204)
 }
 
@@ -97,4 +101,18 @@ func (h *OTPHandler) Verify(ctx *gin.Context) {
 // Ping handles GET on '/ping' to wake server up
 func (h *OTPHandler) Ping(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "pong"})
+}
+
+// SanitizeEmail strips whitespace and invisible Unicode formatting
+// characters (like bidi markers U+202B, U+202C) from the input.
+func sanitizeEmail(email string) string {
+	if email == "" {
+		return ""
+	}
+	return strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) || unicode.Is(unicode.Cf, r) || unicode.IsControl(r) {
+			return -1 // Drop the character
+		}
+		return r
+	}, email)
 }

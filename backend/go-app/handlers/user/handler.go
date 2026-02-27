@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"unicode"
 
 	"mypracticum/backend/pkg/csv"
 	"mypracticum/backend/service"
@@ -119,11 +120,13 @@ func (h *UserHandler) AddUser(ctx *gin.Context) {
 		return
 	}
 
+	cleanEmail := sanitizeEmail(req.Email)
+
 	// 2) Construct domain object
 	newUser := domain.NewUserWithRole{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
-		Email:     req.Email,
+		Email:     cleanEmail,
 		Role:      req.Role,
 		CreatedBy: userID,
 	}
@@ -279,4 +282,18 @@ func (h *UserHandler) GetStudents(ctx *gin.Context) {
 
 	// 4) Return JSON
 	ctx.JSON(http.StatusOK, resp)
+}
+
+// SanitizeEmail strips whitespace and invisible Unicode formatting
+// characters (like bidi markers U+202B, U+202C) from the input.
+func sanitizeEmail(email string) string {
+	if email == "" {
+		return ""
+	}
+	return strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) || unicode.Is(unicode.Cf, r) || unicode.IsControl(r) {
+			return -1 // Drop the character
+		}
+		return r
+	}, email)
 }
