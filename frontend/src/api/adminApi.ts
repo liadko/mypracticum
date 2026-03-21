@@ -54,7 +54,7 @@ export async function approveEntries(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids, approved }),
-    });
+    }, 20 * 1000); // 20s
 
     if (!res.ok) {
         const errData = await res.json();
@@ -73,7 +73,7 @@ export async function bulkAddManualEntries(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ entries }),
-    });
+    }, 100 * 1000); // 100s
 
     if (!res.ok) {
         const errData = await res.json();
@@ -92,7 +92,7 @@ export async function deleteManualEntries(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids }),
-    });
+    }, 20 * 1000); // 20s
 
     if (!res.ok) {
         const errData = await res.json();
@@ -111,7 +111,7 @@ export async function deleteEntries(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids }),
-    });
+    }, 20 * 1000); // 20s
 
     if (!res.ok) {
         const errData = await res.json();
