@@ -4,10 +4,10 @@ import (
 	"encoding/csv"
 	"io"
 	"mypracticum/backend/domain"
+	"mypracticum/backend/pkg/format"
 	"mypracticum/backend/service"
 	"net/mail"
 	"strings"
-	"unicode"
 )
 
 func ParseStudentsCSV(r io.Reader) ([]domain.NewStudent, []service.StudentRowError) {
@@ -46,12 +46,12 @@ func ParseStudentsCSV(r io.Reader) ([]domain.NewStudent, []service.StudentRowErr
 			if !ok || col >= len(rec) {
 				return ""
 			}
-			return sanitizeEmail(rec[col])
+			return format.TrimCharacters(rec[col])
 		}
 
 		first := get("firstname")
 		last := get("lastname")
-		email := strings.ToLower(get("email"))
+		email := format.SanitizeEmail(get("email"))
 		sem := get("class")
 		taz := get("taz")
 
@@ -73,18 +73,4 @@ func ParseStudentsCSV(r io.Reader) ([]domain.NewStudent, []service.StudentRowErr
 		})
 	}
 	return out, errs
-}
-
-// SanitizeEmail strips whitespace and invisible Unicode formatting
-// characters (like bidi markers U+202B, U+202C) from the input.
-func sanitizeEmail(email string) string {
-	if email == "" {
-		return ""
-	}
-	return strings.Map(func(r rune) rune {
-		if unicode.IsSpace(r) || unicode.Is(unicode.Cf, r) || unicode.IsControl(r) {
-			return -1 // Drop the character
-		}
-		return r
-	}, email)
 }

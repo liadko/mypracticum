@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"unicode"
 
 	"mypracticum/backend/pkg/csv"
+	"mypracticum/backend/pkg/format"
 	"mypracticum/backend/service"
 
 	"mypracticum/backend/domain"
@@ -79,7 +79,10 @@ func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
 		return
 	}
 
-	updatedFirstName, updatedLastName, err := h.svc.UpdateProfile(ctx.Request.Context(), userID, req.FirstName, req.LastName)
+	newFirstName := format.TrimCharacters(req.FirstName)
+	newLastName := format.TrimCharacters(req.LastName)
+
+	updatedFirstName, updatedLastName, err := h.svc.UpdateProfile(ctx.Request.Context(), userID, newFirstName, newLastName)
 	if err != nil {
 		log.Printf("[UserHandler.UpdateProfile] Failed to update profile for user %s: %v", userID, err)
 		var nf service.NotFoundError
@@ -121,7 +124,7 @@ func (h *UserHandler) AddUser(ctx *gin.Context) {
 		return
 	}
 
-	cleanEmail := sanitizeEmail(req.Email)
+	cleanEmail := format.SanitizeEmail(req.Email)
 
 	// 2) Construct domain object
 	newUser := domain.NewUserWithRole{
@@ -284,18 +287,4 @@ func (h *UserHandler) GetStudents(ctx *gin.Context) {
 
 	// 4) Return JSON
 	ctx.JSON(http.StatusOK, resp)
-}
-
-// SanitizeEmail strips whitespace and invisible Unicode formatting
-// characters (like bidi markers U+202B, U+202C) from the input.
-func sanitizeEmail(email string) string {
-	if email == "" {
-		return ""
-	}
-	return strings.Map(func(r rune) rune {
-		if unicode.IsSpace(r) || unicode.Is(unicode.Cf, r) || unicode.IsControl(r) {
-			return -1 // Drop the character
-		}
-		return r
-	}, email)
 }

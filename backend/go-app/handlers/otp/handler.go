@@ -4,10 +4,9 @@ import (
 	"errors"
 	"log"
 	"mypracticum/backend/domain"
+	"mypracticum/backend/pkg/format"
 	"mypracticum/backend/service"
 	"net/http"
-	"strings"
-	"unicode"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,7 +29,7 @@ func (h *OTPHandler) Send(ctx *gin.Context) {
 		return
 	}
 
-	cleanEmail := sanitizeEmail(req.Email)
+	cleanEmail := format.SanitizeEmail(req.Email)
 
 	log.Printf("[OTPHandler.Send] Sending OTP to email: %s", cleanEmail)
 	if err := h.otpSvc.SendOTP(ctx.Request.Context(), cleanEmail); err != nil {
@@ -101,18 +100,4 @@ func (h *OTPHandler) Verify(ctx *gin.Context) {
 // Ping handles GET on '/ping' to wake server up
 func (h *OTPHandler) Ping(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "pong"})
-}
-
-// SanitizeEmail strips whitespace and invisible Unicode formatting
-// characters (like bidi markers U+202B, U+202C) from the input.
-func sanitizeEmail(email string) string {
-	if email == "" {
-		return ""
-	}
-	return strings.Map(func(r rune) rune {
-		if unicode.IsSpace(r) || unicode.Is(unicode.Cf, r) || unicode.IsControl(r) {
-			return -1 // Drop the character
-		}
-		return r
-	}, email)
 }
