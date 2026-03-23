@@ -79,8 +79,8 @@ func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
 		return
 	}
 
-	newFirstName := format.TrimCharacters(req.FirstName)
-	newLastName := format.TrimCharacters(req.LastName)
+	newFirstName := format.CleanText(req.FirstName)
+	newLastName := format.CleanText(req.LastName)
 
 	updatedFirstName, updatedLastName, err := h.svc.UpdateProfile(ctx.Request.Context(), userID, newFirstName, newLastName)
 	if err != nil {

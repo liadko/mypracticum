@@ -46,7 +46,7 @@ func ParseStudentsCSV(r io.Reader) ([]domain.NewStudent, []service.StudentRowErr
 			if !ok || col >= len(rec) {
 				return ""
 			}
-			return format.TrimCharacters(rec[col])
+			return format.CleanText(rec[col])
 		}
 
 		first := get("firstname")

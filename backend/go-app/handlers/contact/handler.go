@@ -97,7 +97,7 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 	// build the temporary NewContact
 	newContact := domain.NewContact{
 		Type:                     req.Type,
-		Name:                     format.TrimCharacters(req.Name),
+		Name:                     format.CleanText(req.Name),
 		Email:                    req.Email,
 		Phone:                    req.Phone,
 		Specialty:                req.Specialty,
@@ -168,7 +168,7 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 	// build the temporary NewContact
 	nc := domain.NewContact{
 		Type:                     req.Type,
-		Name:                     format.TrimCharacters(req.Name),
+		Name:                     format.CleanText(req.Name),
 		Email:                    req.Email,
 		Phone:                    req.Phone,
 		Specialty:                req.Specialty,
