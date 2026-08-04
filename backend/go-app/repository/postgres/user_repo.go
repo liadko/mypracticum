@@ -63,6 +63,12 @@ func (r *PostgresUserRepo) loadUser(
 		u.Taz = "" // Explicitly empty if NULL in DB
 	}
 
+	// Class is used by analyst reports but is intentionally loaded separately
+	// so the shared baseUserQuery keeps its existing scan contract.
+	if err := r.db.QueryRowContext(ctx, "SELECT COALESCE(class, '') FROM users WHERE id = $1", u.ID).Scan(&u.Class); err != nil {
+		return domain.User{}, err
+	}
+
 	// 2) fetch & attach roles
 	roles, err := r.FetchRoles(ctx, u.ID)
 	if err != nil {

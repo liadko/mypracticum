@@ -11,6 +11,7 @@ import (
 	contactHandlerPkg "mypracticum/backend/handlers/contact"
 	entryHandlerPkg "mypracticum/backend/handlers/entry"
 	OTPHandlerPkg "mypracticum/backend/handlers/otp"
+	reportHandlerPkg "mypracticum/backend/handlers/report"
 	userHandlerPkg "mypracticum/backend/handlers/user"
 	"mypracticum/backend/middleware"
 	"mypracticum/backend/pkg/cache/inmem"
@@ -65,11 +66,13 @@ func main() {
 	userSvc := service.NewUserService(repoFactory.UserRepo())
 	entrySvc := service.NewEntryService(repoFactory.EntryRepo())
 	contactSvc := service.NewContactService(repoFactory.ContactRepo(), userSvc, smtpNotifier)
+	reportSvc := service.NewReportService(repoFactory.ReportRepo(), repoFactory.UserRepo(), repoFactory.ContactRepo())
 	otpSvc := service.NewOTPService(userSvc, store, smtpNotifier, sendOTPLimiter, cfg.OTP)
 
 	// 4. Build handlers
 	entryH := entryHandlerPkg.NewEntryHandler(entrySvc)
 	contactH := contactHandlerPkg.NewContactHandler(contactSvc)
+	reportH := reportHandlerPkg.NewReportHandler(reportSvc)
 	userH := userHandlerPkg.NewUserHandler(userSvc)
 	otpH := OTPHandlerPkg.NewOTPHandler(otpSvc, tokenSvc)
 
@@ -82,6 +85,7 @@ func main() {
 		AllowOrigins: []string{
 			"https://practicum.temurot.com",
 			"http://localhost:5173",
+			"https://ais-dev-p3bdj3dgkmsk46bpiyca25-757439312327.europe-west2.run.app",
 		},
 
 		AllowMethods:  []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
@@ -95,7 +99,7 @@ func main() {
 	handlers.RegisterOTPPublic(r, otpH, limiterMw)
 
 	authMw := middleware.JWTMiddleware(tokenSvc)
-	handlers.RegisterProtected(r, entryH, contactH, userH, authMw)
+	handlers.RegisterProtected(r, entryH, contactH, userH, reportH, authMw)
 
 	// 7. Start server
 	r.Run(":" + cfg.Port)

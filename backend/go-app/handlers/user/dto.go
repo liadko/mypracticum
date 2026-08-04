@@ -25,7 +25,7 @@ type createUserRequest struct {
 	Email     string `json:"email"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
-	Role      string `json:"role"` // "admin" | "student" | "mentor"
+	Role      string `json:"role"` // "admin" | "analyst" | "student" | "mentor"
 }
 
 type ProfileUpdateRequest struct {
