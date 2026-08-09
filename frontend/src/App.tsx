@@ -8,8 +8,10 @@ import { ToastLimiter } from './components/Toast/ToastLimiter'
 import { ProtectedRoute, ProvidersWrapper } from './pages/Login/SpecialRoutes'
 import { lazy, Suspense, useEffect } from 'react'
 import DesktopLayout from './pages/DesktopLayout'
+import { ReportsRoute } from './pages/Reports/ReportsRoute'
 
 const AdminPage = lazy(() => import('./pages/AdminSide/AdminPage'));
+const ReportsPage = lazy(() => import('./pages/Reports/ReportsPage'));
 
 function AppRoutes() {
   const { isLoading, user } = useAuth()
@@ -20,11 +22,11 @@ function AppRoutes() {
   useEffect(() => {
     if (!user) return
 
-    if (user.roles.includes('admin') && location.pathname == '/admin') return
+    if ((user.roles.includes('admin') || user.roles.includes('analyst')) && (location.pathname === '/admin' || location.pathname === '/reports')) return
 
-    const dest = user.roles.includes('student')
-      ? '/student'
-      : '/mentor'
+    const dest = user.roles.includes('analyst') && !user.roles.includes('admin')
+      ? '/reports'
+      : user.roles.includes('student') ? '/student' : '/mentor'
 
     navigate(dest, { replace: true })
   }, [user, navigate])
@@ -64,6 +66,7 @@ function AppRoutes() {
             </AdminRoute>
           }
         />
+        <Route path="/reports" element={<ReportsRoute><Suspense fallback={<div>Loading reports...</div>}><ReportsPage /></Suspense></ReportsRoute>} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Route>
     </Routes>

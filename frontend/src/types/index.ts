@@ -85,7 +85,7 @@ export type FormMode = AddMode | EditMode
 
 
 
-export type UserRole = 'student' | 'mentor' | 'admin'
+export type UserRole = 'student' | 'mentor' | 'admin' | 'analyst'
 
 export interface User {
     /** UUIDv4 */

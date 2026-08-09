@@ -98,6 +98,11 @@ export default function ProfileModal({
                             כניסה לעמוד הניהול
                         </button>
                     }
+                    {(user.roles.includes('admin') || user.roles.includes('analyst')) &&
+                        <button className="profile-modal__hyperlink" onClick={() => navigate('/reports')}>
+                            {'\u05D3\u05E9\u05D1\u05D5\u05E8\u05D3 \u05D3\u05D5\u05D7\u05D5\u05EA'}
+                        </button>
+                    }
                 </div>
 
                 {showConfirm && (
