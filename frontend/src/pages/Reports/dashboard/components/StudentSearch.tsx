@@ -145,7 +145,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     },
     {
       key: 'clientHours',
-      header: 'מטופלים פרטיים',
+      header: 'מטופלים',
       sortable: true,
       render: (s) => (
         <div className="inline-block" title="סכום שעות טיפול שהוגשו ושעות מנהלתיות ידניות">
@@ -168,12 +168,12 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       render: (s) => (
         <div className="inline-block" title="סכום שעות הדרכה מאושרות ושעות מנהלתיות ידניות">
           <div className="font-bold text-slate-900 text-xs">
-            {s.mentorApprovedHours} <span className="text-[10px] font-normal text-slate-500">/ 100 ש'</span>
+            {s.mentorApprovedHours} <span className="text-[10px] font-normal text-slate-500">/ 150 ש'</span>
           </div>
           <div className="w-14 bg-slate-200 h-1 rounded-full mt-0.5 overflow-hidden">
             <div
               className="bg-sky-600 h-full"
-              style={{ width: `${Math.min(100, (s.mentorApprovedHours / 100) * 100)}%` }}
+              style={{ width: `${Math.min(100, (s.mentorApprovedHours / 150) * 100)}%` }}
             />
           </div>
         </div>
@@ -186,12 +186,12 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       render: (s) => (
         <div className="inline-block" title="סכום שעות טיפול אישי שהוגשו ושעות מנהלתיות ידניות">
           <div className="font-bold text-slate-900 text-xs">
-            {s.therapistHours} <span className="text-[10px] font-normal text-slate-500">/ 150 ש'</span>
+            {s.therapistHours} <span className="text-[10px] font-normal text-slate-500">/ 100 ש'</span>
           </div>
           <div className="w-14 bg-slate-200 h-1 rounded-full mt-0.5 overflow-hidden">
             <div
               className="bg-amber-600 h-full"
-              style={{ width: `${Math.min(100, (s.therapistHours / 150) * 100)}%` }}
+              style={{ width: `${Math.min(100, (s.therapistHours / 100) * 100)}%` }}
             />
           </div>
         </div>

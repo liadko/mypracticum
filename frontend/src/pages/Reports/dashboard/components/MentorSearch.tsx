@@ -34,7 +34,7 @@ const StudentTooltipCell: React.FC<{ mentor: MentorSummary }> = ({ mentor }) => 
             popDirection === 'down' ? 'top-full mt-2' : 'bottom-full mb-2'
           }`}
         >
-          <ul className="text-right space-y-1 max-h-36 overflow-y-auto">
+          <ul className="text-right space-y-1">
             {mentor.students.map((st) => (
               <li key={st.id} className="text-[11px] text-slate-200 truncate font-medium">
                 • {st.firstName} {st.lastName}
@@ -213,6 +213,7 @@ export const MentorSearch: React.FC<MentorSearchProps> = ({ onSelectMentor }) =>
       onRetry={loadData}
       emptyText="לא נמצאו מדריכים מתאימים"
       itemKey={(m) => m.id}
+      compact
     />
   );
 };

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Users, GraduationCap, HeartHandshake, Phone, Mail, Building, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Users, Phone, Mail, Building, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { MentorContact, ClientContact, TherapistContact } from '../types';
 
 interface ContactsSectionProps {
@@ -11,11 +11,24 @@ interface ContactsSectionProps {
 }
 
 export const ContactsSection: React.FC<ContactsSectionProps> = ({ contacts }) => {
-  const [activeTab, setActiveTab] = useState<'mentors' | 'clients' | 'therapists'>('mentors');
-
   const mentorsCount = contacts.mentors.length;
   const clientsCount = contacts.clients.length;
   const therapistsCount = contacts.therapists.length;
+  const [activeTab, setActiveTab] = useState<'mentors' | 'clients' | 'therapists'>(
+    mentorsCount > 0 ? 'mentors' : clientsCount > 0 ? 'clients' : 'therapists'
+  );
+
+  useEffect(() => {
+    const hasActiveItems =
+      activeTab === 'mentors' ? mentorsCount > 0 :
+      activeTab === 'clients' ? clientsCount > 0 :
+      therapistsCount > 0;
+
+    if (hasActiveItems) return;
+    if (mentorsCount > 0) setActiveTab('mentors');
+    else if (clientsCount > 0) setActiveTab('clients');
+    else setActiveTab('therapists');
+  }, [activeTab, mentorsCount, clientsCount, therapistsCount]);
 
   return (
     <div className="bg-white rounded border border-slate-200 p-3.5 shadow-2xs mb-3">
@@ -36,7 +49,7 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({ contacts }) =>
 
         {/* Tab Buttons */}
         <div className="flex items-center bg-slate-100 p-1 rounded border border-slate-200 text-xs font-semibold">
-          <button
+          {mentorsCount > 0 && <button
             onClick={() => setActiveTab('mentors')}
             className={`px-2.5 py-1 rounded transition flex items-center gap-1 ${
               activeTab === 'mentors'
@@ -44,11 +57,10 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({ contacts }) =>
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <GraduationCap className="w-3.5 h-3.5 text-sky-700" />
             <span>מדריכים ({mentorsCount})</span>
-          </button>
+          </button>}
 
-          <button
+          {clientsCount > 0 && <button
             onClick={() => setActiveTab('clients')}
             className={`px-2.5 py-1 rounded transition flex items-center gap-1 ${
               activeTab === 'clients'
@@ -56,11 +68,10 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({ contacts }) =>
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Users className="w-3.5 h-3.5 text-teal-700" />
             <span>מטופלים ({clientsCount})</span>
-          </button>
+          </button>}
 
-          <button
+          {therapistsCount > 0 && <button
             onClick={() => setActiveTab('therapists')}
             className={`px-2.5 py-1 rounded transition flex items-center gap-1 ${
               activeTab === 'therapists'
@@ -68,9 +79,8 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({ contacts }) =>
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <HeartHandshake className="w-3.5 h-3.5 text-amber-700" />
             <span>מטפלים אישיים ({therapistsCount})</span>
-          </button>
+          </button>}
         </div>
       </div>
 

@@ -43,6 +43,7 @@ export const ManualHoursTable: React.FC<ManualHoursTableProps> = ({
         </div>
 
         <div className="bg-slate-100 border border-slate-200 text-slate-900 text-xs px-2.5 py-1 rounded font-bold self-start sm:self-auto">
+          <span className="ml-2">הוספה ידנית:</span>
           סה"כ שעות ידניות: {totalManualHours} שעות
         </div>
       </div>
@@ -62,7 +63,7 @@ export const ManualHoursTable: React.FC<ManualHoursTableProps> = ({
         
         <div className="p-2 bg-teal-50/70 border border-teal-200 rounded flex justify-between items-center">
           <div>
-            <span className="text-[11px] font-medium text-teal-900 block">מטופלים פרטיים (זיכוי ידני)</span>
+            <span className="text-[11px] font-medium text-teal-900 block">מטופלים (זיכוי ידני)</span>
             <span className="text-base font-bold text-teal-950">{clientManualTotal} שעות</span>
           </div>
           <span className="w-2.5 h-2.5 rounded-full bg-teal-600" />

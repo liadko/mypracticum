@@ -44,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right side: Branding & Tab Navigation */}
           <div className="flex items-center gap-6">
             <div
-              onClick={onNavigateList}
+              onClick={onExit}
               className="flex items-center gap-2.5 cursor-pointer group"
               title="דשבורד אנליסט - תמורות פרקטיקום"
             >
@@ -70,12 +70,10 @@ export const Header: React.FC<HeaderProps> = ({
                 return (
                   <button
                     key={tab.id}
+                    type="button"
                     onClick={() => onTabChange(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition ${
-                      isActive
-                        ? 'bg-white text-teal-800 shadow-2xs border border-slate-200/80'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                    }`}
+                    aria-pressed={isActive}
+                    className={`reports-tab-button reports-tab-button--${isActive ? 'active' : 'inactive'} flex items-center gap-1.5`}
                   >
                     {tab.icon}
                     <span>{tab.label}</span>

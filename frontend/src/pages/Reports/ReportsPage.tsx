@@ -58,9 +58,13 @@ export default function ReportsPage() {
     setActiveTab('mentors'); setView('details'); setMentorId(id); setStudentId(null); updateUrl('mentors', null, id)
   }
 
+  const exitToApplication = () => {
+    navigate('/')
+  }
+
   return (
     <div className="reports-root h-screen overflow-hidden bg-slate-50 text-slate-900 font-sans flex flex-col dir-rtl">
-      <Header activeTab={activeTab} onTabChange={(tab) => showList(tab as Tab)} currentView={view} onNavigateList={() => showList()} onExit={() => navigate(-1)} />
+      <Header activeTab={activeTab} onTabChange={(tab) => showList(tab as Tab)} currentView={view} onNavigateList={() => showList()} onExit={exitToApplication} />
       <main className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {activeTab === 'students' && (view === 'list' || !studentId ? <StudentSearch onSelectStudent={selectStudent} /> : <StudentDetails studentId={studentId} onBack={() => showList('students')} />)}
         {activeTab === 'mentors' && (view === 'list' || !mentorId ? <MentorSearch onSelectMentor={selectMentor} /> : <MentorDetails mentorId={mentorId} onBack={() => showList('mentors')} onSelectStudent={selectStudent} />)}

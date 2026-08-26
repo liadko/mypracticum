@@ -215,7 +215,7 @@ export const MentorDetails: React.FC<MentorDetailsProps> = ({
           }`}
         >
           <Users className="w-3.5 h-3.5" />
-          <span>תלמידים</span>
+          <span>תלמידים שלנו</span>
           <span className="bg-slate-100 text-slate-700 text-[10px] px-1.5 py-0.2 rounded font-mono">
             {students.length}
           </span>
@@ -232,7 +232,7 @@ export const MentorDetails: React.FC<MentorDetailsProps> = ({
       )}
 
       {activeTab === 'students' && (
-        <div className="bg-white rounded-lg border border-slate-200 p-3.5 shadow-2xs mb-3">
+        <div className="bg-white rounded-lg border border-slate-200 p-2 shadow-2xs mb-3">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Users className="w-4 h-4 text-teal-700" />
@@ -246,7 +246,7 @@ export const MentorDetails: React.FC<MentorDetailsProps> = ({
               לא נרשמו תלמידים משוייכים למדריך זה
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="reports-mentor-student-list overflow-x-auto">
               <table className="w-full text-xs text-slate-800 text-right">
                 <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
                   <tr>

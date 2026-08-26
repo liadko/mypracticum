@@ -42,6 +42,7 @@ interface PaginatedDirectoryProps<T> {
   onRetry?: () => void;
   emptyText?: string;
   itemKey: (item: T) => string;
+  compact?: boolean;
 }
 
 export function PaginatedDirectory<T>({
@@ -69,9 +70,13 @@ export function PaginatedDirectory<T>({
   onRetry,
   emptyText = 'לא נמצאו נתונים',
   itemKey,
+  compact = false,
 }: PaginatedDirectoryProps<T>) {
+  const containerPadding = compact ? 'px-1 sm:px-2 lg:px-3' : 'px-4 sm:px-6 lg:px-8';
+  const cellPadding = compact ? 'px-2 py-2' : 'px-3 py-2.5';
+
   return (
-    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 flex-1 min-h-0 flex flex-col overflow-hidden dir-rtl">
+    <div className={`max-w-7xl w-full mx-auto ${containerPadding} py-3 flex-1 min-h-0 flex flex-col overflow-hidden dir-rtl`}>
       
       {/* Page Title & Intro */}
       <div className="shrink-0 mb-3">
@@ -201,7 +206,7 @@ export function PaginatedDirectory<T>({
                       <th
                         key={col.key}
                         style={{ width: col.width }}
-                        className={`px-3 py-2.5 ${alignClass} ${
+                        className={`${cellPadding} ${alignClass} ${
                           col.sortable ? 'cursor-pointer hover:bg-slate-200 transition' : ''
                         }`}
                         onClick={() => col.sortable && onSort(col.key)}
@@ -247,7 +252,7 @@ export function PaginatedDirectory<T>({
                     {columns.map((col) => (
                       <td
                         key={`${itemKey(item)}-${col.key}`}
-                        className={`px-3 py-2.5 whitespace-nowrap ${
+                        className={`${cellPadding} whitespace-nowrap ${
                           col.align === 'center'
                             ? 'text-center'
                             : col.align === 'left'

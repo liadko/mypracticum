@@ -15,8 +15,8 @@ export interface CategoryConfig {
 export const CATEGORY_CONFIGS: Record<CategoryKey, CategoryConfig> = {
   client: {
     key: 'client',
-    label: 'טיפול במטופלים פרטיים (טיפולים ישירים)',
-    shortLabel: 'מטופל פרטי',
+    label: 'טיפול במטופלים (טיפולים ישירים)',
+    shortLabel: 'מטופל',
     bgClass: 'bg-teal-50 hover:bg-teal-100',
     badgeBg: 'bg-teal-100',
     badgeText: 'text-teal-800',
