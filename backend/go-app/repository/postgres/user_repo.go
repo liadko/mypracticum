@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -29,12 +30,10 @@ SELECT u.id
      , u.last_name
      , u.email
 	 , u.taz
-     , u.signature
-     , u.created_at
+	 , u.signature
+	 , u.created_at
 	 , u.created_by
-     , COALESCE(c.name, '')
   FROM users u
-  LEFT JOIN classes c ON c.id = u.class_id
 `
 
 // loadUser runs the given WHERE clause (with one placeholder $1), scans
@@ -51,7 +50,7 @@ func (r *PostgresUserRepo) loadUser(
 
 	if err := r.db.
 		QueryRowContext(ctx, q, arg).
-		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &u.Class); err != nil {
+		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy); err != nil {
 
 		if err == sql.ErrNoRows {
 			return domain.User{}, repository.ErrNotFound
@@ -88,6 +87,80 @@ func (r *PostgresUserRepo) FindByTaz(ctx context.Context, taz string) (domain.Us
 
 func (r *PostgresUserRepo) FindByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
 	return r.loadUser(ctx, "u.id = $1", id)
+}
+
+func (r *PostgresUserRepo) FindProfileByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
+	const q = `
+SELECT u.id,
+       u.first_name,
+       u.last_name,
+       u.email,
+       u.taz,
+       u.signature,
+       u.created_at,
+       u.created_by,
+       c.id,
+       c.name,
+       c.client_start_date,
+       c.mentor_start_date,
+       c.therapist_start_date
+  FROM users u
+  LEFT JOIN classes c ON c.id = u.class_id
+ WHERE u.id = $1
+`
+
+	var user domain.User
+	var taz sql.NullString
+	var classID uuid.NullUUID
+	var className sql.NullString
+	var clientStartDate sql.NullTime
+	var mentorStartDate sql.NullTime
+	var therapistStartDate sql.NullTime
+	if err := r.db.QueryRowContext(ctx, q, id).Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&taz,
+		&user.Signature,
+		&user.CreatedAt,
+		&user.CreatedBy,
+		&classID,
+		&className,
+		&clientStartDate,
+		&mentorStartDate,
+		&therapistStartDate,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.User{}, repository.ErrNotFound
+		}
+		return domain.User{}, err
+	}
+	if taz.Valid {
+		user.Taz = taz.String
+	}
+	if classID.Valid {
+		user.Class = &domain.Class{
+			ID:                 classID.UUID,
+			Name:               className.String,
+			ClientStartDate:    nullTimePointer(clientStartDate),
+			MentorStartDate:    nullTimePointer(mentorStartDate),
+			TherapistStartDate: nullTimePointer(therapistStartDate),
+		}
+	}
+	roles, err := r.FetchRoles(ctx, user.ID)
+	if err != nil {
+		return domain.User{}, err
+	}
+	user.Roles = roles
+	return user, nil
+}
+
+func nullTimePointer(value sql.NullTime) *time.Time {
+	if !value.Valid {
+		return nil
+	}
+	return &value.Time
 }
 
 // fetchRoles returns all roles assigned to a given user.
@@ -213,10 +286,9 @@ func (r *PostgresUserRepo) CreateUser(ctx context.Context, u domain.User) (domai
 
 func (r *PostgresUserRepo) ListStudentsForMentor(ctx context.Context, mentorUserID uuid.UUID) ([]domain.User, error) {
 	const q = `
-		SELECT DISTINCT u.id, u.first_name, u.last_name, u.email, u.signature, u.created_at, COALESCE(cl.name, '')
+		SELECT DISTINCT u.id, u.first_name, u.last_name, u.email, u.signature, u.created_at
 		  FROM contacts c
 		  JOIN users    u ON u.id = c.user_id
-		  LEFT JOIN classes cl ON cl.id = u.class_id
 		 WHERE c.type = 'mentor'
 		   AND c.mentor_user_id = $1
 		 ORDER BY u.last_name, u.first_name`
@@ -230,7 +302,7 @@ func (r *PostgresUserRepo) ListStudentsForMentor(ctx context.Context, mentorUser
 	var out []domain.User
 	for rows.Next() {
 		var u domain.User
-		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt, &u.Class); err != nil {
+		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt); err != nil {
 			return nil, err
 		}
 		out = append(out, u)
@@ -375,7 +447,7 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 		var nullTaz sql.NullString // Intermediate variable for nullable DB column
 
 		if err := rows.Scan(
-			&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &u.Class,
+			&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy,
 		); err != nil {
 			return nil, err
 		}

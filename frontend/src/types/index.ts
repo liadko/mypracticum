@@ -87,6 +87,14 @@ export type FormMode = AddMode | EditMode
 
 export type UserRole = 'student' | 'mentor' | 'admin' | 'analyst'
 
+export interface Class {
+    id: string
+    name: string
+    clientStartDate: string | null
+    mentorStartDate: string | null
+    therapistStartDate: string | null
+}
+
 export interface User {
     /** UUIDv4 */
     id: string
@@ -100,6 +108,8 @@ export interface User {
     signature?: string  // Base64 jpeg
 
     roles: UserRole[]
+
+    class: Class | null
 
 }
 

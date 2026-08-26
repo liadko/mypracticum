@@ -14,7 +14,7 @@ type User struct {
 	FirstName string
 	LastName  string
 	Email     string
-	Class     string
+	Class     *Class
 	Taz       string
 
 	Signature []byte

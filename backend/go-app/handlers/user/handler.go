@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"mypracticum/backend/pkg/csv"
 	"mypracticum/backend/pkg/format"
@@ -36,7 +37,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	// 2) Lookup user by ID
-	user, err := h.svc.GetUserByID(ctx.Request.Context(), userID)
+	user, err := h.svc.GetProfileByID(ctx.Request.Context(), userID)
 	if err != nil {
 		log.Printf("[UserHandler.GetMe] Failed to fetch user %s: %v", userID, err)
 		switch err.(type) {
@@ -49,13 +50,22 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 	}
 
 	// 3) Map to response DTO
-	resp := UserResponse{
+	resp := ProfileResponse{
 		ID:        user.ID,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
 		Taz:       user.Taz,
 		Signature: user.Signature,
+	}
+	if user.Class != nil {
+		resp.Class = &ClassDTO{
+			ID:                 user.Class.ID,
+			Name:               user.Class.Name,
+			ClientStartDate:    dateString(user.Class.ClientStartDate),
+			MentorStartDate:    dateString(user.Class.MentorStartDate),
+			TherapistStartDate: dateString(user.Class.TherapistStartDate),
+		}
 	}
 	// flatten roles
 	for _, r := range user.Roles {
@@ -64,6 +74,14 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 
 	log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s", user.ID, user.FirstName, user.LastName, user.Email)
 	ctx.JSON(http.StatusOK, resp)
+}
+
+func dateString(date *time.Time) *string {
+	if date == nil {
+		return nil
+	}
+	value := date.Format("2006-01-02")
+	return &value
 }
 
 // UpdateProfile handles PATCH /users/me

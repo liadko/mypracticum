@@ -67,6 +67,19 @@ func (s *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (domain.Use
 	return user, nil
 }
 
+// GetProfileByID retrieves a user together with its optional class.
+func (s *UserService) GetProfileByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
+	log.Printf("[UserService.GetProfileByID] Looking up user profile: %s", id)
+	user, err := s.userRepo.FindProfileByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return domain.User{}, NotFoundError{"user", id.String()}
+		}
+		return domain.User{}, DBError{Err: err}
+	}
+	return user, nil
+}
+
 // UpdateSignature stores the raw image bytes (PNG, JPEG...) of the user’s signature.
 //
 // Returns:
