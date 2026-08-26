@@ -46,13 +46,14 @@ func (r *PostgresReportRepo) SearchStudentSummaries(
 	const countQ = `
 SELECT COUNT(*)
   FROM users u
+  LEFT JOIN classes cl ON cl.id = u.class_id
   JOIN user_roles ur ON ur.user_id = u.id
   JOIN roles ro ON ro.id = ur.role_id AND ro.name = 'student'
  WHERE ($1 = ''
     OR concat_ws(' ', u.first_name, u.last_name) ILIKE '%' || $1 || '%'
     OR u.email ILIKE '%' || $1 || '%'
     OR COALESCE(u.taz, '') ILIKE '%' || $1 || '%')
-   AND ($2 = '' OR COALESCE(u.class, '') = $2)
+	AND ($2 = '' OR COALESCE(cl.name, '') = $2)
 `
 
 	var total int64
@@ -62,16 +63,17 @@ SELECT COUNT(*)
 
 	q := `
 WITH students AS (
-    SELECT u.id, u.first_name, u.last_name, u.email, u.class, u.taz,
+    SELECT u.id, u.first_name, u.last_name, u.email, cl.name AS class, u.taz,
            (u.signature IS NOT NULL AND octet_length(u.signature) > 0) AS signature_submitted
       FROM users u
+      LEFT JOIN classes cl ON cl.id = u.class_id
       JOIN user_roles ur ON ur.user_id = u.id
       JOIN roles ro ON ro.id = ur.role_id AND ro.name = 'student'
      WHERE ($1 = ''
         OR concat_ws(' ', u.first_name, u.last_name) ILIKE '%' || $1 || '%'
         OR u.email ILIKE '%' || $1 || '%'
         OR COALESCE(u.taz, '') ILIKE '%' || $1 || '%')
-       AND ($2 = '' OR COALESCE(u.class, '') = $2)
+	   AND ($2 = '' OR COALESCE(cl.name, '') = $2)
 ), regular AS (
     SELECT
         e.user_id,
@@ -163,12 +165,11 @@ func (r *PostgresReportRepo) ListStudentClasses(ctx context.Context) ([]string, 
 	const q = `
 SELECT class_name
   FROM (
-        SELECT DISTINCT TRIM(u.class) AS class_name
+        SELECT DISTINCT cl.name AS class_name
           FROM users u
+          JOIN classes cl ON cl.id = u.class_id
           JOIN user_roles ur ON ur.user_id = u.id
           JOIN roles ro ON ro.id = ur.role_id AND ro.name = 'student'
-         WHERE u.class IS NOT NULL
-           AND TRIM(u.class) <> ''
        ) classes
  ORDER BY
    CASE WHEN class_name ~ '[א-ת]' THEN 0 ELSE 1 END,
@@ -340,16 +341,17 @@ SELECT u.id,
        u.first_name,
        u.last_name,
        u.email,
-       COALESCE(u.class, ''),
+       COALESCE(cl.name, ''),
        COALESCE(u.taz, ''),
        COUNT(e.id) FILTER (WHERE e.approver_id IS NOT NULL),
        COUNT(e.id) FILTER (WHERE e.approver_id IS NULL)
   FROM contacts c
   JOIN users u ON u.id = c.user_id
+  LEFT JOIN classes cl ON cl.id = u.class_id
   LEFT JOIN entries e ON e.contact_id = c.id
  WHERE c.type = 'mentor'
    AND c.mentor_user_id = $1
- GROUP BY u.id, u.first_name, u.last_name, u.email, u.class, u.taz
+ GROUP BY u.id, u.first_name, u.last_name, u.email, cl.name, u.taz
  ORDER BY
    CASE WHEN concat_ws(' ', u.first_name, u.last_name) ~ ('[' || chr(1488) || '-' || chr(1514) || ']') THEN 0 ELSE 1 END,
    LOWER(concat_ws(' ', u.first_name, u.last_name)),
@@ -391,12 +393,13 @@ SELECT e.id,
        e.date,
        e.user_id,
        concat_ws(' ', u.first_name, u.last_name),
-       COALESCE(u.class, ''),
+       COALESCE(cl.name, ''),
        c.id,
        (e.approver_id IS NOT NULL) AS approved
   FROM entries e
   JOIN contacts c ON c.id = e.contact_id
   JOIN users u ON u.id = e.user_id
+  LEFT JOIN classes cl ON cl.id = u.class_id
  WHERE c.type = 'mentor'
    AND c.mentor_user_id = $1
  ORDER BY e.date DESC, e.id
