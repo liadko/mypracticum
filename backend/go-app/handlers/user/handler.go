@@ -70,7 +70,11 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 		}
 	}
 
-	log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s", profile.User.ID, profile.User.FirstName, profile.User.LastName, profile.User.Email)
+	if profile.Class == nil {
+		log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s, class=none", profile.User.ID, profile.User.FirstName, profile.User.LastName, profile.User.Email)
+	} else {
+		log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s, classID=%s, className=%q, clientStartDate=%v, mentorStartDate=%v, therapistStartDate=%v", profile.User.ID, profile.User.FirstName, profile.User.LastName, profile.User.Email, profile.Class.ID, profile.Class.Name, profile.Class.ClientStartDate, profile.Class.MentorStartDate, profile.Class.TherapistStartDate)
+	}
 	ctx.JSON(http.StatusOK, resp)
 }
 
