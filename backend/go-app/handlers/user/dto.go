@@ -10,6 +10,23 @@ type ClassDTO struct {
 	TherapistStartDate *string   `json:"therapistStartDate"`
 }
 
+type ReportingStartDatesDTO struct {
+	Client    *string `json:"client"`
+	Mentor    *string `json:"mentor"`
+	Therapist *string `json:"therapist"`
+}
+
+type AdminClassResponse struct {
+	ID                  uuid.UUID              `json:"id"`
+	Name                string                 `json:"name"`
+	ReportingStartDates ReportingStartDatesDTO `json:"reportingStartDates"`
+}
+
+type AdminClassRequest struct {
+	Name                string                  `json:"name" binding:"required"`
+	ReportingStartDates *ReportingStartDatesDTO `json:"reportingStartDates" binding:"required"`
+}
+
 type ProfileResponse struct {
 	UserResponse
 	Class *ClassDTO `json:"class"`

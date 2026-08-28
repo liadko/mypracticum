@@ -127,6 +127,71 @@ SELECT id,
 	return class, nil
 }
 
+func (r *PostgresUserRepo) ListClasses(ctx context.Context) ([]domain.Class, error) {
+	const q = `
+SELECT id, name, client_start_date, mentor_start_date, therapist_start_date
+  FROM classes
+ ORDER BY name
+`
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	classes := make([]domain.Class, 0)
+	for rows.Next() {
+		class, err := scanClass(rows)
+		if err != nil {
+			return nil, err
+		}
+		classes = append(classes, class)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return classes, nil
+}
+
+func (r *PostgresUserRepo) CreateClass(ctx context.Context, class domain.Class) (domain.Class, error) {
+	const q = `
+INSERT INTO classes (name, client_start_date, mentor_start_date, therapist_start_date)
+VALUES ($1, $2, $3, $4)
+RETURNING id, name, client_start_date, mentor_start_date, therapist_start_date
+`
+	created, err := scanClass(r.db.QueryRowContext(ctx, q, class.Name, class.ClientStartDate, class.MentorStartDate, class.TherapistStartDate))
+	if err != nil {
+		return domain.Class{}, classDuplicateError(err)
+	}
+	return created, nil
+}
+
+type classScanner interface {
+	Scan(dest ...any) error
+}
+
+func scanClass(scanner classScanner) (domain.Class, error) {
+	var class domain.Class
+	var clientStartDate sql.NullTime
+	var mentorStartDate sql.NullTime
+	var therapistStartDate sql.NullTime
+	if err := scanner.Scan(&class.ID, &class.Name, &clientStartDate, &mentorStartDate, &therapistStartDate); err != nil {
+		return domain.Class{}, err
+	}
+	class.ClientStartDate = nullTimePointer(clientStartDate)
+	class.MentorStartDate = nullTimePointer(mentorStartDate)
+	class.TherapistStartDate = nullTimePointer(therapistStartDate)
+	return class, nil
+}
+
+func classDuplicateError(err error) error {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		return repository.ErrDuplicate
+	}
+	return err
+}
+
 func nullTimePointer(value sql.NullTime) *time.Time {
 	if !value.Valid {
 		return nil

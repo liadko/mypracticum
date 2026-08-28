@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"mypracticum/backend/pkg/csv"
 	"mypracticum/backend/pkg/format"
@@ -78,6 +79,40 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// ListClasses handles GET /admin/classes.
+func (h *UserHandler) ListClasses(ctx *gin.Context) {
+	if !requireAdmin(ctx) {
+		return
+	}
+	classes, err := h.svc.ListClasses(ctx.Request.Context())
+	if err != nil {
+		log.Printf("[UserHandler.ListClasses] Failed: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	response := make([]AdminClassResponse, 0, len(classes))
+	for _, class := range classes {
+		response = append(response, mapAdminClass(class))
+	}
+	ctx.JSON(http.StatusOK, response)
+}
+
+// CreateClass handles POST /admin/classes.
+func (h *UserHandler) CreateClass(ctx *gin.Context) {
+	if !requireAdmin(ctx) {
+		return
+	}
+	class, ok := populateClassCreationRequest(ctx)
+	if !ok {
+		return
+	}
+	created, err := h.svc.CreateClass(ctx.Request.Context(), class)
+	if !writeAdminClassError(ctx, err) {
+		return
+	}
+	ctx.JSON(http.StatusCreated, mapAdminClass(created))
+}
+
 // UpdateProfile handles PATCH /users/me
 func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
 	log.Printf("[UserHandler.UpdateProfile] Updating user profile")
@@ -120,11 +155,8 @@ func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
 func (h *UserHandler) AddUser(ctx *gin.Context) {
 	log.Printf("[UserHandler.AddUser] Creating new user")
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
-	roles := ctx.MustGet("roles").([]string)
 
-	if !slices.Contains(roles, "admin") {
-		log.Printf("[UserHandler.AddUser] Forbidden: user not admin")
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	if !requireAdmin(ctx) {
 		return
 	}
 
@@ -215,11 +247,8 @@ func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 	log.Printf("[UserHandler.ImportStudents] Importing students from CSV")
 	userID := ctx.MustGet("userID").(uuid.UUID)
-	roles := ctx.MustGet("roles").([]string)
 
-	if !slices.Contains(roles, "admin") {
-		log.Printf("[UserHandler.ImportStudents] Forbidden: user not admin")
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	if !requireAdmin(ctx) {
 		return
 	}
 	classID, err := uuid.Parse(ctx.Param("classId"))
@@ -287,11 +316,7 @@ func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 func (h *UserHandler) GetStudents(ctx *gin.Context) {
 	log.Printf("[UserHandler.GetStudents] Retrieving student list")
 	// 1) Admin-only check
-	roles := ctx.MustGet("roles").([]string)
-
-	if !slices.Contains(roles, "admin") {
-		log.Printf("[UserHandler.GetStudents] Forbidden: user not admin")
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	if !requireAdmin(ctx) {
 		return
 	}
 
@@ -317,4 +342,86 @@ func (h *UserHandler) GetStudents(ctx *gin.Context) {
 
 	// 4) Return JSON
 	ctx.JSON(http.StatusOK, resp)
+}
+
+func requireAdmin(ctx *gin.Context) bool {
+	if slices.Contains(ctx.MustGet("roles").([]string), "admin") {
+		return true
+	}
+	ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	return false
+}
+
+func populateClassCreationRequest(ctx *gin.Context) (domain.Class, bool) {
+	var request AdminClassRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid class payload"})
+		return domain.Class{}, false
+	}
+	clientStartDate, err := parseOptionalDate(request.ReportingStartDates.Client)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid client start date"})
+		return domain.Class{}, false
+	}
+	mentorStartDate, err := parseOptionalDate(request.ReportingStartDates.Mentor)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid mentor start date"})
+		return domain.Class{}, false
+	}
+	therapistStartDate, err := parseOptionalDate(request.ReportingStartDates.Therapist)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid therapist start date"})
+		return domain.Class{}, false
+	}
+	if clientStartDate == nil || mentorStartDate == nil || therapistStartDate == nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "all reporting start dates are required"})
+		return domain.Class{}, false
+	}
+	return domain.Class{
+		Name:               request.Name,
+		ClientStartDate:    clientStartDate,
+		MentorStartDate:    mentorStartDate,
+		TherapistStartDate: therapistStartDate,
+	}, true
+}
+
+func parseOptionalDate(value *string) (*time.Time, error) {
+	if value == nil {
+		return nil, nil
+	}
+	date, err := time.Parse(format.ISODate, *value)
+	if err != nil {
+		return nil, err
+	}
+	return &date, nil
+}
+
+func mapAdminClass(class domain.Class) AdminClassResponse {
+	return AdminClassResponse{
+		ID:   class.ID,
+		Name: class.Name,
+		ReportingStartDates: ReportingStartDatesDTO{
+			Client:    format.OptionalDate(class.ClientStartDate),
+			Mentor:    format.OptionalDate(class.MentorStartDate),
+			Therapist: format.OptionalDate(class.TherapistStartDate),
+		},
+	}
+}
+
+func writeAdminClassError(ctx *gin.Context, err error) bool {
+	if err == nil {
+		return true
+	}
+	var validationError service.ValidationError
+	var alreadyExistsError service.AlreadyExistsError
+	switch {
+	case errors.As(err, &validationError):
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": validationError.Error()})
+	case errors.As(err, &alreadyExistsError):
+		ctx.JSON(http.StatusConflict, gin.H{"error": alreadyExistsError.Error()})
+	default:
+		log.Printf("[UserHandler.Class] Failed: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+	}
+	return false
 }
