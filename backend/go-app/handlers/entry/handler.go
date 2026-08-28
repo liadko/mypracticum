@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"mypracticum/backend/domain"
+	"mypracticum/backend/pkg/format"
 	"mypracticum/backend/service"
 
 	"github.com/gin-gonic/gin"
@@ -58,7 +59,7 @@ func (h *EntryHandler) Create(ctx *gin.Context) {
 	resp := EntryResponse{
 		ID:        created.ID,
 		ContactID: created.ContactID,
-		DateStr:   created.Date.Format("2006-01-02"),
+		DateStr:   format.Date(created.Date),
 	}
 
 	// 5) Return JSON
@@ -128,7 +129,7 @@ func (h *EntryHandler) ListEntries(ctx *gin.Context) {
 			ID:        d.ID,
 			UserID:    d.UserID,
 			ContactID: d.ContactID,
-			DateStr:   d.Date.Format("2006-01-02"),
+			DateStr:   format.Date(d.Date),
 			Approved:  d.Approved,
 		}
 	}
@@ -182,7 +183,7 @@ func (h *EntryHandler) SetApproval(ctx *gin.Context) {
 		ID:        updated.ID,
 		UserID:    updated.UserID,
 		ContactID: updated.ContactID,
-		DateStr:   updated.Date.Format("2006-01-02"),
+		DateStr:   format.Date(updated.Date),
 		Approved:  updated.Approved,
 	}
 	ctx.JSON(http.StatusOK, resp)

@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"mypracticum/backend/pkg/csv"
 	"mypracticum/backend/pkg/format"
@@ -65,22 +64,14 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 		resp.Class = &ClassDTO{
 			ID:                 profile.Class.ID,
 			Name:               profile.Class.Name,
-			ClientStartDate:    dateString(profile.Class.ClientStartDate),
-			MentorStartDate:    dateString(profile.Class.MentorStartDate),
-			TherapistStartDate: dateString(profile.Class.TherapistStartDate),
+			ClientStartDate:    format.OptionalDate(profile.Class.ClientStartDate),
+			MentorStartDate:    format.OptionalDate(profile.Class.MentorStartDate),
+			TherapistStartDate: format.OptionalDate(profile.Class.TherapistStartDate),
 		}
 	}
 
 	log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s", profile.User.ID, profile.User.FirstName, profile.User.LastName, profile.User.Email)
 	ctx.JSON(http.StatusOK, resp)
-}
-
-func dateString(date *time.Time) *string {
-	if date == nil {
-		return nil
-	}
-	value := date.Format("2006-01-02")
-	return &value
 }
 
 // UpdateProfile handles PATCH /users/me
