@@ -25,16 +25,16 @@ func NewPostgresUserRepo(db *sql.DB) repository.UserRepo {
 }
 
 const baseUserQuery = `
-SELECT u.id
-     , u.first_name
-     , u.last_name
-     , u.email
-	 , u.taz
-	 , u.signature
-	 , u.created_at
-	 , u.created_by
-	 , u.class_id
-  FROM users u
+SELECT id
+     , first_name
+     , last_name
+     , email
+	 , taz
+	 , signature
+	 , created_at
+	 , created_by
+	 , class_id
+  FROM users
 `
 
 // loadUser runs the given WHERE clause (with one placeholder $1), scans
@@ -80,18 +80,18 @@ func (r *PostgresUserRepo) loadUser(
 
 func (r *PostgresUserRepo) FindByEmail(ctx context.Context, email string) (domain.User, error) {
 	// “email = $1” is our only variable bit
-	return r.loadUser(ctx, "u.email = $1", email)
+	return r.loadUser(ctx, "email = $1", email)
 }
 
 func (r *PostgresUserRepo) FindByTaz(ctx context.Context, taz string) (domain.User, error) {
 	if taz == "" {
 		return domain.User{}, fmt.Errorf("taz can't be empty")
 	}
-	return r.loadUser(ctx, "u.taz = $1", taz)
+	return r.loadUser(ctx, "taz = $1", taz)
 }
 
 func (r *PostgresUserRepo) FindByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
-	return r.loadUser(ctx, "u.id = $1", id)
+	return r.loadUser(ctx, "id = $1", id)
 }
 
 func (r *PostgresUserRepo) FindClassByID(ctx context.Context, id uuid.UUID) (domain.Class, error) {
@@ -383,7 +383,7 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 	// 1. Get all users who have the 'student' role.
 	//    We use the same baseUserQuery from your loadUser helper.
 	const studentQuery = baseUserQuery + `
-	WHERE u.id IN (
+	WHERE id IN (
         SELECT ur.user_id
         FROM user_roles ur
         JOIN roles r ON ur.role_id = r.id
