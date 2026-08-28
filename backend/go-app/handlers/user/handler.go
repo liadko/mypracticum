@@ -102,7 +102,7 @@ func (h *UserHandler) CreateClass(ctx *gin.Context) {
 	if !requireAdmin(ctx) {
 		return
 	}
-	class, ok := populateClassRequest(ctx)
+	class, ok := populateClassCreationRequest(ctx)
 	if !ok {
 		return
 	}
@@ -121,7 +121,7 @@ func requireAdmin(ctx *gin.Context) bool {
 	return false
 }
 
-func populateClassRequest(ctx *gin.Context) (domain.Class, bool) {
+func populateClassCreationRequest(ctx *gin.Context) (domain.Class, bool) {
 	var request AdminClassRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid class payload"})
