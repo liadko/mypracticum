@@ -12,7 +12,7 @@ type UserRepo interface {
 	FindByEmail(ctx context.Context, email string) (domain.User, error)
 	FindByTaz(ctx context.Context, taz string) (domain.User, error)
 	FindByID(ctx context.Context, id uuid.UUID) (domain.User, error)
-	FindProfileByID(ctx context.Context, id uuid.UUID) (domain.User, error)
+	FindClassByID(ctx context.Context, id uuid.UUID) (domain.Class, error)
 
 	FetchRoles(ctx context.Context, userID uuid.UUID) ([]string, error)
 	GetIDByEmail(ctx context.Context, email string) (uuid.UUID, error)

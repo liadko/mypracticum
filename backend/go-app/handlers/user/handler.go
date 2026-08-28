@@ -37,7 +37,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	// 2) Lookup user by ID
-	user, err := h.svc.GetProfileByID(ctx.Request.Context(), userID)
+	profile, err := h.svc.GetProfileByID(ctx.Request.Context(), userID)
 	if err != nil {
 		log.Printf("[UserHandler.GetMe] Failed to fetch user %s: %v", userID, err)
 		switch err.(type) {
@@ -51,28 +51,27 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 
 	// 3) Map to response DTO
 	resp := ProfileResponse{
-		ID:        user.ID,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
-		Taz:       user.Taz,
-		Signature: user.Signature,
+		UserResponse: UserResponse{
+			ID:        profile.User.ID,
+			FirstName: profile.User.FirstName,
+			LastName:  profile.User.LastName,
+			Email:     profile.User.Email,
+			Taz:       profile.User.Taz,
+			Signature: profile.User.Signature,
+			Roles:     profile.User.Roles,
+		},
 	}
-	if user.Class != nil {
+	if profile.Class != nil {
 		resp.Class = &ClassDTO{
-			ID:                 user.Class.ID,
-			Name:               user.Class.Name,
-			ClientStartDate:    dateString(user.Class.ClientStartDate),
-			MentorStartDate:    dateString(user.Class.MentorStartDate),
-			TherapistStartDate: dateString(user.Class.TherapistStartDate),
+			ID:                 profile.Class.ID,
+			Name:               profile.Class.Name,
+			ClientStartDate:    dateString(profile.Class.ClientStartDate),
+			MentorStartDate:    dateString(profile.Class.MentorStartDate),
+			TherapistStartDate: dateString(profile.Class.TherapistStartDate),
 		}
 	}
-	// flatten roles
-	for _, r := range user.Roles {
-		resp.Roles = append(resp.Roles, string(r))
-	}
 
-	log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s", user.ID, user.FirstName, user.LastName, user.Email)
+	log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s", profile.User.ID, profile.User.FirstName, profile.User.LastName, profile.User.Email)
 	ctx.JSON(http.StatusOK, resp)
 }
 

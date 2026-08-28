@@ -33,6 +33,7 @@ SELECT u.id
 	 , u.signature
 	 , u.created_at
 	 , u.created_by
+	 , u.class_id
   FROM users u
 `
 
@@ -47,15 +48,19 @@ func (r *PostgresUserRepo) loadUser(
 	q := baseUserQuery + " WHERE " + where
 	var u domain.User
 	var nullTaz sql.NullString // Intermediate variable for nullable DB column
+	var nullClassID uuid.NullUUID
 
 	if err := r.db.
 		QueryRowContext(ctx, q, arg).
-		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy); err != nil {
+		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &nullClassID); err != nil {
 
 		if err == sql.ErrNoRows {
 			return domain.User{}, repository.ErrNotFound
 		}
 		return domain.User{}, err
+	}
+	if nullClassID.Valid {
+		u.ClassID = &nullClassID.UUID
 	}
 
 	if nullTaz.Valid {
@@ -89,71 +94,37 @@ func (r *PostgresUserRepo) FindByID(ctx context.Context, id uuid.UUID) (domain.U
 	return r.loadUser(ctx, "u.id = $1", id)
 }
 
-func (r *PostgresUserRepo) FindProfileByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
+func (r *PostgresUserRepo) FindClassByID(ctx context.Context, id uuid.UUID) (domain.Class, error) {
 	const q = `
-SELECT u.id,
-       u.first_name,
-       u.last_name,
-       u.email,
-       u.taz,
-       u.signature,
-       u.created_at,
-       u.created_by,
-       c.id,
-       c.name,
-       c.client_start_date,
-       c.mentor_start_date,
-       c.therapist_start_date
-  FROM users u
-  LEFT JOIN classes c ON c.id = u.class_id
- WHERE u.id = $1
+SELECT id,
+       name,
+       client_start_date,
+       mentor_start_date,
+       therapist_start_date
+  FROM classes
+ WHERE id = $1
 `
 
-	var user domain.User
-	var taz sql.NullString
-	var classID uuid.NullUUID
-	var className sql.NullString
+	var class domain.Class
 	var clientStartDate sql.NullTime
 	var mentorStartDate sql.NullTime
 	var therapistStartDate sql.NullTime
 	if err := r.db.QueryRowContext(ctx, q, id).Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
-		&taz,
-		&user.Signature,
-		&user.CreatedAt,
-		&user.CreatedBy,
-		&classID,
-		&className,
+		&class.ID,
+		&class.Name,
 		&clientStartDate,
 		&mentorStartDate,
 		&therapistStartDate,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return domain.User{}, repository.ErrNotFound
+			return domain.Class{}, repository.ErrNotFound
 		}
-		return domain.User{}, err
+		return domain.Class{}, err
 	}
-	if taz.Valid {
-		user.Taz = taz.String
-	}
-	if classID.Valid {
-		user.Class = &domain.Class{
-			ID:                 classID.UUID,
-			Name:               className.String,
-			ClientStartDate:    nullTimePointer(clientStartDate),
-			MentorStartDate:    nullTimePointer(mentorStartDate),
-			TherapistStartDate: nullTimePointer(therapistStartDate),
-		}
-	}
-	roles, err := r.FetchRoles(ctx, user.ID)
-	if err != nil {
-		return domain.User{}, err
-	}
-	user.Roles = roles
-	return user, nil
+	class.ClientStartDate = nullTimePointer(clientStartDate)
+	class.MentorStartDate = nullTimePointer(mentorStartDate)
+	class.TherapistStartDate = nullTimePointer(therapistStartDate)
+	return class, nil
 }
 
 func nullTimePointer(value sql.NullTime) *time.Time {
@@ -445,9 +416,10 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 	for rows.Next() {
 		var u domain.User
 		var nullTaz sql.NullString // Intermediate variable for nullable DB column
+		var nullClassID uuid.NullUUID
 
 		if err := rows.Scan(
-			&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy,
+			&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &nullClassID,
 		); err != nil {
 			return nil, err
 		}
@@ -456,6 +428,9 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 			u.Taz = nullTaz.String
 		} else {
 			u.Taz = "" // Explicitly empty if NULL in DB
+		}
+		if nullClassID.Valid {
+			u.ClassID = &nullClassID.UUID
 		}
 
 		// u.Roles will be nil

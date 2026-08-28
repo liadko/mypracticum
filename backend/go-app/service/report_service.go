@@ -176,7 +176,7 @@ func (s *ReportService) GetStudentReport(
 	ctx context.Context,
 	studentID uuid.UUID,
 ) (domain.StudentReport, error) {
-	student, err := s.userRepo.FindProfileByID(ctx, studentID)
+	student, err := s.userRepo.FindByID(ctx, studentID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return domain.StudentReport{}, NotFoundError{"student", studentID.String()}
@@ -259,8 +259,12 @@ func (s *ReportService) GetStudentReport(
 	}
 
 	studentClass := ""
-	if student.Class != nil {
-		studentClass = student.Class.Name
+	if student.ClassID != nil {
+		class, err := s.userRepo.FindClassByID(ctx, *student.ClassID)
+		if err != nil {
+			return domain.StudentReport{}, DBError{fmt.Errorf("find report student class: %w", err)}
+		}
+		studentClass = class.Name
 	}
 	studentSummary := domain.StudentSummary{
 		ID:        student.ID,
