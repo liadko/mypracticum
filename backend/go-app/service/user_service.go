@@ -67,6 +67,41 @@ func (s *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (domain.Use
 	return user, nil
 }
 
+// GetProfileByID retrieves a user and enriches it with its optional class.
+func (s *UserService) GetProfileByID(ctx context.Context, id uuid.UUID) (domain.UserProfile, error) {
+	log.Printf("[UserService.GetProfileByID] Looking up user profile: %s", id)
+	user, err := s.GetUserByID(ctx, id)
+	if err != nil {
+		return domain.UserProfile{}, err
+	}
+	return s.enrichWithClass(ctx, user)
+}
+
+func (s *UserService) GetClassByID(ctx context.Context, id uuid.UUID) (domain.Class, error) {
+	class, err := s.userRepo.FindClassByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return domain.Class{}, NotFoundError{"class", id.String()}
+		}
+		return domain.Class{}, DBError{Err: err}
+	}
+	return class, nil
+}
+
+func (s *UserService) enrichWithClass(ctx context.Context, user domain.User) (domain.UserProfile, error) {
+	profile := domain.UserProfile{User: user}
+	if user.ClassID == nil {
+		return profile, nil
+	}
+
+	class, err := s.userRepo.FindClassByID(ctx, *user.ClassID)
+	if err != nil {
+		return domain.UserProfile{}, DBError{Err: err}
+	}
+	profile.Class = &class
+	return profile, nil
+}
+
 // UpdateSignature stores the raw image bytes (PNG, JPEG...) of the user’s signature.
 //
 // Returns:

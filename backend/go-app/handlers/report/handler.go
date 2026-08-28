@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"mypracticum/backend/domain"
+	"mypracticum/backend/pkg/format"
 	"mypracticum/backend/repository"
 	"mypracticum/backend/service"
 
@@ -252,7 +253,7 @@ func mapMentorReport(report domain.MentorReport) MentorReportResponse {
 	for _, event := range report.Events {
 		response.Events = append(response.Events, MentorEventResponse{
 			ID:              event.ID,
-			Date:            event.Date.Format("2006-01-02"),
+			Date:            format.Date(event.Date),
 			StudentID:       event.StudentID,
 			StudentName:     event.StudentName,
 			StudentClass:    event.StudentClass,
@@ -268,7 +269,7 @@ func mapMentorReport(report domain.MentorReport) MentorReportResponse {
 func mapSummary(summary domain.StudentReportSummary) Summary {
 	lastReportedDate := ""
 	if summary.LastReportedDate != nil {
-		lastReportedDate = summary.LastReportedDate.Format("2006-01-02")
+		lastReportedDate = format.Date(*summary.LastReportedDate)
 	}
 	return Summary{
 		SubmittedHours: SubmittedHours{
@@ -282,8 +283,8 @@ func mapSummary(summary domain.StudentReportSummary) Summary {
 			Mentor:    summary.ManualHoursByCategory.Mentor,
 			Therapist: summary.ManualHoursByCategory.Therapist,
 		},
-		LastReportedDate:    lastReportedDate,
-		SignatureSubmitted:  summary.SignatureSubmitted,
+		LastReportedDate:   lastReportedDate,
+		SignatureSubmitted: summary.SignatureSubmitted,
 	}
 }
 
@@ -302,7 +303,7 @@ func mapStudentReport(report domain.StudentReport) StudentReportResponse {
 	for _, event := range report.Events {
 		response.Events = append(response.Events, ReportEventResponse{
 			ID:          event.ID,
-			Date:        event.Date.Format("2006-01-02"),
+			Date:        format.Date(event.Date),
 			Category:    string(event.Category),
 			ContactID:   event.ContactID,
 			ContactName: event.ContactName,

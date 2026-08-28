@@ -36,7 +36,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
 
 	// 2) Lookup user by ID
-	user, err := h.svc.GetUserByID(ctx.Request.Context(), userID)
+	profile, err := h.svc.GetProfileByID(ctx.Request.Context(), userID)
 	if err != nil {
 		log.Printf("[UserHandler.GetMe] Failed to fetch user %s: %v", userID, err)
 		switch err.(type) {
@@ -49,20 +49,32 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 	}
 
 	// 3) Map to response DTO
-	resp := UserResponse{
-		ID:        user.ID,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
-		Taz:       user.Taz,
-		Signature: user.Signature,
+	resp := ProfileResponse{
+		UserResponse: UserResponse{
+			ID:        profile.User.ID,
+			FirstName: profile.User.FirstName,
+			LastName:  profile.User.LastName,
+			Email:     profile.User.Email,
+			Taz:       profile.User.Taz,
+			Signature: profile.User.Signature,
+			Roles:     profile.User.Roles,
+		},
 	}
-	// flatten roles
-	for _, r := range user.Roles {
-		resp.Roles = append(resp.Roles, string(r))
+	if profile.Class != nil {
+		resp.Class = &ClassDTO{
+			ID:                 profile.Class.ID,
+			Name:               profile.Class.Name,
+			ClientStartDate:    format.OptionalDate(profile.Class.ClientStartDate),
+			MentorStartDate:    format.OptionalDate(profile.Class.MentorStartDate),
+			TherapistStartDate: format.OptionalDate(profile.Class.TherapistStartDate),
+		}
 	}
 
-	log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s", user.ID, user.FirstName, user.LastName, user.Email)
+	if profile.Class == nil {
+		log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s, class=none", profile.User.ID, profile.User.FirstName, profile.User.LastName, profile.User.Email)
+	} else {
+		log.Printf("[UserHandler.GetMe] Retrieved user profile for user ID: %s, name: %s %s, email: %s, classID=%s, className=%q, clientStartDate=%v, mentorStartDate=%v, therapistStartDate=%v", profile.User.ID, profile.User.FirstName, profile.User.LastName, profile.User.Email, profile.Class.ID, profile.Class.Name, profile.Class.ClientStartDate, profile.Class.MentorStartDate, profile.Class.TherapistStartDate)
+	}
 	ctx.JSON(http.StatusOK, resp)
 }
 
@@ -199,7 +211,7 @@ func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, SignatureUpdateResponse{Signature: encoded})
 }
 
-// POST /admin/students/import
+// POST /admin/classes/:classId/students/import
 func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 	log.Printf("[UserHandler.ImportStudents] Importing students from CSV")
 	userID := ctx.MustGet("userID").(uuid.UUID)
@@ -208,6 +220,21 @@ func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 	if !slices.Contains(roles, "admin") {
 		log.Printf("[UserHandler.ImportStudents] Forbidden: user not admin")
 		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+	classID, err := uuid.Parse(ctx.Param("classId"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	if _, err := h.svc.GetClassByID(ctx.Request.Context(), classID); err != nil {
+		var notFound service.NotFoundError
+		if errors.As(err, &notFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "class not found"})
+			return
+		}
+		log.Printf("[UserHandler.ImportStudents] Failed to validate class %s: %v", classID, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -232,6 +259,9 @@ func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 		log.Printf("[UserHandler.ImportStudents] CSV parse failed")
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "csv parse error", "details": parseErrs})
 		return
+	}
+	for i := range rows {
+		rows[i].ClassID = classID
 	}
 
 	dry := strings.EqualFold(ctx.Query("dryRun"), "true")

@@ -2,6 +2,19 @@ package user
 
 import "github.com/google/uuid"
 
+type ClassDTO struct {
+	ID                 uuid.UUID `json:"id"`
+	Name               string    `json:"name"`
+	ClientStartDate    *string   `json:"clientStartDate"`
+	MentorStartDate    *string   `json:"mentorStartDate"`
+	TherapistStartDate *string   `json:"therapistStartDate"`
+}
+
+type ProfileResponse struct {
+	UserResponse
+	Class *ClassDTO `json:"class"`
+}
+
 // UserResponse is what we return to the client.
 type UserResponse struct {
 	ID        uuid.UUID `json:"id"`

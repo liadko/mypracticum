@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -29,9 +30,10 @@ SELECT id
      , last_name
      , email
 	 , taz
-     , signature
-     , created_at
+	 , signature
+	 , created_at
 	 , created_by
+	 , class_id
   FROM users
 `
 
@@ -46,27 +48,25 @@ func (r *PostgresUserRepo) loadUser(
 	q := baseUserQuery + " WHERE " + where
 	var u domain.User
 	var nullTaz sql.NullString // Intermediate variable for nullable DB column
+	var nullClassID uuid.NullUUID
 
 	if err := r.db.
 		QueryRowContext(ctx, q, arg).
-		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy); err != nil {
+		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &nullClassID); err != nil {
 
 		if err == sql.ErrNoRows {
 			return domain.User{}, repository.ErrNotFound
 		}
 		return domain.User{}, err
 	}
+	if nullClassID.Valid {
+		u.ClassID = &nullClassID.UUID
+	}
 
 	if nullTaz.Valid {
 		u.Taz = nullTaz.String
 	} else {
 		u.Taz = "" // Explicitly empty if NULL in DB
-	}
-
-	// Class is used by analyst reports but is intentionally loaded separately
-	// so the shared baseUserQuery keeps its existing scan contract.
-	if err := r.db.QueryRowContext(ctx, "SELECT COALESCE(class, '') FROM users WHERE id = $1", u.ID).Scan(&u.Class); err != nil {
-		return domain.User{}, err
 	}
 
 	// 2) fetch & attach roles
@@ -92,6 +92,46 @@ func (r *PostgresUserRepo) FindByTaz(ctx context.Context, taz string) (domain.Us
 
 func (r *PostgresUserRepo) FindByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
 	return r.loadUser(ctx, "id = $1", id)
+}
+
+func (r *PostgresUserRepo) FindClassByID(ctx context.Context, id uuid.UUID) (domain.Class, error) {
+	const q = `
+SELECT id,
+       name,
+       client_start_date,
+       mentor_start_date,
+       therapist_start_date
+  FROM classes
+ WHERE id = $1
+`
+
+	var class domain.Class
+	var clientStartDate sql.NullTime
+	var mentorStartDate sql.NullTime
+	var therapistStartDate sql.NullTime
+	if err := r.db.QueryRowContext(ctx, q, id).Scan(
+		&class.ID,
+		&class.Name,
+		&clientStartDate,
+		&mentorStartDate,
+		&therapistStartDate,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Class{}, repository.ErrNotFound
+		}
+		return domain.Class{}, err
+	}
+	class.ClientStartDate = nullTimePointer(clientStartDate)
+	class.MentorStartDate = nullTimePointer(mentorStartDate)
+	class.TherapistStartDate = nullTimePointer(therapistStartDate)
+	return class, nil
+}
+
+func nullTimePointer(value sql.NullTime) *time.Time {
+	if !value.Valid {
+		return nil
+	}
+	return &value.Time
 }
 
 // fetchRoles returns all roles assigned to a given user.
@@ -272,7 +312,7 @@ func (r *PostgresUserRepo) UpdateUserNames(ctx context.Context, userID uuid.UUID
 func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStudent) error {
 	email := strings.ToLower(ns.Email)
 
-	log.Printf("[upsert] BEGIN email=%s first=%q last=%q class=%q createdBy=%s", maskEmail(email), ns.FirstName, ns.LastName, ns.Class, ns.CreatedBy)
+	log.Printf("[upsert] BEGIN email=%s first=%q last=%q classID=%s createdBy=%s", maskEmail(email), ns.FirstName, ns.LastName, ns.ClassID, ns.CreatedBy)
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -283,11 +323,11 @@ func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStude
 	var userID uuid.UUID
 	// Insert or do nothing on conflict. RETURNING only when inserted.
 	err = tx.QueryRowContext(ctx, `
-		INSERT INTO users (id, first_name, last_name, email, class, taz, created_by)
+		INSERT INTO users (id, first_name, last_name, email, class_id, taz, created_by)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (email) DO NOTHING
 		RETURNING id
-	`, uuid.New(), ns.FirstName, ns.LastName, email, ns.Class, ns.Taz, ns.CreatedBy).Scan(&userID)
+	`, uuid.New(), ns.FirstName, ns.LastName, email, ns.ClassID, ns.Taz, ns.CreatedBy).Scan(&userID)
 
 	if err == sql.ErrNoRows {
 		// Row already exists → skip, signal duplicate to caller.
@@ -343,7 +383,7 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 	// 1. Get all users who have the 'student' role.
 	//    We use the same baseUserQuery from your loadUser helper.
 	const studentQuery = baseUserQuery + `
-    WHERE id IN (
+	WHERE id IN (
         SELECT ur.user_id
         FROM user_roles ur
         JOIN roles r ON ur.role_id = r.id
@@ -363,9 +403,10 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 	for rows.Next() {
 		var u domain.User
 		var nullTaz sql.NullString // Intermediate variable for nullable DB column
+		var nullClassID uuid.NullUUID
 
 		if err := rows.Scan(
-			&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy,
+			&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &nullClassID,
 		); err != nil {
 			return nil, err
 		}
@@ -374,6 +415,9 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 			u.Taz = nullTaz.String
 		} else {
 			u.Taz = "" // Explicitly empty if NULL in DB
+		}
+		if nullClassID.Valid {
+			u.ClassID = &nullClassID.UUID
 		}
 
 		// u.Roles will be nil

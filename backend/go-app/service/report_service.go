@@ -258,12 +258,20 @@ func (s *ReportService) GetStudentReport(
 		}
 	}
 
+	studentClass := ""
+	if student.ClassID != nil {
+		class, err := s.userRepo.FindClassByID(ctx, *student.ClassID)
+		if err != nil {
+			return domain.StudentReport{}, DBError{fmt.Errorf("find report student class: %w", err)}
+		}
+		studentClass = class.Name
+	}
 	studentSummary := domain.StudentSummary{
 		ID:        student.ID,
 		FirstName: student.FirstName,
 		LastName:  student.LastName,
 		Email:     student.Email,
-		Class:     student.Class,
+		Class:     studentClass,
 		Taz:       student.Taz,
 		Summary:   summary,
 	}

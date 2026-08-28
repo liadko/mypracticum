@@ -14,7 +14,7 @@ type User struct {
 	FirstName string
 	LastName  string
 	Email     string
-	Class     string
+	ClassID   *uuid.UUID
 	Taz       string
 
 	Signature []byte
@@ -37,7 +37,7 @@ type NewStudent struct {
 	FirstName string
 	LastName  string
 	Email     string
-	Class     string
+	ClassID   uuid.UUID
 	Taz       string
 	CreatedBy uuid.UUID
 }
