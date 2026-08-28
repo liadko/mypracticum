@@ -311,27 +311,14 @@ func (r *PostgresUserRepo) UpdateUserNames(ctx context.Context, userID uuid.UUID
 // If a user with the same email exists, it returns ErrDuplicate and does nothing.
 func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStudent) error {
 	email := strings.ToLower(ns.Email)
-	className := strings.TrimSpace(ns.Class)
 
-	log.Printf("[upsert] BEGIN email=%s first=%q last=%q class=%q createdBy=%s", maskEmail(email), ns.FirstName, ns.LastName, ns.Class, ns.CreatedBy)
+	log.Printf("[upsert] BEGIN email=%s first=%q last=%q classID=%s createdBy=%s", maskEmail(email), ns.FirstName, ns.LastName, ns.ClassID, ns.CreatedBy)
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = tx.Rollback() }()
-
-	var classID *uuid.UUID
-	if className != "" {
-		var resolvedClassID uuid.UUID
-		if err := tx.QueryRowContext(ctx, `SELECT id FROM classes WHERE name = $1`, className).Scan(&resolvedClassID); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return fmt.Errorf("class %q not found", className)
-			}
-			return fmt.Errorf("resolve class %q: %w", className, err)
-		}
-		classID = &resolvedClassID
-	}
 
 	var userID uuid.UUID
 	// Insert or do nothing on conflict. RETURNING only when inserted.
@@ -340,7 +327,7 @@ func (r *PostgresUserRepo) UpsertStudent(ctx context.Context, ns domain.NewStude
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (email) DO NOTHING
 		RETURNING id
-	`, uuid.New(), ns.FirstName, ns.LastName, email, classID, ns.Taz, ns.CreatedBy).Scan(&userID)
+	`, uuid.New(), ns.FirstName, ns.LastName, email, ns.ClassID, ns.Taz, ns.CreatedBy).Scan(&userID)
 
 	if err == sql.ErrNoRows {
 		// Row already exists → skip, signal duplicate to caller.

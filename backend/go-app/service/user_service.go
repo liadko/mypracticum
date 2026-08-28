@@ -77,6 +77,17 @@ func (s *UserService) GetProfileByID(ctx context.Context, id uuid.UUID) (domain.
 	return s.enrichWithClass(ctx, user)
 }
 
+func (s *UserService) GetClassByID(ctx context.Context, id uuid.UUID) (domain.Class, error) {
+	class, err := s.userRepo.FindClassByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return domain.Class{}, NotFoundError{"class", id.String()}
+		}
+		return domain.Class{}, DBError{Err: err}
+	}
+	return class, nil
+}
+
 func (s *UserService) enrichWithClass(ctx context.Context, user domain.User) (domain.UserProfile, error) {
 	profile := domain.UserProfile{User: user}
 	if user.ClassID == nil {

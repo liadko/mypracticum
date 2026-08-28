@@ -207,7 +207,7 @@ func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, SignatureUpdateResponse{Signature: encoded})
 }
 
-// POST /admin/students/import
+// POST /admin/classes/:classId/students/import
 func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 	log.Printf("[UserHandler.ImportStudents] Importing students from CSV")
 	userID := ctx.MustGet("userID").(uuid.UUID)
@@ -216,6 +216,21 @@ func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 	if !slices.Contains(roles, "admin") {
 		log.Printf("[UserHandler.ImportStudents] Forbidden: user not admin")
 		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+	classID, err := uuid.Parse(ctx.Param("classId"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	if _, err := h.svc.GetClassByID(ctx.Request.Context(), classID); err != nil {
+		var notFound service.NotFoundError
+		if errors.As(err, &notFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "class not found"})
+			return
+		}
+		log.Printf("[UserHandler.ImportStudents] Failed to validate class %s: %v", classID, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
 
@@ -240,6 +255,9 @@ func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 		log.Printf("[UserHandler.ImportStudents] CSV parse failed")
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "csv parse error", "details": parseErrs})
 		return
+	}
+	for i := range rows {
+		rows[i].ClassID = classID
 	}
 
 	dry := strings.EqualFold(ctx.Query("dryRun"), "true")
