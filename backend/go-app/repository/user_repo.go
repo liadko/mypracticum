@@ -13,6 +13,9 @@ type UserRepo interface {
 	FindByTaz(ctx context.Context, taz string) (domain.User, error)
 	FindByID(ctx context.Context, id uuid.UUID) (domain.User, error)
 	FindClassByID(ctx context.Context, id uuid.UUID) (domain.Class, error)
+	ListClasses(ctx context.Context) ([]domain.Class, error)
+	CreateClass(ctx context.Context, class domain.Class) (domain.Class, error)
+	UpdateClass(ctx context.Context, id uuid.UUID, class domain.Class) (domain.Class, error)
 
 	FetchRoles(ctx context.Context, userID uuid.UUID) ([]string, error)
 	GetIDByEmail(ctx context.Context, email string) (uuid.UUID, error)

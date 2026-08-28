@@ -88,6 +88,55 @@ func (s *UserService) GetClassByID(ctx context.Context, id uuid.UUID) (domain.Cl
 	return class, nil
 }
 
+func (s *UserService) ListClasses(ctx context.Context) ([]domain.Class, error) {
+	classes, err := s.userRepo.ListClasses(ctx)
+	if err != nil {
+		return nil, DBError{Err: err}
+	}
+	return classes, nil
+}
+
+func (s *UserService) CreateClass(ctx context.Context, class domain.Class) (domain.Class, error) {
+	class, err := normalizeClass(class)
+	if err != nil {
+		return domain.Class{}, err
+	}
+	created, err := s.userRepo.CreateClass(ctx, class)
+	if errors.Is(err, repository.ErrDuplicate) {
+		return domain.Class{}, AlreadyExistsError{Resource: "class", Field: "name", Value: class.Name}
+	}
+	if err != nil {
+		return domain.Class{}, DBError{Err: err}
+	}
+	return created, nil
+}
+
+func (s *UserService) UpdateClass(ctx context.Context, id uuid.UUID, class domain.Class) (domain.Class, error) {
+	class, err := normalizeClass(class)
+	if err != nil {
+		return domain.Class{}, err
+	}
+	updated, err := s.userRepo.UpdateClass(ctx, id, class)
+	if errors.Is(err, repository.ErrNotFound) {
+		return domain.Class{}, NotFoundError{"class", id.String()}
+	}
+	if errors.Is(err, repository.ErrDuplicate) {
+		return domain.Class{}, AlreadyExistsError{Resource: "class", Field: "name", Value: class.Name}
+	}
+	if err != nil {
+		return domain.Class{}, DBError{Err: err}
+	}
+	return updated, nil
+}
+
+func normalizeClass(class domain.Class) (domain.Class, error) {
+	class.Name = strings.TrimSpace(class.Name)
+	if class.Name == "" {
+		return domain.Class{}, ValidationError("class name must not be empty")
+	}
+	return class, nil
+}
+
 func (s *UserService) enrichWithClass(ctx context.Context, user domain.User) (domain.UserProfile, error) {
 	profile := domain.UserProfile{User: user}
 	if user.ClassID == nil {
