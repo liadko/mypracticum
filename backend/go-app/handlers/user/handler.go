@@ -102,7 +102,7 @@ func (h *UserHandler) CreateClass(ctx *gin.Context) {
 	if !requireAdmin(ctx) {
 		return
 	}
-	class, ok := bindAdminClass(ctx)
+	class, ok := populateClassRequest(ctx)
 	if !ok {
 		return
 	}
@@ -121,7 +121,7 @@ func requireAdmin(ctx *gin.Context) bool {
 	return false
 }
 
-func bindAdminClass(ctx *gin.Context) (domain.Class, bool) {
+func populateClassRequest(ctx *gin.Context) (domain.Class, bool) {
 	var request AdminClassRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid class payload"})
@@ -237,11 +237,8 @@ func (h *UserHandler) UpdateProfile(ctx *gin.Context) {
 func (h *UserHandler) AddUser(ctx *gin.Context) {
 	log.Printf("[UserHandler.AddUser] Creating new user")
 	userID := ctx.MustGet("userID").(uuid.UUID) // guaranteed to exist, thanks to middleware
-	roles := ctx.MustGet("roles").([]string)
 
-	if !slices.Contains(roles, "admin") {
-		log.Printf("[UserHandler.AddUser] Forbidden: user not admin")
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	if !requireAdmin(ctx) {
 		return
 	}
 
@@ -332,11 +329,8 @@ func (h *UserHandler) UpdateSignature(ctx *gin.Context) {
 func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 	log.Printf("[UserHandler.ImportStudents] Importing students from CSV")
 	userID := ctx.MustGet("userID").(uuid.UUID)
-	roles := ctx.MustGet("roles").([]string)
 
-	if !slices.Contains(roles, "admin") {
-		log.Printf("[UserHandler.ImportStudents] Forbidden: user not admin")
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	if !requireAdmin(ctx) {
 		return
 	}
 	classID, err := uuid.Parse(ctx.Param("classId"))
@@ -404,11 +398,7 @@ func (h *UserHandler) ImportStudents(ctx *gin.Context) {
 func (h *UserHandler) GetStudents(ctx *gin.Context) {
 	log.Printf("[UserHandler.GetStudents] Retrieving student list")
 	// 1) Admin-only check
-	roles := ctx.MustGet("roles").([]string)
-
-	if !slices.Contains(roles, "admin") {
-		log.Printf("[UserHandler.GetStudents] Forbidden: user not admin")
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+	if !requireAdmin(ctx) {
 		return
 	}
 
