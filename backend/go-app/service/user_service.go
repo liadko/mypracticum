@@ -111,24 +111,6 @@ func (s *UserService) CreateClass(ctx context.Context, class domain.Class) (doma
 	return created, nil
 }
 
-func (s *UserService) UpdateClass(ctx context.Context, id uuid.UUID, class domain.Class) (domain.Class, error) {
-	class, err := normalizeClass(class)
-	if err != nil {
-		return domain.Class{}, err
-	}
-	updated, err := s.userRepo.UpdateClass(ctx, id, class)
-	if errors.Is(err, repository.ErrNotFound) {
-		return domain.Class{}, NotFoundError{"class", id.String()}
-	}
-	if errors.Is(err, repository.ErrDuplicate) {
-		return domain.Class{}, AlreadyExistsError{Resource: "class", Field: "name", Value: class.Name}
-	}
-	if err != nil {
-		return domain.Class{}, DBError{Err: err}
-	}
-	return updated, nil
-}
-
 func normalizeClass(class domain.Class) (domain.Class, error) {
 	class.Name = strings.TrimSpace(class.Name)
 	if class.Name == "" {

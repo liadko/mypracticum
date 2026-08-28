@@ -166,26 +166,6 @@ RETURNING id, name, client_start_date, mentor_start_date, therapist_start_date
 	return created, nil
 }
 
-func (r *PostgresUserRepo) UpdateClass(ctx context.Context, id uuid.UUID, class domain.Class) (domain.Class, error) {
-	const q = `
-UPDATE classes
-   SET name = $1,
-       client_start_date = $2,
-       mentor_start_date = $3,
-       therapist_start_date = $4
- WHERE id = $5
-RETURNING id, name, client_start_date, mentor_start_date, therapist_start_date
-`
-	updated, err := scanClass(r.db.QueryRowContext(ctx, q, class.Name, class.ClientStartDate, class.MentorStartDate, class.TherapistStartDate, id))
-	if errors.Is(err, sql.ErrNoRows) {
-		return domain.Class{}, repository.ErrNotFound
-	}
-	if err != nil {
-		return domain.Class{}, classDuplicateError(err)
-	}
-	return updated, nil
-}
-
 type classScanner interface {
 	Scan(dest ...any) error
 }

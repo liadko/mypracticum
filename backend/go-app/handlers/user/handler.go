@@ -102,7 +102,7 @@ func (h *UserHandler) CreateClass(ctx *gin.Context) {
 	if !requireAdmin(ctx) {
 		return
 	}
-	class, ok := bindAdminClass(ctx, true)
+	class, ok := bindAdminClass(ctx)
 	if !ok {
 		return
 	}
@@ -113,27 +113,6 @@ func (h *UserHandler) CreateClass(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, mapAdminClass(created))
 }
 
-// UpdateClass handles PUT /admin/classes/:classId.
-func (h *UserHandler) UpdateClass(ctx *gin.Context) {
-	if !requireAdmin(ctx) {
-		return
-	}
-	classID, err := uuid.Parse(ctx.Param("classId"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
-		return
-	}
-	class, ok := bindAdminClass(ctx, false)
-	if !ok {
-		return
-	}
-	updated, err := h.svc.UpdateClass(ctx.Request.Context(), classID, class)
-	if !writeAdminClassError(ctx, err) {
-		return
-	}
-	ctx.JSON(http.StatusOK, mapAdminClass(updated))
-}
-
 func requireAdmin(ctx *gin.Context) bool {
 	if slices.Contains(ctx.MustGet("roles").([]string), "admin") {
 		return true
@@ -142,7 +121,7 @@ func requireAdmin(ctx *gin.Context) bool {
 	return false
 }
 
-func bindAdminClass(ctx *gin.Context, requireDates bool) (domain.Class, bool) {
+func bindAdminClass(ctx *gin.Context) (domain.Class, bool) {
 	var request AdminClassRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid class payload"})
@@ -163,7 +142,7 @@ func bindAdminClass(ctx *gin.Context, requireDates bool) (domain.Class, bool) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid therapist start date"})
 		return domain.Class{}, false
 	}
-	if requireDates && (clientStartDate == nil || mentorStartDate == nil || therapistStartDate == nil) {
+	if clientStartDate == nil || mentorStartDate == nil || therapistStartDate == nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "all reporting start dates are required"})
 		return domain.Class{}, false
 	}
@@ -203,13 +182,10 @@ func writeAdminClassError(ctx *gin.Context, err error) bool {
 		return true
 	}
 	var validationError service.ValidationError
-	var notFoundError service.NotFoundError
 	var alreadyExistsError service.AlreadyExistsError
 	switch {
 	case errors.As(err, &validationError):
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": validationError.Error()})
-	case errors.As(err, &notFoundError):
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "class not found"})
 	case errors.As(err, &alreadyExistsError):
 		ctx.JSON(http.StatusConflict, gin.H{"error": alreadyExistsError.Error()})
 	default:
