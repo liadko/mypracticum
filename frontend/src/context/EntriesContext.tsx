@@ -79,7 +79,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
             if (!deletedEntry) return false // nothing to remove
 
             if (deletedEntry.approved) {
-                showError("אי אפשר למחוק שעה מאושרת")
+                showError("לא ניתן למחוק שעה מאושרת")
                 return false
             }
 
@@ -94,7 +94,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
                 if (err instanceof TimeoutError) {
                     showError('יש בעיה ברשת, לא ניתן לדווח')
                 } else {
-                    showError('אי אפשר למחוק את השעה הזאת')
+                    showError('לא ניתן למחוק את השעה הזאת')
                 }
                 return false
             }
@@ -133,7 +133,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
                 if (err instanceof TimeoutError) {
                     showError('יש בעיה ברשת, לא ניתן לדווח')
                 } else {
-                    showError('אי אפשר להוסיף את השעה הזאת')
+                    showError('לא ניתן להוסיף את השעה הזאת')
                 }
                 return false
             }
