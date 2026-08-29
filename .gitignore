@@ -34,5 +34,8 @@ Thumbs.db
 # General
 *.log
 
+# Local deployment command notes
+/CI help/
+
 
 *.bat
