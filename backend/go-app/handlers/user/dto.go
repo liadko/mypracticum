@@ -39,6 +39,7 @@ type UserResponse struct {
 	LastName  string    `json:"lastName"`
 	Email     string    `json:"email"`
 	Taz       string    `json:"taz"`
+	ClassID   *uuid.UUID `json:"classId"`
 
 	Signature []byte   `json:"signature,omitempty"` // raw png bytes
 	Roles     []string `json:"roles,omitempty"`

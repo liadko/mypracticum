@@ -8,6 +8,8 @@ import { EditContactsModal } from './Contacts/EditContactsModal'
 import { contactLabelSingularGenderless, pageHeaderText, pageTitleDefinite } from '../i18n/he'
 import { ContactDropdown } from './Contacts/ContactDropdown'
 import { useContacts } from '../context/ContactsContext'
+import { useAuth } from '../context/AuthContext'
+import { reportingStartDateFor } from '../utils/entryDateRules'
 
 const hebrewWeekdays = [
     "ראשון",
@@ -24,7 +26,7 @@ export interface CalendarWithListProps {
     entries: Entry[]                    // all entries of this category
 
 
-    onEntryToggle: (contactId: string, date: string) => void
+    onEntryToggle: (contactId: string, date: string, reportingStartDate?: string | null) => Promise<boolean>
     renderEntryExtra?: (entry: Entry) => React.ReactNode
     renderMessage?: (contactId: string) => React.ReactNode
 }
@@ -41,6 +43,7 @@ export function CalendarWithList({
     const [isEditOpen, setEditOpen] = useState(false)
 
     const { activePage: contactType } = useContacts()
+    const { user } = useAuth()
 
     const selectedContactId = getSelected(contactType)
 
@@ -53,10 +56,10 @@ export function CalendarWithList({
         [entries, selectedContactId]
     )
 
-    // when you click the calendar:
-    function handleDayClick(date: string) {
-        onEntryToggle(selectedContactId, date)
-        setHighlightedDate(date)
+    async function handleDayClick(date: string) {
+        const startDate = reportingStartDateFor(user?.class, contactType)
+        const accepted = await onEntryToggle(selectedContactId, date, startDate)
+        if (accepted) setHighlightedDate(date)
     }
 
 
