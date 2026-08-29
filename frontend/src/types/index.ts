@@ -127,10 +127,35 @@ export interface StudentResponse {
  */
 export interface StudentImportResponse {
     created: number;
-    updated: number;
-    failures: number;
-    errors: Array<{ line: number; error: string; email: string }>;
-    parseWarnings: string[];
+    failed: number;
+    skipped: number;
+    errors: StudentImportRowError[];
+    parseWarnings?: StudentImportRowError[];
+}
+
+export interface StudentImportRowError {
+    row: number;
+    email?: string;
+    err: string;
+}
+
+export interface AdminClass {
+    id: string;
+    name: string;
+    reportingStartDates: {
+        client: string | null;
+        mentor: string | null;
+        therapist: string | null;
+    };
+}
+
+export interface CreateAdminClassRequest {
+    name: string;
+    reportingStartDates: {
+        client: string;
+        mentor: string;
+        therapist: string;
+    };
 }
 
 /**

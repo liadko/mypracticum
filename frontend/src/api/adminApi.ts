@@ -7,7 +7,29 @@ import type {
     BulkAddManualEntriesResult,
     DeleteEntriesResult,
     ManualEntryPayload,
+    AdminClass,
+    CreateAdminClassRequest,
 } from '../types';
+
+export async function getClasses(): Promise<AdminClass[]> {
+    const res = await apiFetch('/api/v1/admin/classes');
+    if (!res.ok) {
+        throw new Error('Failed to fetch classes');
+    }
+    return res.json();
+}
+
+export async function createClass(request: CreateAdminClassRequest): Promise<AdminClass> {
+    const res = await apiFetch('/api/v1/admin/classes', {
+        method: 'POST',
+        body: JSON.stringify(request),
+    });
+    if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to create class');
+    }
+    return res.json();
+}
 
 /**
  * Fetches all students for the admin portal.
@@ -24,13 +46,14 @@ export async function getStudents(): Promise<StudentResponse[]> {
  * Imports students from a CSV file.
  */
 export async function importStudents(
+    classId: string,
     file: File,
     dryRun: boolean,
 ): Promise<StudentImportResponse> {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await apiFetch(`/api/v1/admin/students/import?dryRun=${dryRun}`, {
+    const res = await apiFetch(`/api/v1/admin/classes/${classId}/students/import?dryRun=${dryRun}`, {
         method: 'POST',
         body: formData,
         // Do not set Content-Type; the browser handles it for FormData

@@ -3,11 +3,13 @@ import './AdminPage.css';
 import { StudentsForm } from '../../components/Admin/StudentsForm';
 import { EntriesForm } from '../../components/Admin/EntriesForm';
 import { ManualEntriesForm } from '../../components/Admin/ManualEntriesForm';
+import { ClassManagementForm } from '../../components/Admin/ClassManagementForm';
 
 type AdminTab =
     | 'page-import-students'
     | 'page-approve-entries'
-    | 'page-manual-entries';
+    | 'page-manual-entries'
+    | 'page-manage-classes';
 
 export default function AdminPage() {
     const [logs, setLogs] = useState<string>('');
@@ -27,6 +29,8 @@ export default function AdminPage() {
                 return <EntriesForm logMessage={logMessage} />;
             case 'page-manual-entries':
                 return <ManualEntriesForm logMessage={logMessage} />;
+            case 'page-manage-classes':
+                return <ClassManagementForm logMessage={logMessage} />;
             default:
                 return null;
         }
@@ -45,6 +49,12 @@ export default function AdminPage() {
                         onClick={() => setActiveTab('page-import-students')}
                     >
                         Add Students
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'page-manage-classes' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('page-manage-classes')}
+                    >
+                        Manage Classes
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'page-approve-entries' ? 'active' : ''}`}
