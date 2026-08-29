@@ -57,6 +57,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 			LastName:  profile.User.LastName,
 			Email:     profile.User.Email,
 			Taz:       profile.User.Taz,
+			ClassID:   profile.User.ClassID,
 			Signature: profile.User.Signature,
 			Roles:     profile.User.Roles,
 		},

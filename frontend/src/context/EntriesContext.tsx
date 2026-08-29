@@ -5,6 +5,7 @@ import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, d
 import { showAsyncToast, showError } from '../utils/toast'
 import { v4 as uuidv4 } from 'uuid';
 import { TimeoutError } from '../api/errors'
+import { isEntryDateAllowed } from '../utils/entryDateRules'
 
 
 interface EntriesProviderProps {
@@ -105,8 +106,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
         async (contactId: string, date: string) => {
 
             const newEntry: NewEntry = { contactId, date }
-            const today = new Date().toISOString().slice(0, 10)
-            if (newEntry.date > today) {
+            if (!isEntryDateAllowed(newEntry.date)) {
                 showError("אי אפשר לדווח על שעות עתידיות")
                 return
             }

@@ -10,6 +10,7 @@ import { ContactDropdown } from './Contacts/ContactDropdown'
 import { useContacts } from '../context/ContactsContext'
 import { useAuth } from '../context/AuthContext'
 import { showError } from '../utils/toast'
+import { isEntryDateAllowed, reportingStartDateFor } from '../utils/entryDateRules'
 
 const hebrewWeekdays = [
     "ראשון",
@@ -57,12 +58,21 @@ export function CalendarWithList({
     )
 
     // when you click the calendar:
-    function handleDayClick(date: string) {
-        const startDate = user?.class?.[`${contactType}StartDate` as 'clientStartDate' | 'mentorStartDate' | 'therapistStartDate']
-        if (startDate && date < startDate) {
-            showError(`אי אפשר לדווח לפני ${startDate}`)
-            return
+    function canSubmitEntryForDate(date: string): boolean {
+        const startDate = reportingStartDateFor(user?.class, contactType)
+        if (!isEntryDateAllowed(date, startDate)) {
+            if (date > new Date().toISOString().slice(0, 10)) {
+                showError('אי אפשר לדווח על שעות עתידיות')
+            } else if (startDate) {
+                showError(`אי אפשר לדווח לפני ${startDate}`)
+            }
+            return false
         }
+        return true
+    }
+
+    function handleDayClick(date: string) {
+        if (!canSubmitEntryForDate(date)) return
         onEntryToggle(selectedContactId, date)
         setHighlightedDate(date)
     }

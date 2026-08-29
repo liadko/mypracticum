@@ -101,6 +101,8 @@ export interface User {
 
     roles: UserRole[]
 
+    classId: string | null
+
     class: UserClass | null
 
 }
