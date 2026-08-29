@@ -5,6 +5,7 @@ import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, d
 import { showAsyncToast, showError } from '../utils/toast'
 import { v4 as uuidv4 } from 'uuid';
 import { TimeoutError } from '../api/errors'
+import { isEntryDateAllowed } from '../utils/entryDateRules'
 
 
 interface EntriesProviderProps {
@@ -17,7 +18,7 @@ interface EntriesContextType {
     loadingE: boolean
     errorE: Error | null
     pending: Set<string>       // set of entry‐ids currently being toggled
-    toggleEntry: (contactId: string, date: string) => Promise<void>
+    toggleEntry: (contactId: string, date: string, reportingStartDate?: string | null) => Promise<boolean>
 
     toggleApproved: (entryId: string) => Promise<void>
     unapprovedCounts: Record<string, number>
@@ -72,28 +73,30 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
     // 2️⃣ Helper: delete an existing entry
     const remove = useCallback(
-        async (entryId: string) => {
+        async (entryId: string): Promise<boolean> => {
 
             const deletedEntry = domain.getEntry(entries, entryId);
-            if (!deletedEntry) return // nothing to remove 
+            if (!deletedEntry) return false // nothing to remove
 
             if (deletedEntry.approved) {
-                showError("אי אפשר למחוק שעה מאושרת")
-                return
+                showError("לא ניתן למחוק שעה מאושרת")
+                return false
             }
 
             setEntries(curr => domain.removeEntry(curr, entryId))
 
             try {
                 await api.deleteEntry(entryId)
+                return true
             } catch (err: any) {
                 console.error(err)
                 setEntries(curr => domain.addEntry(curr, deletedEntry))
                 if (err instanceof TimeoutError) {
                     showError('יש בעיה ברשת, לא ניתן לדווח')
                 } else {
-                    showError('אי אפשר למחוק את השעה הזאת')
+                    showError('לא ניתן למחוק את השעה הזאת')
                 }
+                return false
             }
 
         },
@@ -102,16 +105,9 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
     // 3️⃣ Helper: add a new entry (optimistic, swap temp → real)
     const create = useCallback(
-        async (contactId: string, date: string) => {
+        async (contactId: string, date: string): Promise<boolean> => {
 
             const newEntry: NewEntry = { contactId, date }
-            const today = new Date().toISOString().slice(0, 10)
-            if (newEntry.date > today) {
-                showError("אי אפשר לדווח על שעות עתידיות")
-                return
-            }
-
-
             const tempId = uuidv4()
             const tempEntry: Entry = {
                 id: tempId,
@@ -129,6 +125,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
                     const withoutTemp = domain.removeEntry(curr, tempId)
                     return domain.addEntry(withoutTemp, real)
                 })
+                return true
             } catch (err: any) {
                 console.error(err)
                 setEntries(curr => domain.removeEntry(curr, tempId))
@@ -136,8 +133,9 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
                 if (err instanceof TimeoutError) {
                     showError('יש בעיה ברשת, לא ניתן לדווח')
                 } else {
-                    showError('אי אפשר להוסיף את השעה הזאת')
+                    showError('לא ניתן להוסיף את השעה הזאת')
                 }
+                return false
             }
         },
         [entries]
@@ -147,32 +145,42 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
     // 4️⃣ Public: toggle an entry on/off
     const toggleEntry = useCallback(
-        async (contactId: string, date: string) => {
+        async (contactId: string, date: string, reportingStartDate?: string | null): Promise<boolean> => {
+
+            if (!isEntryDateAllowed(date, reportingStartDate)) {
+                const today = new Date().toISOString().slice(0, 10)
+                if (date > today) {
+                    showError("לא ניתן לדווח שעות עתידיות")
+                } else if (reportingStartDate) {
+                    showError(`לא ניתן לדווח לפני ${reportingStartDate}`)
+                }
+                return false
+            }
 
             // If a toggle is already in flight for this date, skip it:
             if (pending.has(date)) {
                 //console.log("toggle blocked.")
                 //console.log(pending)
-                return
+                return false
             }
             setPending(prev => new Set(prev).add(date))
 
-
-            const existing = entries.find(
-                e => e.contactId === contactId && e.date === date
-            )
-            if (existing) {
-                await remove(existing.id)
-            } else {
-                await create(contactId, date)
+            try {
+                const existing = entries.find(
+                    e => e.contactId === contactId && e.date === date
+                )
+                if (existing) {
+                    return await remove(existing.id)
+                }
+                return await create(contactId, date)
+            } finally {
+                // clear the lock
+                setPending(prev => {
+                    const next = new Set(prev)
+                    next.delete(date)
+                    return next
+                })
             }
-
-            // clear the lock
-            setPending(prev => {
-                const next = new Set(prev)
-                next.delete(date)
-                return next
-            })
         },
         [entries, remove, create, pending]
     )
