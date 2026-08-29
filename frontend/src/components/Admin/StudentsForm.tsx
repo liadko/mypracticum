@@ -13,6 +13,7 @@ export function StudentsForm({ logMessage }: Props) {
     const [dryRun, setDryRun] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+    const [activeStudentTab, setActiveStudentTab] = useState<'single' | 'many'>('single');
     const [singleStudent, setSingleStudent] = useState({ firstName: '', lastName: '', email: '', taz: '' });
 
     useEffect(() => {
@@ -125,58 +126,78 @@ export function StudentsForm({ logMessage }: Props) {
                 <label htmlFor="dry-run-check">Test Run (RECOMMENDED! it tests the data without actually adding anyone)</label>
             </div>
 
-            <form onSubmit={handleSingleStudentSubmit}>
-                <h3>Add One Student</h3>
-                <div className="form-group">
-                    <label htmlFor="single-first-name">First name:</label>
-                    <input id="single-first-name" value={singleStudent.firstName} onChange={(e) => setSingleStudent((current) => ({ ...current, firstName: e.target.value }))} required />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="single-last-name">Last name:</label>
-                    <input id="single-last-name" value={singleStudent.lastName} onChange={(e) => setSingleStudent((current) => ({ ...current, lastName: e.target.value }))} required />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="single-email">Email:</label>
-                    <input id="single-email" type="email" value={singleStudent.email} onChange={(e) => setSingleStudent((current) => ({ ...current, email: e.target.value }))} required />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="single-taz">TAZ:</label>
-                    <input id="single-taz" value={singleStudent.taz} onChange={(e) => setSingleStudent((current) => ({ ...current, taz: e.target.value }))} required />
-                </div>
-                <button type="submit" disabled={isLoading || isLoadingClasses || !classId}>
-                    {isLoading ? 'Processing...' : 'Add Student'}
+            <nav className="tab-nav" aria-label="Student addition method">
+                <button
+                    type="button"
+                    className={`tab-button ${activeStudentTab === 'single' ? 'active' : ''}`}
+                    aria-selected={activeStudentTab === 'single'}
+                    onClick={() => setActiveStudentTab('single')}
+                >
+                    Single Student
                 </button>
-            </form>
+                <button
+                    type="button"
+                    className={`tab-button ${activeStudentTab === 'many' ? 'active' : ''}`}
+                    aria-selected={activeStudentTab === 'many'}
+                    onClick={() => setActiveStudentTab('many')}
+                >
+                    Many Students
+                </button>
+            </nav>
 
-            <hr className="section-divider" />
-            <form onSubmit={handleSubmit}>
-                <h3>Import Students (CSV)</h3>
-                <div className="template-explainer">
-                    <p>
-                        <strong>צריכים עזרה עם הפורמט?</strong>
-                        <a href="https://docs.google.com/spreadsheets/d/1DQXTOjh7o9U10ooJbIiaI1z3ZNRBBXyuglH2d3Sc3Go/edit?usp=sharing" target="_blank">לחצו כאן לתבנית גוגל שיטס לדוגמה</a>
-                    </p>
-                    <ol>
-                        <li>בגוגל שיטס, לחצו על <strong>'קובץ' (File) {'>'} 'יצירת עותק' (Make a copy)</strong>.</li>
-                        <li>מלאו את פרטי הסטודנטים בעותק שיצרתם (בדיוק לפי העמודות).</li>
-                        <li>בסיום, לחצו על <strong>'קובץ' (File) {'>'} 'הורדה' (Download)</strong> ובחרו <strong>'ערכים מופרדים בפסיקים (.csv)'</strong>.</li>
-                        <li>את הקובץ שירד למחשב, צרפו כאן למטה.</li>
-                    </ol>
-                </div>
-                <div className="form-group">
-                    <label htmlFor="file-input">Select CSV File:</label>
-                    <input
-                        type="file"
-                        id="file-input"
-                        accept=".csv"
-                        required
-                        onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    />
-                </div>
-                <button type="submit" disabled={isLoading || isLoadingClasses || !file || !classId}>
-                    {isLoading ? 'Processing...' : 'Upload and Process'}
-                </button>
-            </form>
+            {activeStudentTab === 'single' ? (
+                <form onSubmit={handleSingleStudentSubmit}>
+                    <h3>Add One Student</h3>
+                    <div className="form-group">
+                        <label htmlFor="single-first-name">First name:</label>
+                        <input className="rtl-input" dir="rtl" id="single-first-name" value={singleStudent.firstName} onChange={(e) => setSingleStudent((current) => ({ ...current, firstName: e.target.value }))} required />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="single-last-name">Last name:</label>
+                        <input className="rtl-input" dir="rtl" id="single-last-name" value={singleStudent.lastName} onChange={(e) => setSingleStudent((current) => ({ ...current, lastName: e.target.value }))} required />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="single-email">Email:</label>
+                        <input id="single-email" type="email" value={singleStudent.email} onChange={(e) => setSingleStudent((current) => ({ ...current, email: e.target.value }))} required />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="single-taz">TAZ:</label>
+                        <input id="single-taz" value={singleStudent.taz} onChange={(e) => setSingleStudent((current) => ({ ...current, taz: e.target.value }))} required />
+                    </div>
+                    <button type="submit" disabled={isLoading || isLoadingClasses || !classId}>
+                        {isLoading ? 'Processing...' : 'Add Student'}
+                    </button>
+                </form>
+            ) : (
+                <form onSubmit={handleSubmit}>
+                    <h3>Import Students (CSV)</h3>
+                    <div className="template-explainer">
+                        <p>
+                            <strong>צריכים עזרה עם הפורמט?</strong>
+                            <a href="https://docs.google.com/spreadsheets/d/1DQXTOjh7o9U10ooJbIiaI1z3ZNRBBXyuglH2d3Sc3Go/edit?usp=sharing" target="_blank">לחצו כאן לתבנית גוגל שיטס לדוגמה</a>
+                        </p>
+                        <ol>
+                            <li>בגוגל שיטס, לחצו על <strong>'קובץ' (File) {'>'} 'יצירת עותק' (Make a copy)</strong>.</li>
+                            <li>מלאו את פרטי הסטודנטים בעותק שיצרתם (בדיוק לפי העמודות).</li>
+                            <li>בסיום, לחצו על <strong>'קובץ' (File) {'>'} 'הורדה' (Download)</strong> ובחרו <strong>'ערכים מופרדים בפסיקים (.csv)'</strong>.</li>
+                            <li>את הקובץ שירד למחשב, צרפו כאן למטה.</li>
+                        </ol>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="file-input">Select CSV File:</label>
+                        <input
+                            type="file"
+                            id="file-input"
+                            accept=".csv"
+                            required
+                            onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        />
+                    </div>
+                    <button type="submit" disabled={isLoading || isLoadingClasses || !file || !classId}>
+                        {isLoading ? 'Processing...' : 'Upload and Process'}
+                    </button>
+                </form>
+            )}
         </section>
     );
 }
