@@ -5,7 +5,7 @@ import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, d
 import { showAsyncToast, showError } from '../utils/toast'
 import { v4 as uuidv4 } from 'uuid';
 import { TimeoutError } from '../api/errors'
-import { isEntryDateAllowed } from '../utils/entryDateRules'
+import { formatIsraeliDate, isEntryDateAllowed } from '../utils/entryDateRules'
 
 
 interface EntriesProviderProps {
@@ -152,7 +152,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
                 if (date > today) {
                     showError("לא ניתן לדווח שעות עתידיות")
                 } else if (reportingStartDate) {
-                    showError(`לא ניתן לדווח לפני ${reportingStartDate}`)
+                    showError(`לא ניתן לדווח לפני ${formatIsraeliDate(reportingStartDate)}`)
                 }
                 return false
             }
