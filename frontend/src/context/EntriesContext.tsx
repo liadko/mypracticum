@@ -18,7 +18,7 @@ interface EntriesContextType {
     loadingE: boolean
     errorE: Error | null
     pending: Set<string>       // set of entry‐ids currently being toggled
-    toggleEntry: (contactId: string, date: string) => Promise<boolean>
+    toggleEntry: (contactId: string, date: string, reportingStartDate?: string | null) => Promise<boolean>
 
     toggleApproved: (entryId: string) => Promise<void>
     unapprovedCounts: Record<string, number>
@@ -108,12 +108,6 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
         async (contactId: string, date: string): Promise<boolean> => {
 
             const newEntry: NewEntry = { contactId, date }
-            if (!isEntryDateAllowed(newEntry.date)) {
-                showError("לא ניתן לדווח שעות עתידיות")
-                return false
-            }
-
-
             const tempId = uuidv4()
             const tempEntry: Entry = {
                 id: tempId,
@@ -151,7 +145,17 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
     // 4️⃣ Public: toggle an entry on/off
     const toggleEntry = useCallback(
-        async (contactId: string, date: string): Promise<boolean> => {
+        async (contactId: string, date: string, reportingStartDate?: string | null): Promise<boolean> => {
+
+            if (!isEntryDateAllowed(date, reportingStartDate)) {
+                const today = new Date().toISOString().slice(0, 10)
+                if (date > today) {
+                    showError("לא ניתן לדווח שעות עתידיות")
+                } else if (reportingStartDate) {
+                    showError(`לא ניתן לדווח לפני ${reportingStartDate}`)
+                }
+                return false
+            }
 
             // If a toggle is already in flight for this date, skip it:
             if (pending.has(date)) {

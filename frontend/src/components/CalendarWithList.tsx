@@ -9,7 +9,6 @@ import { contactLabelSingularGenderless, pageHeaderText, pageTitleDefinite } fro
 import { ContactDropdown } from './Contacts/ContactDropdown'
 import { useContacts } from '../context/ContactsContext'
 import { useAuth } from '../context/AuthContext'
-import { showError } from '../utils/toast'
 import { reportingStartDateFor } from '../utils/entryDateRules'
 
 const hebrewWeekdays = [
@@ -27,7 +26,7 @@ export interface CalendarWithListProps {
     entries: Entry[]                    // all entries of this category
 
 
-    onEntryToggle: (contactId: string, date: string) => Promise<boolean>
+    onEntryToggle: (contactId: string, date: string, reportingStartDate?: string | null) => Promise<boolean>
     renderEntryExtra?: (entry: Entry) => React.ReactNode
     renderMessage?: (contactId: string) => React.ReactNode
 }
@@ -57,19 +56,9 @@ export function CalendarWithList({
         [entries, selectedContactId]
     )
 
-    // when you click the calendar:
-    function canSubmitEntryForDate(date: string): boolean {
-        const startDate = reportingStartDateFor(user?.class, contactType)
-        if (startDate && date < startDate) {
-            showError(`לא ניתן לדווח לפני ${startDate}`)
-            return false
-        }
-        return true
-    }
-
     async function handleDayClick(date: string) {
-        if (!canSubmitEntryForDate(date)) return
-        const accepted = await onEntryToggle(selectedContactId, date)
+        const startDate = reportingStartDateFor(user?.class, contactType)
+        const accepted = await onEntryToggle(selectedContactId, date, startDate)
         if (accepted) setHighlightedDate(date)
     }
 
