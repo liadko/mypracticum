@@ -101,6 +101,16 @@ export interface User {
 
     roles: UserRole[]
 
+    class: UserClass | null
+
+}
+
+export interface UserClass {
+    id: string
+    name: string
+    clientStartDate: string | null
+    mentorStartDate: string | null
+    therapistStartDate: string | null
 }
 
 export interface FullName {

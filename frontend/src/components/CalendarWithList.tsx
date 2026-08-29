@@ -8,6 +8,8 @@ import { EditContactsModal } from './Contacts/EditContactsModal'
 import { contactLabelSingularGenderless, pageHeaderText, pageTitleDefinite } from '../i18n/he'
 import { ContactDropdown } from './Contacts/ContactDropdown'
 import { useContacts } from '../context/ContactsContext'
+import { useAuth } from '../context/AuthContext'
+import { showError } from '../utils/toast'
 
 const hebrewWeekdays = [
     "ראשון",
@@ -41,6 +43,7 @@ export function CalendarWithList({
     const [isEditOpen, setEditOpen] = useState(false)
 
     const { activePage: contactType } = useContacts()
+    const { user } = useAuth()
 
     const selectedContactId = getSelected(contactType)
 
@@ -55,6 +58,11 @@ export function CalendarWithList({
 
     // when you click the calendar:
     function handleDayClick(date: string) {
+        const startDate = user?.class?.[`${contactType}StartDate` as 'clientStartDate' | 'mentorStartDate' | 'therapistStartDate']
+        if (startDate && date < startDate) {
+            showError(`אי אפשר לדווח לפני ${startDate}`)
+            return
+        }
         onEntryToggle(selectedContactId, date)
         setHighlightedDate(date)
     }
