@@ -109,7 +109,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
 
             const newEntry: NewEntry = { contactId, date }
             if (!isEntryDateAllowed(newEntry.date)) {
-                showError("אי אפשר לדווח על שעות עתידיות")
+                showError("לא ניתן לדווח שעות עתידיות")
                 return false
             }
 

@@ -61,7 +61,7 @@ export function CalendarWithList({
     function canSubmitEntryForDate(date: string): boolean {
         const startDate = reportingStartDateFor(user?.class, contactType)
         if (startDate && date < startDate) {
-            showError(`אי אפשר לדווח לפני ${startDate}`)
+            showError(`לא ניתן לדווח לפני ${startDate}`)
             return false
         }
         return true
