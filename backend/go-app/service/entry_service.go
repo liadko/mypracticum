@@ -34,6 +34,16 @@ func (s *EntryService) AddEntry(
 		return domain.Entry{}, err
 	}
 
+	cutoff, err := s.repo.FindClassStartDateForEntry(ctx, userID, entry.ContactID)
+	if err != nil {
+		log.Printf("[EntryService.AddEntry] Failed to resolve reporting cutoff: %v", err)
+		return domain.Entry{}, DBError{Err: err}
+	}
+	if err := validateEntryDate(entry.Date, cutoff); err != nil {
+		log.Printf("[EntryService.AddEntry] Entry date rejected for user %s: %v", userID, err)
+		return domain.Entry{}, err
+	}
+
 	// send to the repo
 	createdEntry, err := s.repo.Create(ctx, entry)
 
