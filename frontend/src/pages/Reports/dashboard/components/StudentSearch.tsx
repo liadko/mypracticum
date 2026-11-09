@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Filter, Clock, CheckCircle2, FileX, Users } from 'lucide-react';
+import { Filter, Clock, CheckCircle2, FileX, Users, Snowflake, Download, Loader2 } from 'lucide-react';
 import type { StudentSummary } from '../types';
 import { searchStudents, getStudentClasses } from '../services/studentApi';
 import { PaginatedDirectory } from './PaginatedDirectory';
 import type { ColumnDef } from './PaginatedDirectory';
+import { exportStudentsToExcel } from '../services/studentExport';
 
 interface StudentSearchProps {
   onSelectStudent: (studentId: string) => void;
@@ -17,6 +18,8 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState<number>(1);
   const [signatureOnlyFilter, setSignatureOnlyFilter] = useState<boolean>(false);
+  const [includeFrozen, setIncludeFrozen] = useState<boolean>(false);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const [students, setStudents] = useState<StudentSummary[]>([]);
   const [totalStudents, setTotalStudents] = useState<number>(0);
@@ -57,6 +60,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       className: classFilter,
       sortBy,
       sortDirection,
+      includeFrozen,
       page,
       limit: 50,
     })
@@ -78,7 +82,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [query, classFilter, sortBy, sortDirection, page]);
+  }, [query, classFilter, sortBy, sortDirection, includeFrozen, page]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -104,10 +108,26 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     setPage(1);
   };
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    setSearchError(null);
+    try {
+      await exportStudentsToExcel(
+        { query, className: classFilter, sortBy, sortDirection, includeFrozen },
+        (s) => !(signatureOnlyFilter && s.signatureSubmitted === true),
+      );
+    } catch (err: any) {
+      setSearchError(err.message || 'הייצוא לאקסל נכשל');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleClearFilters = () => {
     setQuery('');
     setClassFilter('all');
     setSignatureOnlyFilter(false);
+    setIncludeFrozen(false);
     setSortBy('name');
     setSortDirection('asc');
     setPage(1);
@@ -122,6 +142,12 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
         <div>
           <span className="block text-xs font-bold text-slate-900">
             {s.firstName} {s.lastName}
+            {s.status === 'frozen' && (
+              <span className="mr-1.5 inline-flex items-center gap-1 bg-sky-50 text-sky-900 border border-sky-300 px-1.5 py-px rounded text-[10px] font-bold">
+                <Snowflake className="w-3 h-3 text-sky-600" />
+                בהקפאה
+              </span>
+            )}
           </span>
           <span className="text-[10px] text-slate-500 font-normal sm:hidden">{s.email}</span>
         </div>
@@ -280,6 +306,31 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
         <FileX className={`w-3.5 h-3.5 ${signatureOnlyFilter ? 'text-amber-700' : 'text-slate-400'}`} />
         <span>חסרה הצהרה חתומה</span>
       </button>
+
+      <button
+        onClick={() => {
+          setIncludeFrozen((prev) => !prev);
+          setPage(1);
+        }}
+        aria-pressed={includeFrozen}
+        className={`px-2.5 py-1 rounded transition border font-medium flex items-center gap-1.5 ${
+          includeFrozen
+            ? 'bg-sky-100 text-sky-900 border-sky-300 font-bold'
+            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+        }`}
+      >
+        <Snowflake className={`w-3.5 h-3.5 ${includeFrozen ? 'text-sky-700' : 'text-slate-400'}`} />
+        <span>הצג תלמידים בהקפאה</span>
+      </button>
+
+      <button
+        onClick={handleExport}
+        disabled={isExporting}
+        className="px-2.5 py-1 rounded transition border font-medium flex items-center gap-1.5 bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 disabled:opacity-50"
+      >
+        {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 text-slate-400" />}
+        <span>ייצוא לאקסל</span>
+      </button>
     </div>
   );
 
@@ -300,7 +351,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       }}
       searchPlaceholder="חפש תלמיד לפי שם, דוא&quot;ל, מס' ת&quot;ז או מחזור לימודים..."
       extraFilters={extraFilters}
-      isFiltered={classFilter !== 'all' || signatureOnlyFilter}
+      isFiltered={classFilter !== 'all' || signatureOnlyFilter || includeFrozen}
       onClearFilters={handleClearFilters}
       items={filteredStudents}
       total={displayTotal}

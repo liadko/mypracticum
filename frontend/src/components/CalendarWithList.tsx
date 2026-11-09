@@ -10,6 +10,7 @@ import { ContactDropdown } from './Contacts/ContactDropdown'
 import { useContacts } from '../context/ContactsContext'
 import { useAuth } from '../context/AuthContext'
 import { reportingStartDateFor } from '../utils/entryDateRules'
+import { showError } from '../utils/toast'
 
 const hebrewWeekdays = [
     "ראשון",
@@ -57,6 +58,10 @@ export function CalendarWithList({
     )
 
     async function handleDayClick(date: string) {
+        if (user?.status === 'frozen') {
+            showError('החשבון אינו פעיל, ולכן לא ניתן לדווח או למחוק שעות.')
+            return
+        }
         const startDate = reportingStartDateFor(user?.class, contactType)
         const accepted = await onEntryToggle(selectedContactId, date, startDate)
         if (accepted) setHighlightedDate(date)
@@ -281,7 +286,7 @@ export function CalendarWithList({
 
 
     return (
-        <div className="calendar-with-list">
+        <div className={`calendar-with-list${user?.status === 'frozen' ? ' calendar-with-list--frozen' : ''}`}>
             <div className="calender-side">
                 {selectedContactId && renderCalendar()}
             </div>

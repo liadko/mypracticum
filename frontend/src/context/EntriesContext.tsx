@@ -2,9 +2,9 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import type { Entry, ManualEntry, NewEntry } from '../types'
 import * as domain from '../domain/entries'         // pure helpers: addEntry, removeEntry (sorted)
 import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, deleteEntry
-import { showAsyncToast, showError } from '../utils/toast'
+import { showAsyncToastWithError, showError } from '../utils/toast'
 import { v4 as uuidv4 } from 'uuid';
-import { TimeoutError } from '../api/errors'
+import { TimeoutError, frozenMessage } from '../api/errors'
 import { formatIsraeliDate, isEntryDateAllowed } from '../utils/entryDateRules'
 
 
@@ -94,7 +94,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
                 if (err instanceof TimeoutError) {
                     showError('יש בעיה ברשת, לא ניתן לדווח')
                 } else {
-                    showError('לא ניתן למחוק את השעה הזאת')
+                    showError(frozenMessage(err) ?? 'לא ניתן למחוק את השעה הזאת')
                 }
                 return false
             }
@@ -133,7 +133,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
                 if (err instanceof TimeoutError) {
                     showError('יש בעיה ברשת, לא ניתן לדווח')
                 } else {
-                    showError('לא ניתן להוסיף את השעה הזאת')
+                    showError(frozenMessage(err) ?? 'לא ניתן להוסיף את השעה הזאת')
                 }
                 return false
             }
@@ -186,12 +186,12 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
     )
 
     const setApproval = useCallback(async (entryId: string, approved: boolean) => {
-        const updated = await showAsyncToast(
+        const updated = await showAsyncToastWithError(
             api.setEntryApproval(entryId, approved),
             {
                 loading: "מעדכן אישור…",
                 success: approved ? "אושר בהצלחה" : "ביטול האישור נשמר",
-                error: "עדכון האישור נכשל",
+                error: (err: unknown) => frozenMessage(err) ?? "עדכון האישור נכשל",
             }
         )
         // keep list sorted via domain helpers

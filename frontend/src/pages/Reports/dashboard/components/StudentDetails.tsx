@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Loader2, Mail, Hash, BookOpen, AlertTriangle, CheckCircle2, Calendar, Wrench, Users } from 'lucide-react';
+import { ArrowRight, Loader2, Mail, Hash, BookOpen, AlertTriangle, CheckCircle2, Calendar, Wrench, Users, Snowflake } from 'lucide-react';
 import type { StudentReport } from '../types';
 import { getStudentReport } from '../services/studentApi';
 import { SummaryMetrics } from './SummaryMetrics';
 import { ActivityCalendar } from './ActivityCalendar';
 import { ManualHoursTable } from './ManualHoursTable';
 import { ContactsSection } from './ContactsSection';
+
+const FREEZE_REASON_LABELS: Record<string, string> = {
+  on_leave: 'בחופשה',
+  left_program: 'עזב/ה את התוכנית',
+  finished: 'סיים/ה',
+  other: 'אחר',
+};
+
+function freezeReasonLabel(reason?: string): string {
+  const label = reason ? FREEZE_REASON_LABELS[reason] : undefined;
+  return label ? ` · ${label}` : '';
+}
 
 interface StudentDetailsProps {
   studentId: string;
@@ -95,6 +107,16 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({ studentId, onBac
               <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                 {student.firstName} {student.lastName}
               </h2>
+
+              {student.status === 'frozen' && (
+                <span
+                  className="bg-sky-50 text-sky-900 text-[11px] px-2 py-0.5 rounded font-bold border border-sky-300 flex items-center gap-1 shrink-0"
+                  title={[...(student.statusNote ? [student.statusNote] : []), ...(student.statusLog ?? [])].join('\n')}
+                >
+                  <Snowflake className="w-3 h-3 text-sky-600" />
+                  <span>בהקפאה{freezeReasonLabel(student.statusReason)}</span>
+                </span>
+              )}
 
               {student.patternFlag && student.patternFlag !== 'normal' ? (
                 <span className="bg-amber-100 text-amber-900 text-[11px] px-2 py-0.5 rounded font-bold border border-amber-300 flex items-center gap-1 shrink-0">

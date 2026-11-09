@@ -233,3 +233,9 @@
 .first-contact-message__button:active {
     transform: scale(0.99);
 }
+
+/* Frozen account: the calendar stays readable but is clearly not clickable. */
+.calendar-with-list--frozen .calender-side {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

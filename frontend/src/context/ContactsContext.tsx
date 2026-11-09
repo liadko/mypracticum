@@ -9,9 +9,9 @@ import React, {
 import { contactTypes, type Contact, type ContactType, type NewContact } from '../types'
 import * as domain from '../domain/contacts'
 import * as api from '../api/contactsApi'
-import { showAsyncToast, showAsyncToastWithError } from '../utils/toast'
+import { showAsyncToastWithError } from '../utils/toast'
 import { useSelected } from './useSelected'
-import { HttpError } from '../api/errors'
+import { HttpError, frozenMessage } from '../api/errors'
 
 interface ContactsProviderProps {
   children: React.ReactNode
@@ -87,7 +87,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
           }
 
           // Return a generic message for all other errors
-          return "נכשל בהוספה";
+          return frozenMessage(err) ?? "נכשל בהוספה";
         },
       }
     )
@@ -95,7 +95,7 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
 
 
   const updateContact = useCallback(async (id: string, newContact: NewContact) => {
-    return showAsyncToast(
+    return showAsyncToastWithError(
       api.updateContact(id, newContact).then(updatedContact => {
         setContacts(prev => {
           const without = domain.removeContact(prev, updatedContact.id)
@@ -106,19 +106,19 @@ export function ContactsProvider({ children }: ContactsProviderProps) {
       {
         loading: "מעדכן...",
         success: "עודכן בהצלחה",
-        error: "נכשל בעדכון",
+        error: (err: unknown) => frozenMessage(err) ?? "נכשל בעדכון",
       }
     )
   }, [])
 
 
   const inviteContact = useCallback(async (id: string) => {
-    return showAsyncToast(
+    return showAsyncToastWithError(
       api.inviteMentorContact(id),
       {
         loading: "שולח הזמנה...",
         success: "הוזמן בהצלחה",
-        error: "נכשל בשליחת ההזמנה",
+        error: (err: unknown) => frozenMessage(err) ?? "נכשל בשליחת ההזמנה",
       }
     )
   }, [])

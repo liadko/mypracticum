@@ -53,8 +53,15 @@ export function validateContact(c: NewContact): Error | null {
     if (c.clientInstitution !== 'privateClinic' && c.clientInstitution !== 'trainingCenter') {
       return new Error('יש לבחור מקור מסגרת טיפול תקינה')
     }
-    if (c.clientInstitution === 'trainingCenter' && !c.clientTrainingCenterInfo?.trim()) {
-      return new Error('יש לפרט על מרכז ההכשרה')
+    if (c.clientInstitution === 'trainingCenter') {
+      const details = c.trainingCenter
+      const isComplete = !!details?.name.trim() && !!details.city.trim() && !!details.contactPerson.trim()
+      const isEmpty = !details?.name.trim() && !details?.city.trim() && !details?.contactPerson.trim() && !details?.contactPhone?.trim()
+      // Older contacts may keep only their existing text, but anything started must be finished.
+      const canKeepLegacyText = isEmpty && !!c.clientTrainingCenterInfo?.trim()
+      if (!isComplete && !canKeepLegacyText) {
+        return new Error('יש למלא שם מרכז, עיר ואיש קשר')
+      }
     }
   }
 

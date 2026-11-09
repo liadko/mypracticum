@@ -83,6 +83,11 @@ export interface StudentSummary {
   avatarUrl?: string;
   patternFlag?: 'normal' | 'suspicious_concentration' | 'sparse_activity' | 'pending_approval_backlog';
   patternFlagText?: string;
+
+  status?: 'active' | 'frozen';
+  statusReason?: string;
+  statusNote?: string;
+  statusLog?: string[];
 }
 
 export interface ReportEvent {

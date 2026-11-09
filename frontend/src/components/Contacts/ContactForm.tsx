@@ -5,6 +5,7 @@ import './ContactForm.css'
 import { validateContact } from '../../domain/contacts'
 import { showError } from '../../utils/toast'
 import { MentorConfirmModal } from './MentorConfirmModal'
+import { useAuth } from '../../context/AuthContext'
 
 
 interface ContactFormProps {
@@ -22,10 +23,15 @@ interface FormValues {
     specialty: string
     clientInstitution: string
     clientTrainingCenterInfo: string
+    centerName: string
+    centerCity: string
+    centerContactPerson: string
+    centerContactPhone: string
 }
 
 export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseAndSelectContact }: ContactFormProps) {
     const { getContactById, addContact, updateContact } = useContacts()
+    const { user } = useAuth()
 
     // formValues holds every field at once
     const [formValues, setFormValues] = useState<FormValues>()
@@ -62,6 +68,10 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
 
                 clientInstitution: isClient ? existing.clientInstitution : '',
                 clientTrainingCenterInfo: isClient ? existing.clientTrainingCenterInfo : '',
+                centerName: isClient ? existing.trainingCenter?.name ?? '' : '',
+                centerCity: isClient ? existing.trainingCenter?.city ?? '' : '',
+                centerContactPerson: isClient ? existing.trainingCenter?.contactPerson ?? '' : '',
+                centerContactPhone: isClient ? existing.trainingCenter?.contactPhone ?? '' : '',
 
             })
         } else {
@@ -74,6 +84,10 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                 specialty: '',
                 clientInstitution: '',
                 clientTrainingCenterInfo: '',
+                centerName: '',
+                centerCity: '',
+                centerContactPerson: '',
+                centerContactPhone: '',
 
             })
         }
@@ -90,7 +104,22 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
     // while loading initial, render nothing (or a loader)
     if (!formValues) return null
 
-    const { type, name, email, phone, specialty, clientInstitution, clientTrainingCenterInfo } = formValues
+    const {
+        type, name, email, phone, specialty, clientInstitution, clientTrainingCenterInfo,
+        centerName, centerCity, centerContactPerson, centerContactPhone,
+    } = formValues
+
+    // Saved before the detailed fields existed: has the old text and nothing else.
+    const isLegacyCenter = formMode.mode === 'edit' && !!clientTrainingCenterInfo
+        && !centerName && !centerCity && !centerContactPerson
+
+    const trainingCenter = {
+        name: centerName.trim(),
+        city: centerCity.trim(),
+        contactPerson: centerContactPerson.trim(),
+        ...(centerContactPhone.trim() && { contactPhone: centerContactPhone.trim() }),
+    }
+    const hasCenterDetails = !!(trainingCenter.name || trainingCenter.city || trainingCenter.contactPerson)
 
 
 
@@ -105,10 +134,24 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
     }
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
+        if (user?.status === 'frozen') {
+            showError('החשבון אינו פעיל, ולכן לא ניתן לבצע שינויים.')
+            return
+        }
+
+        const isCenter = clientInstitution === 'trainingCenter'
         const newContact: NewContact = {
             type,
             name,
-            ...(type === 'client' && { clientInstitution, clientTrainingCenterInfo }),
+            ...(type === 'client' && {
+                clientInstitution,
+                // Kept filled in so the contact still saves against a backend
+                // that doesn't know the detailed fields yet.
+                clientTrainingCenterInfo: isCenter && hasCenterDetails
+                    ? `${trainingCenter.name}, ${trainingCenter.city}`
+                    : clientTrainingCenterInfo,
+                ...(isCenter && (hasCenterDetails || !clientTrainingCenterInfo) && { trainingCenter }),
+            }),
             ...(type === 'mentor' && { email, phone, specialty }),
             ...(type === 'therapist' && { phone, specialty }),
         }
@@ -229,21 +272,67 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                                 </div>
                             </label>
                         </div>
-                        {clientInstitution == 'trainingCenter' &&
-                            <div className="contact-form__field">
-                                <label className="contact-form__label">
-                                    שם ומיקום המרכז
-                                    <input
-                                        type="tel"
-                                        className="contact-form__input"
-                                        placeholder='עמותת הלל, אשדוד'
-                                        value={clientTrainingCenterInfo}
-                                        onChange={e => handleChange('clientTrainingCenterInfo', e.target.value)}
-                                        required
-                                        dir='rtl'
-                                    />
-                                </label>
-                            </div>}
+                        {clientInstitution == 'trainingCenter' && (
+                            <>
+                                {isLegacyCenter && (
+                                    <p className="contact-form__legacy-note" dir="rtl">
+                                        <strong>{clientTrainingCenterInfo}</strong>
+                                        <br />
+                                        הוספנו כמה שדות חדשים, אפשר למלא אותם כאן.
+                                    </p>
+                                )}
+                                <div className="contact-form__field">
+                                    <label className="contact-form__label">
+                                        שם המרכז
+                                        <input
+                                            type="text"
+                                            className="contact-form__input"
+                                            placeholder='עמותת הלל'
+                                            value={centerName}
+                                            onChange={e => handleChange('centerName', e.target.value)}
+                                            dir='rtl'
+                                        />
+                                    </label>
+                                </div>
+                                <div className="contact-form__field">
+                                    <label className="contact-form__label">
+                                        עיר
+                                        <input
+                                            type="text"
+                                            className="contact-form__input"
+                                            placeholder='אשדוד'
+                                            value={centerCity}
+                                            onChange={e => handleChange('centerCity', e.target.value)}
+                                            dir='rtl'
+                                        />
+                                    </label>
+                                </div>
+                                <div className="contact-form__field">
+                                    <label className="contact-form__label">
+                                        איש קשר במרכז
+                                        <input
+                                            type="text"
+                                            className="contact-form__input"
+                                            value={centerContactPerson}
+                                            onChange={e => handleChange('centerContactPerson', e.target.value)}
+                                            dir='rtl'
+                                        />
+                                    </label>
+                                </div>
+                                <div className="contact-form__field">
+                                    <label className="contact-form__label">
+                                        טלפון ליצירת קשר (לא חובה)
+                                        <input
+                                            type="tel"
+                                            className="contact-form__input"
+                                            value={centerContactPhone}
+                                            onChange={e => handleChange('centerContactPhone', e.target.value)}
+                                            dir='rtl'
+                                        />
+                                    </label>
+                                </div>
+                            </>
+                        )}
                     </>
 
                 )}

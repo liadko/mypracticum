@@ -12,6 +12,14 @@ export interface ClientContact extends BaseContact {
     type: 'client'
     clientInstitution: string // 'privateClinic' | 'trainingCenter'
     clientTrainingCenterInfo: string
+    trainingCenter?: TrainingCenterDetails
+}
+
+export interface TrainingCenterDetails {
+    name: string
+    city: string
+    contactPerson: string
+    contactPhone?: string
 }
 
 export interface MentorContact extends BaseContact {
@@ -32,6 +40,7 @@ export interface Student {
     type: 'student'
     id: string
     name: string
+    studentFrozen?: boolean
 }
 
 
@@ -50,6 +59,7 @@ export interface NewContact {
     specialty?: string
     clientInstitution?: string // 'privateClinic' | 'trainingCenter'
     clientTrainingCenterInfo?: string
+    trainingCenter?: TrainingCenterDetails
 
 }
 
@@ -101,6 +111,8 @@ export interface User {
 
     roles: UserRole[]
 
+    status?: 'active' | 'frozen'
+
     classId: string | null
 
     class: UserClass | null
@@ -132,6 +144,23 @@ export interface StudentResponse {
     email: string;
     taz: string;
     roles: string[];
+    status?: 'active' | 'frozen';
+}
+
+export type FreezeReason = 'on_leave' | 'left_program' | 'finished' | 'other';
+
+export interface StudentStatusRequest {
+    identifiers: string[];
+    status: 'active' | 'frozen';
+    reason?: FreezeReason;
+    note?: string;
+}
+
+export interface StudentStatusResult {
+    total: number;
+    updated: number;
+    notFound?: string[];
+    failed?: string[];
 }
 
 /**

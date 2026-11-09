@@ -1,5 +1,6 @@
 import type { Entry, ManualEntry, NewEntry } from '../types'
 import { apiFetch } from './client'
+import { httpErrorFrom } from './errors'
 
 /**
  * Fetch all entries for the given student.
@@ -44,7 +45,7 @@ export async function createEntry(
         body: JSON.stringify(payload),
     })
     if (!res.ok) {
-        throw new Error(`Failed to create entry: ${res.status} ${res.statusText}`)
+        throw await httpErrorFrom(res)
     }
     const entry: Entry = await res.json()
     return entry
@@ -60,7 +61,7 @@ export async function deleteEntry(
         method: 'DELETE',
     })
     if (!res.ok) {
-        throw new Error(`Failed to delete entry: ${res.status} ${res.statusText}`)
+        throw await httpErrorFrom(res)
     }
 }
 
@@ -75,7 +76,7 @@ export async function setEntryApproval(
         body: JSON.stringify({ approved }),
     })
     if (!res.ok) {
-        throw new Error(`Failed to set approval: ${res.status} ${res.statusText}`)
+        throw await httpErrorFrom(res)
     }
     const entry: Entry = await res.json()
     return entry

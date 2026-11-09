@@ -57,3 +57,14 @@
 
     /* For RTL text, this adds space */
 }
+
+.contact-row__dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--main-color);
+    opacity: 0.55;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+}

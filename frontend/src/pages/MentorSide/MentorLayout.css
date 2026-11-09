@@ -89,3 +89,12 @@
 .fake-nav-bar {
     height: 40px;
 }
+
+.mentor-frozen-notice {
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    background: #eef6fb;
+    color: #24506b;
+    font-size: 0.95rem;
+}
