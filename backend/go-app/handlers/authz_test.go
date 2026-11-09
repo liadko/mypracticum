@@ -42,6 +42,7 @@ func TestAdminAndReportRoutesRejectLowerRoles(t *testing.T) {
 		{http.MethodGet, "/api/v1/admin/classes"},
 		{http.MethodPost, "/api/v1/admin/classes"},
 		{http.MethodGet, "/api/v1/admin/students"},
+		{http.MethodPost, "/api/v1/admin/students/status"},
 		{http.MethodPost, "/api/v1/admin/classes/" + id + "/students/import"},
 		{http.MethodPost, "/api/v1/admin/entries/approve"},
 		{http.MethodPost, "/api/v1/admin/entries/manual"},

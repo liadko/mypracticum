@@ -27,6 +27,7 @@ func (r *PostgresReportRepo) SearchStudentSummaries(
 	classFilter string,
 	sortBy string,
 	sortDirection string,
+	includeFrozen bool,
 	limit int,
 	offset int,
 ) ([]domain.StudentSummary, int64, error) {
@@ -54,17 +55,19 @@ SELECT COUNT(*)
     OR u.email ILIKE '%' || $1 || '%'
     OR COALESCE(u.taz, '') ILIKE '%' || $1 || '%')
 	AND ($2 = '' OR COALESCE(cl.name, '') = $2)
+	AND ($3::boolean OR u.status = 'active')
 `
 
 	var total int64
-	if err := r.db.QueryRowContext(ctx, countQ, strings.TrimSpace(query), strings.TrimSpace(classFilter)).Scan(&total); err != nil {
+	if err := r.db.QueryRowContext(ctx, countQ, strings.TrimSpace(query), strings.TrimSpace(classFilter), includeFrozen).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count report students: %w", err)
 	}
 
 	q := `
 WITH students AS (
     SELECT u.id, u.first_name, u.last_name, u.email, cl.name AS class, u.taz,
-           (u.signature IS NOT NULL AND octet_length(u.signature) > 0) AS signature_submitted
+           (u.signature IS NOT NULL AND octet_length(u.signature) > 0) AS signature_submitted,
+           u.status, u.status_details
       FROM users u
       LEFT JOIN classes cl ON cl.id = u.class_id
       JOIN user_roles ur ON ur.user_id = u.id
@@ -74,6 +77,7 @@ WITH students AS (
         OR u.email ILIKE '%' || $1 || '%'
         OR COALESCE(u.taz, '') ILIKE '%' || $1 || '%')
 	   AND ($2 = '' OR COALESCE(cl.name, '') = $2)
+	   AND ($3::boolean OR u.status = 'active')
 ), regular AS (
     SELECT
         e.user_id,
@@ -112,15 +116,17 @@ SELECT
     COALESCE(m.manual_mentor_hours, 0),
     COALESCE(m.manual_therapist_hours, 0),
     r.last_reported_date,
-    s.signature_submitted
+    s.signature_submitted,
+    s.status,
+    s.status_details::text
   FROM students s
   LEFT JOIN regular r ON r.user_id = s.id
   LEFT JOIN manual m ON m.user_id = s.id
  ORDER BY ` + nameLanguageOrder + ` ` + orderBy + ` ` + direction + `, s.id
- LIMIT $3 OFFSET $4
+ LIMIT $4 OFFSET $5
 `
 
-	rows, err := r.db.QueryContext(ctx, q, strings.TrimSpace(query), strings.TrimSpace(classFilter), limit, offset)
+	rows, err := r.db.QueryContext(ctx, q, strings.TrimSpace(query), strings.TrimSpace(classFilter), includeFrozen, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("search student report summaries: %w", err)
 	}
@@ -130,6 +136,7 @@ SELECT
 	for rows.Next() {
 		var s domain.StudentSummary
 		var lastReported sql.NullTime
+		var rawStatusDetails string
 		if err := rows.Scan(
 			&s.ID,
 			&s.FirstName,
@@ -147,8 +154,13 @@ SELECT
 			&s.Summary.ManualHoursByCategory.Therapist,
 			&lastReported,
 			&s.Summary.SignatureSubmitted,
+			&s.Status,
+			&rawStatusDetails,
 		); err != nil {
 			return nil, 0, fmt.Errorf("scan student report summary: %w", err)
+		}
+		if err := json.Unmarshal([]byte(rawStatusDetails), &s.StatusDetails); err != nil {
+			return nil, 0, fmt.Errorf("decode status details of student %s: %w", s.ID, err)
 		}
 		if lastReported.Valid {
 			s.Summary.LastReportedDate = &lastReported.Time
@@ -344,14 +356,15 @@ SELECT u.id,
        COALESCE(cl.name, ''),
        COALESCE(u.taz, ''),
        COUNT(e.id) FILTER (WHERE e.approver_id IS NOT NULL),
-       COUNT(e.id) FILTER (WHERE e.approver_id IS NULL)
+       COUNT(e.id) FILTER (WHERE e.approver_id IS NULL),
+       u.status
   FROM contacts c
   JOIN users u ON u.id = c.user_id
   LEFT JOIN classes cl ON cl.id = u.class_id
   LEFT JOIN entries e ON e.contact_id = c.id
  WHERE c.type = 'mentor'
    AND c.mentor_user_id = $1
- GROUP BY u.id, u.first_name, u.last_name, u.email, cl.name, u.taz
+ GROUP BY u.id, u.first_name, u.last_name, u.email, cl.name, u.taz, u.status
  ORDER BY
    CASE WHEN concat_ws(' ', u.first_name, u.last_name) ~ ('[' || chr(1488) || '-' || chr(1514) || ']') THEN 0 ELSE 1 END,
    LOWER(concat_ws(' ', u.first_name, u.last_name)),
@@ -376,6 +389,7 @@ SELECT u.id,
 			&student.Taz,
 			&student.SubmittedHours.Approved,
 			&student.SubmittedHours.Pending,
+			&student.Status,
 		); err != nil {
 			return nil, fmt.Errorf("scan student for mentor report: %w", err)
 		}

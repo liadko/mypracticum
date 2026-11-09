@@ -11,6 +11,7 @@ import (
 type UserRepo interface {
 	FindByEmail(ctx context.Context, email string) (domain.User, error)
 	FindByTaz(ctx context.Context, taz string) (domain.User, error)
+	FindByTazIgnoringLeadingZeros(ctx context.Context, taz string) (domain.User, error)
 	FindByID(ctx context.Context, id uuid.UUID) (domain.User, error)
 	FindClassByID(ctx context.Context, id uuid.UUID) (domain.Class, error)
 	ListClasses(ctx context.Context) ([]domain.Class, error)
@@ -29,4 +30,6 @@ type UserRepo interface {
 	UpdateUserNames(ctx context.Context, userID uuid.UUID, firstName, lastName string) (string, string, error)
 
 	UpsertStudent(ctx context.Context, ns domain.NewStudent) error
+
+	UpdateStudentStatus(ctx context.Context, userID uuid.UUID, change domain.StatusChange) error
 }

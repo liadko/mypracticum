@@ -23,6 +23,9 @@ type User struct {
 	CreatedBy uuid.UUID
 
 	Roles []string
+
+	Status        StudentStatus
+	StatusDetails StatusDetails
 }
 
 type NewUserWithRole struct {

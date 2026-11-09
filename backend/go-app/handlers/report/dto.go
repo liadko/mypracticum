@@ -14,6 +14,11 @@ type StudentSummaryResponse struct {
 	Class     string    `json:"class"`
 	Taz       string    `json:"taz"`
 	Summary   Summary  `json:"summary"`
+
+	Status       string   `json:"status"`
+	StatusReason string   `json:"statusReason,omitempty"`
+	StatusNote   string   `json:"statusNote,omitempty"`
+	StatusLog    []string `json:"statusLog,omitempty"`
 }
 
 type Summary struct {
@@ -112,6 +117,7 @@ type MentorStudentResponse struct {
 	Email          string              `json:"email"`
 	Class          string              `json:"class"`
 	Taz            string              `json:"taz"`
+	Status         string              `json:"status"`
 	SubmittedHours MentorHoursResponse `json:"submittedHours"`
 }
 

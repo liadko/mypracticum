@@ -45,6 +45,8 @@ type Contact struct {
 	ClientTrainingCenterInfo *string // clients
 
 	MentorUserID *uuid.UUID // nil unless Type=="mentor"
+
+	StudentFrozen bool // only on the "student" views a mentor gets
 }
 
 type NewContact struct {
@@ -159,6 +161,8 @@ func MapUsersToStudentContactViews(us []User) []Contact {
 			Type:  "student",
 			Name:  strings.TrimSpace(u.FirstName + " " + u.LastName),
 			Email: &u.Email,
+
+			StudentFrozen: u.IsFrozen(),
 		})
 	}
 	return out
