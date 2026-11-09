@@ -214,6 +214,7 @@ func (s *ReportService) GetStudentReport(
 			Email:                    optionalString(contact.Email),
 			Phone:                    optionalString(contact.Phone),
 			Specialty:                optionalString(contact.Specialty),
+			TrainingCenter:           contact.TrainingCenter,
 			ClientInstitution:        optionalString(contact.ClientInstitution),
 			ClientTrainingCenterInfo: optionalString(contact.ClientTrainingCenterInfo),
 		})

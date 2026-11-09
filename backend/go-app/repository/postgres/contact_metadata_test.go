@@ -184,6 +184,38 @@ func TestBackfillLeavesAlreadyWrittenRowsAlone(t *testing.T) {
 	}
 }
 
+func TestTrainingCenterDetailsRoundTrip(t *testing.T) {
+	resetDB(t)
+	ctx := context.Background()
+	repo := NewPostgresContactRepo(testDB)
+	student := seedUser(t, "s@x.co", "student", nil)
+
+	details := &domain.TrainingCenterDetails{Name: "עמותת הלל", City: "אשדוד", ContactPerson: "רינה", ContactPhone: strptr("050")}
+	c := createContact(t, domain.Contact{
+		UserID: student, Type: domain.ClientContact, Name: "A.B",
+		ClientInstitution: strptr("trainingCenter"), TrainingCenter: details,
+	})
+
+	list, err := repo.ListByUser(ctx, student)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := list[0].TrainingCenter
+	if got == nil || *got.ContactPhone != "050" || got.Name != details.Name || got.City != details.City || got.ContactPerson != details.ContactPerson {
+		t.Fatalf("got %+v", got)
+	}
+
+	c.TrainingCenter = nil
+	c.ClientInstitution = strptr("privateClinic")
+	updated, err := repo.Update(ctx, student, c.ID, c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if updated.TrainingCenter != nil {
+		t.Fatalf("details should be cleared, got %+v", updated.TrainingCenter)
+	}
+}
+
 func TestMentorDuplicateCheckSeesMetadataAndColumns(t *testing.T) {
 	resetDB(t)
 	ctx := context.Background()

@@ -35,6 +35,9 @@ type contactMetadata struct {
 	Specialty                *string `json:"specialty,omitempty"`
 	ClientInstitution        *string `json:"clientInstitution,omitempty"`
 	ClientTrainingCenterInfo *string `json:"clientTrainingCenterInfo,omitempty"`
+
+	// Lives only here. No column backs it, which is the point of the JSONB move.
+	TrainingCenter *domain.TrainingCenterDetails `json:"trainingCenter,omitempty"`
 }
 
 // encodeContactMetadata returns JSON as a string because database/sql would
@@ -46,6 +49,7 @@ func encodeContactMetadata(c domain.Contact) (string, error) {
 		Specialty:                c.Specialty,
 		ClientInstitution:        c.ClientInstitution,
 		ClientTrainingCenterInfo: c.ClientTrainingCenterInfo,
+		TrainingCenter:           c.TrainingCenter,
 	})
 	if err != nil {
 		return "", fmt.Errorf("encoding contact metadata: %w", err)
@@ -90,6 +94,7 @@ func scanContact(row rowScanner) (domain.Contact, error) {
 	c.Specialty = metadata.Specialty
 	c.ClientInstitution = metadata.ClientInstitution
 	c.ClientTrainingCenterInfo = metadata.ClientTrainingCenterInfo
+	c.TrainingCenter = metadata.TrainingCenter
 	return c, nil
 }
 
