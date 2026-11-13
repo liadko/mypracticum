@@ -60,6 +60,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 			ClassID:   profile.User.ClassID,
 			Signature: profile.User.Signature,
 			Roles:     profile.User.Roles,
+			Status:    string(profile.User.Status),
 		},
 	}
 	if profile.Class != nil {
@@ -338,11 +339,45 @@ func (h *UserHandler) GetStudents(ctx *gin.Context) {
 			LastName:  user.LastName,
 			Email:     user.Email,
 			Taz:       user.Taz,
+			Status:    string(user.Status),
 		})
 	}
 
 	// 4) Return JSON
 	ctx.JSON(http.StatusOK, resp)
+}
+
+// SetStudentStatus handles POST /admin/students/status: freeze or unfreeze
+// students identified by user ID, email or TAZ.
+func (h *UserHandler) SetStudentStatus(ctx *gin.Context) {
+	if !requireAdmin(ctx) {
+		return
+	}
+	actorID := ctx.MustGet("userID").(uuid.UUID)
+
+	var req StudentStatusRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		return
+	}
+
+	result, err := h.svc.SetStudentStatus(ctx.Request.Context(), actorID, service.StudentStatusRequest{
+		Identifiers: req.Identifiers,
+		Status:      domain.StudentStatus(req.Status),
+		Reason:      domain.FreezeReason(req.Reason),
+		Note:        req.Note,
+	})
+	if err != nil {
+		var invalid domain.ValidationError
+		if errors.As(err, &invalid) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": invalid.Error()})
+			return
+		}
+		log.Printf("[UserHandler.SetStudentStatus] Failed: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		return
+	}
+	ctx.JSON(http.StatusOK, result)
 }
 
 func requireAdmin(ctx *gin.Context) bool {

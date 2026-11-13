@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -34,6 +35,8 @@ SELECT id
 	 , created_at
 	 , created_by
 	 , class_id
+	 , status
+	 , status_details::text
   FROM users
 `
 
@@ -49,10 +52,11 @@ func (r *PostgresUserRepo) loadUser(
 	var u domain.User
 	var nullTaz sql.NullString // Intermediate variable for nullable DB column
 	var nullClassID uuid.NullUUID
+	var rawStatusDetails string
 
 	if err := r.db.
 		QueryRowContext(ctx, q, arg).
-		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &nullClassID); err != nil {
+		Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &nullClassID, &u.Status, &rawStatusDetails); err != nil {
 
 		if err == sql.ErrNoRows {
 			return domain.User{}, repository.ErrNotFound
@@ -61,6 +65,9 @@ func (r *PostgresUserRepo) loadUser(
 	}
 	if nullClassID.Valid {
 		u.ClassID = &nullClassID.UUID
+	}
+	if err := decodeStatusDetails(rawStatusDetails, &u); err != nil {
+		return domain.User{}, err
 	}
 
 	if nullTaz.Valid {
@@ -88,6 +95,53 @@ func (r *PostgresUserRepo) FindByTaz(ctx context.Context, taz string) (domain.Us
 		return domain.User{}, fmt.Errorf("taz can't be empty")
 	}
 	return r.loadUser(ctx, "taz = $1", taz)
+}
+
+// FindByTazIgnoringLeadingZeros finds a user even when a spreadsheet has
+// stripped the leading zeros from their TAZ. An exact match wins.
+func (r *PostgresUserRepo) FindByTazIgnoringLeadingZeros(ctx context.Context, taz string) (domain.User, error) {
+	const q = `
+SELECT id FROM users
+ WHERE ltrim(taz, '0') = ltrim($1, '0')
+ ORDER BY (taz = $1) DESC
+ LIMIT 1
+`
+	var id uuid.UUID
+	if err := r.db.QueryRowContext(ctx, q, taz).Scan(&id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.User{}, repository.ErrNotFound
+		}
+		return domain.User{}, err
+	}
+	return r.FindByID(ctx, id)
+}
+
+// UpdateStudentStatus sets the status and appends to the log in one statement,
+// so two admins acting at once cannot overwrite each other's log lines.
+func (r *PostgresUserRepo) UpdateStudentStatus(ctx context.Context, userID uuid.UUID, change domain.StatusChange) error {
+	const q = `
+UPDATE users
+   SET status = $2,
+       status_details = jsonb_strip_nulls(jsonb_build_object(
+           'reason', NULLIF($3::text, ''),
+           'note', NULLIF($4::text, '')
+       )) || jsonb_build_object(
+           'log', COALESCE(status_details->'log', '[]'::jsonb) || to_jsonb($5::text)
+       )
+ WHERE id = $1
+`
+	res, err := r.db.ExecContext(ctx, q, userID, string(change.Status), string(change.Reason), change.Note, change.LogLine)
+	if err != nil {
+		return fmt.Errorf("update status of user %s: %w", userID, err)
+	}
+	updated, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if updated == 0 {
+		return repository.ErrNotFound
+	}
+	return nil
 }
 
 func (r *PostgresUserRepo) FindByID(ctx context.Context, id uuid.UUID) (domain.User, error) {
@@ -322,7 +376,7 @@ func (r *PostgresUserRepo) CreateUser(ctx context.Context, u domain.User) (domai
 
 func (r *PostgresUserRepo) ListStudentsForMentor(ctx context.Context, mentorUserID uuid.UUID) ([]domain.User, error) {
 	const q = `
-		SELECT DISTINCT u.id, u.first_name, u.last_name, u.email, u.signature, u.created_at
+		SELECT DISTINCT u.id, u.first_name, u.last_name, u.email, u.signature, u.created_at, u.status
 		  FROM contacts c
 		  JOIN users    u ON u.id = c.user_id
 		 WHERE c.type = 'mentor'
@@ -338,7 +392,7 @@ func (r *PostgresUserRepo) ListStudentsForMentor(ctx context.Context, mentorUser
 	var out []domain.User
 	for rows.Next() {
 		var u domain.User
-		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Signature, &u.CreatedAt, &u.Status); err != nil {
 			return nil, err
 		}
 		out = append(out, u)
@@ -469,10 +523,14 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 		var u domain.User
 		var nullTaz sql.NullString // Intermediate variable for nullable DB column
 		var nullClassID uuid.NullUUID
+		var rawStatusDetails string
 
 		if err := rows.Scan(
-			&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &nullClassID,
+			&u.ID, &u.FirstName, &u.LastName, &u.Email, &nullTaz, &u.Signature, &u.CreatedAt, &u.CreatedBy, &nullClassID, &u.Status, &rawStatusDetails,
 		); err != nil {
+			return nil, err
+		}
+		if err := decodeStatusDetails(rawStatusDetails, &u); err != nil {
 			return nil, err
 		}
 
@@ -494,4 +552,12 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 
 	// 3. Return the simple list.
 	return users, nil
+}
+
+// decodeStatusDetails parses users.status_details.
+func decodeStatusDetails(raw string, u *domain.User) error {
+	if err := json.Unmarshal([]byte(raw), &u.StatusDetails); err != nil {
+		return fmt.Errorf("decoding status details of user %s: %w", u.ID, err)
+	}
+	return nil
 }

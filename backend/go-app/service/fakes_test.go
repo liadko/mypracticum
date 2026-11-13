@@ -18,12 +18,21 @@ import (
 type fakeEntryRepo struct {
 	repository.EntryRepo
 
+	status      domain.StudentStatus
 	created     []domain.Entry
 	deleteErr   error
 	linked      bool
 	linkErr     error
 	approverSet **uuid.UUID
 	updateErr   error
+}
+
+func (f *fakeEntryRepo) UserStatus(context.Context, uuid.UUID) (domain.StudentStatus, error) {
+	return f.status, nil
+}
+
+func (f *fakeEntryRepo) EntryOwnerStatus(context.Context, uuid.UUID) (domain.StudentStatus, error) {
+	return f.status, nil
 }
 
 func (f *fakeEntryRepo) Create(_ context.Context, e domain.Entry) (domain.Entry, error) {
@@ -52,6 +61,24 @@ type fakeUserRepo struct {
 
 	users   map[string]domain.User // by email
 	created []domain.User
+	changes map[uuid.UUID]domain.StatusChange
+}
+
+func (f *fakeUserRepo) FindByTazIgnoringLeadingZeros(_ context.Context, taz string) (domain.User, error) {
+	for _, u := range f.users {
+		if u.Taz == taz {
+			return u, nil
+		}
+	}
+	return domain.User{}, repository.ErrNotFound
+}
+
+func (f *fakeUserRepo) UpdateStudentStatus(_ context.Context, id uuid.UUID, change domain.StatusChange) error {
+	if f.changes == nil {
+		f.changes = map[uuid.UUID]domain.StatusChange{}
+	}
+	f.changes[id] = change
+	return nil
 }
 
 func (f *fakeUserRepo) FindByID(_ context.Context, id uuid.UUID) (domain.User, error) {

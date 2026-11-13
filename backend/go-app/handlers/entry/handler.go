@@ -1,6 +1,7 @@
 package entry
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"slices"
@@ -47,6 +48,9 @@ func (h *EntryHandler) Create(ctx *gin.Context) {
 	created, err := h.svc.AddEntry(ctx.Request.Context(), userID, newEntry)
 	if err != nil {
 		log.Printf("[EntryHandler.Create] Failed to add entry: %v", err)
+		if writeFrozenError(ctx, err) {
+			return
+		}
 		if ve, ok := err.(domain.ValidationError); ok {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
 		} else {
@@ -84,6 +88,9 @@ func (h *EntryHandler) Delete(ctx *gin.Context) {
 
 	if err != nil {
 		log.Printf("[EntryHandler.Delete] Failed to delete entry: %v", err)
+		if writeFrozenError(ctx, err) {
+			return
+		}
 		switch err := err.(type) {
 		case service.NotFoundError:
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -168,6 +175,9 @@ func (h *EntryHandler) SetApproval(ctx *gin.Context) {
 	updated, err := h.svc.SetApproval(ctx.Request.Context(), userID, entryID, req.Approved)
 	if err != nil {
 		log.Printf("[EntryHandler.SetApproval] Failed to set approval: %v", err)
+		if writeFrozenError(ctx, err) {
+			return
+		}
 		switch err.(type) {
 		case service.NotFoundError:
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "entry not found"})
@@ -440,4 +450,15 @@ func (h *EntryHandler) DeleteEntries(ctx *gin.Context) {
 
 	// 5) Return the successful result
 	ctx.JSON(http.StatusOK, result)
+}
+
+// writeFrozenError answers 403 if err means the student is frozen. The code
+// lets the frontend recognise it; the message is ready to show to the user.
+func writeFrozenError(ctx *gin.Context, err error) bool {
+	var frozen service.StudentFrozenError
+	if !errors.As(err, &frozen) {
+		return false
+	}
+	ctx.JSON(http.StatusForbidden, gin.H{"error": frozen.Error(), "code": "student_frozen"})
+	return true
 }
