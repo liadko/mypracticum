@@ -12,9 +12,10 @@
 
     Order for the current work (each step is one run of this script):
         0027  add contacts.metadata         before deploying the JSONB backend
-        0028  backfill contacts.metadata    after that deploy, then run verify-contact-metadata.ps1
+        0028  backfill contacts.metadata    after that deploy (already applied)
         0029  add users.status              before deploying the freeze backend
         0030  require contacts.metadata     before or after deploying the metadata-only backend
+        0031  drop the old contact columns  only after that backend is live; back up first
 
 .EXAMPLE
     .\scripts\db\migrate.ps1              # shows what will run, asks, applies one file
