@@ -12,6 +12,9 @@ type EntryRepo interface {
 	ListByStudent(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error)
 	ListByMentor(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error)
 
+	UserStatus(ctx context.Context, userID uuid.UUID) (domain.StudentStatus, error)
+	EntryOwnerStatus(ctx context.Context, entryID uuid.UUID) (domain.StudentStatus, error)
+
 	Create(ctx context.Context, e domain.Entry) (domain.Entry, error)
 	DeleteIfNotApproved(ctx context.Context, id, userID uuid.UUID) error
 	UpdateApproval(ctx context.Context, entryID uuid.UUID, approverID *uuid.UUID) (domain.Entry, error)

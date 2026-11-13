@@ -43,6 +43,16 @@ type UserResponse struct {
 
 	Signature []byte   `json:"signature,omitempty"` // raw png bytes
 	Roles     []string `json:"roles,omitempty"`
+	Status    string   `json:"status,omitempty"`
+}
+
+// StudentStatusRequest freezes or unfreezes students. Identifiers are user
+// IDs, emails or TAZ numbers.
+type StudentStatusRequest struct {
+	Identifiers []string `json:"identifiers" binding:"required,min=1"`
+	Status      string   `json:"status" binding:"required"`
+	Reason      string   `json:"reason"`
+	Note        string   `json:"note"`
 }
 
 type SignatureUpdateRequest struct {

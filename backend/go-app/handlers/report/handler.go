@@ -52,6 +52,7 @@ func (h *ReportHandler) ListStudents(ctx *gin.Context) {
 		ctx.Query("class"),
 		ctx.Query("sortBy"),
 		ctx.Query("sortDirection"),
+		ctx.Query("includeFrozen") == "true",
 		page,
 		limit,
 	)
@@ -203,6 +204,11 @@ func mapStudentSummary(student domain.StudentSummary) StudentSummaryResponse {
 		Class:     student.Class,
 		Taz:       student.Taz,
 		Summary:   mapSummary(student.Summary),
+
+		Status:       string(student.Status),
+		StatusReason: string(student.StatusDetails.Reason),
+		StatusNote:   student.StatusDetails.Note,
+		StatusLog:    student.StatusDetails.Log,
 	}
 }
 
@@ -244,6 +250,7 @@ func mapMentorReport(report domain.MentorReport) MentorReportResponse {
 			Email:     student.Email,
 			Class:     student.Class,
 			Taz:       student.Taz,
+			Status:    string(student.Status),
 			SubmittedHours: MentorHoursResponse{
 				MentorApproved: student.SubmittedHours.Approved,
 				MentorPending:  student.SubmittedHours.Pending,

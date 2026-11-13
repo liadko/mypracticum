@@ -17,6 +17,7 @@ type ContactResponse struct {
 	Specialty                *string `json:"specialty,omitempty"`
 	ClientInstitution        *string `json:"clientInstitution,omitempty"`
 	ClientTrainingCenterInfo *string `json:"clientTrainingCenterInfo,omitempty"`
+	StudentFrozen            bool    `json:"studentFrozen,omitempty"`
 }
 
 type NewContactDTO struct {
