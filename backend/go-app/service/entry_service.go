@@ -55,6 +55,10 @@ func (s *EntryService) AddEntry(
 	// send to the repo
 	createdEntry, err := s.repo.Create(ctx, entry)
 
+	if errors.Is(err, repository.ErrNotFound) {
+		log.Printf("[EntryService.AddEntry] Contact %s does not belong to user %s", newEntry.ContactID, userID)
+		return domain.Entry{}, NotFoundError{"contact", newEntry.ContactID.String()}
+	}
 	if err != nil {
 		log.Printf("[EntryService.AddEntry] Failed to persist entry: %v", err)
 		return domain.Entry{}, DBError{Err: err}
