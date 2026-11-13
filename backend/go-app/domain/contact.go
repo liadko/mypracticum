@@ -38,11 +38,12 @@ type Contact struct {
 	UserID                   uuid.UUID // FK to the owning user
 	Type                     ContactType
 	Name                     string
-	Email                    *string // only required mentors
-	Phone                    *string // mentors and therapists
-	Specialty                *string // mentors and therapists
-	ClientInstitution        *string // clients
-	ClientTrainingCenterInfo *string // clients
+	Email                    *string                // only required mentors
+	Phone                    *string                // mentors and therapists
+	Specialty                *string                // mentors and therapists
+	ClientInstitution        *string                // clients
+	ClientTrainingCenterInfo *string                // clients, legacy free text
+	TrainingCenter           *TrainingCenterDetails // clients at a training centre
 
 	MentorUserID *uuid.UUID // nil unless Type=="mentor"
 
@@ -57,8 +58,18 @@ type NewContact struct {
 	Specialty                *string
 	ClientInstitution        *string
 	ClientTrainingCenterInfo *string
+	TrainingCenter           *TrainingCenterDetails
 
 	MentorUserID *uuid.UUID
+}
+
+// TrainingCenterDetails describes where a client is treated. Older contacts
+// only have the free-text ClientTrainingCenterInfo; this is what replaces it.
+type TrainingCenterDetails struct {
+	Name          string  `json:"name"`
+	City          string  `json:"city"`
+	ContactPerson string  `json:"contactPerson"`
+	ContactPhone  *string `json:"contactPhone,omitempty"` // the one optional field
 }
 
 // Validate enforces all the business rules for Contact.
@@ -91,8 +102,11 @@ func (contact Contact) Validate() error {
 			errs = append(errs, "clientInstitution must be 'privateClinic' or 'trainingCenter'")
 		}
 		if contact.ClientInstitution != nil && *contact.ClientInstitution == "trainingCenter" {
-			if contact.ClientTrainingCenterInfo == nil || strings.TrimSpace(*contact.ClientTrainingCenterInfo) == "" {
-				errs = append(errs, "clientTrainingCenterInfo is required when clientInstitution is 'trainingCenter'")
+			// Contacts saved before the detailed fields existed may keep only
+			// the old free text; nobody is forced to fill the new ones in.
+			hasLegacyInfo := contact.ClientTrainingCenterInfo != nil && strings.TrimSpace(*contact.ClientTrainingCenterInfo) != ""
+			if !hasLegacyInfo && !contact.TrainingCenter.hasRequiredFields() {
+				errs = append(errs, "training centre name, city and contact person are required when clientInstitution is 'trainingCenter'")
 			}
 		}
 	default:
@@ -121,6 +135,7 @@ func NewContactFrom(userID uuid.UUID, nc NewContact) (Contact, error) {
 		Specialty:                nc.Specialty,
 		ClientInstitution:        nc.ClientInstitution,
 		ClientTrainingCenterInfo: nc.ClientTrainingCenterInfo,
+		TrainingCenter:           nc.TrainingCenter,
 
 		MentorUserID: nc.MentorUserID,
 	}
@@ -143,6 +158,7 @@ func UpdatedContact(userID uuid.UUID, contactID uuid.UUID, nc NewContact) (Conta
 		Specialty:                nc.Specialty,
 		ClientInstitution:        nc.ClientInstitution,
 		ClientTrainingCenterInfo: nc.ClientTrainingCenterInfo,
+		TrainingCenter:           nc.TrainingCenter,
 
 		MentorUserID: nc.MentorUserID,
 	}
@@ -166,4 +182,12 @@ func MapUsersToStudentContactViews(us []User) []Contact {
 		})
 	}
 	return out
+}
+
+// hasRequiredFields reports whether name, city and contact person are all set.
+func (d *TrainingCenterDetails) hasRequiredFields() bool {
+	return d != nil &&
+		strings.TrimSpace(d.Name) != "" &&
+		strings.TrimSpace(d.City) != "" &&
+		strings.TrimSpace(d.ContactPerson) != ""
 }

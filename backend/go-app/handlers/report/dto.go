@@ -3,6 +3,8 @@ package report
 import (
 	"time"
 
+	"mypracticum/backend/domain"
+
 	"github.com/google/uuid"
 )
 
@@ -70,6 +72,7 @@ type ContactResponse struct {
 	Specialty                string    `json:"specialty,omitempty"`
 	ClientInstitution        string    `json:"clientInstitution,omitempty"`
 	ClientTrainingCenterInfo string    `json:"clientTrainingCenterInfo,omitempty"`
+	TrainingCenter           *domain.TrainingCenterDetails `json:"trainingCenter,omitempty"`
 	Hours                    int64     `json:"hours"`
 	ApprovedHours            int64     `json:"approvedHours"`
 	PendingHours             int64     `json:"pendingHours"`

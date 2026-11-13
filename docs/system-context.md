@@ -10,7 +10,8 @@ MyPracticum tracks practicum hours for psychotherapy-training schools. It is a G
   - `client` — a patient (`מטופל` / `מטופלים`)
   - `mentor` — a supervisor (`מדריך` / `מדריכים`)
   - `therapist` — a personal therapist (`מטפל אישי`)
-- Contact metadata currently lives in fixed columns: name, email, phone, specialty, and client-institution/training-centre fields. This is deliberately a known limitation; future schools may need JSONB metadata and likely a separate client-origin/institution entity.
+- Contact details live in `contacts.metadata` (JSONB). The old columns (email, phone, specialty, client institution, training-centre text) are still written for now and used as a fallback when `metadata` is NULL; see `db/manual/issue-18-verify-contact-metadata.sql` before dropping them. `metadata.trainingCenter` has no column behind it.
+- A student's `users.status` is `active` or `frozen`, with reason, note and an append-only log in `users.status_details`. Frozen students can view but not change anything, mentors can't approve their entries, and admins are unrestricted. Students are never deleted.
 - A mentor contact may point to the canonical mentor user through `contacts.mentor_user_id`. This is how mentor reports connect mentors to their students and events.
 
 ## Hours and workflow

@@ -75,6 +75,7 @@ type ReportContact struct {
 	Specialty                string
 	ClientInstitution        string
 	ClientTrainingCenterInfo string
+	TrainingCenter           *TrainingCenterDetails
 	Hours                    int64
 	ApprovedHours            int64
 	PendingHours             int64

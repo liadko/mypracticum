@@ -61,6 +61,7 @@ func (h *ContactHandler) List(ctx *gin.Context) {
 			Specialty:                d.Specialty,
 			ClientInstitution:        d.ClientInstitution,
 			ClientTrainingCenterInfo: d.ClientTrainingCenterInfo,
+			TrainingCenter:           d.TrainingCenter,
 			StudentFrozen:            d.StudentFrozen,
 		}
 	}
@@ -105,6 +106,7 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 		Specialty:                req.Specialty,
 		ClientInstitution:        req.ClientInstitution,
 		ClientTrainingCenterInfo: req.ClientTrainingCenterInfo,
+		TrainingCenter:           req.TrainingCenter,
 	}
 	log.Printf("[ContactHandler.Update] Calling service to update contact %s for user %s", contactID, userID)
 
@@ -144,6 +146,7 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 		Specialty:                saved.Specialty,
 		ClientInstitution:        saved.ClientInstitution,
 		ClientTrainingCenterInfo: saved.ClientTrainingCenterInfo,
+		TrainingCenter:           saved.TrainingCenter,
 	}
 
 	log.Printf("[ContactHandler.Update] Returning updated contact: %s", saved.ID)
@@ -179,6 +182,7 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 		Specialty:                req.Specialty,
 		ClientInstitution:        req.ClientInstitution,
 		ClientTrainingCenterInfo: req.ClientTrainingCenterInfo,
+		TrainingCenter:           req.TrainingCenter,
 	}
 	log.Printf("[ContactHandler.Create] Calling service to add contact for user %s", userID)
 
@@ -217,6 +221,7 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 		Specialty:                saved.Specialty,
 		ClientInstitution:        saved.ClientInstitution,
 		ClientTrainingCenterInfo: saved.ClientTrainingCenterInfo,
+		TrainingCenter:           saved.TrainingCenter,
 	}
 
 	log.Printf("[ContactHandler.Create] Returning created contact")

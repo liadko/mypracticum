@@ -60,9 +60,32 @@ func TestContactValidate(t *testing.T) {
 		{name: "client without institution", contact: client(func(c *Contact) { c.ClientInstitution = nil }), wantErr: "clientInstitution"},
 		{name: "client with unknown institution", contact: client(func(c *Contact) { c.ClientInstitution = ptr("hospital") }), wantErr: "clientInstitution"},
 		{
-			name:    "training centre without info",
+			name:    "training centre without any details",
 			contact: client(func(c *Contact) { c.ClientInstitution = ptr("trainingCenter") }),
-			wantErr: "clientTrainingCenterInfo",
+			wantErr: "training centre name, city and contact person",
+		},
+		{
+			name: "training centre with full details and no phone",
+			contact: client(func(c *Contact) {
+				c.ClientInstitution = ptr("trainingCenter")
+				c.TrainingCenter = &TrainingCenterDetails{Name: "Hillel", City: "Ashdod", ContactPerson: "Rina"}
+			}),
+		},
+		{
+			name: "training centre missing a required detail",
+			contact: client(func(c *Contact) {
+				c.ClientInstitution = ptr("trainingCenter")
+				c.TrainingCenter = &TrainingCenterDetails{Name: "Hillel", City: " ", ContactPerson: "Rina"}
+			}),
+			wantErr: "training centre name, city and contact person",
+		},
+		{
+			name: "older contact with only the legacy text stays valid",
+			contact: client(func(c *Contact) {
+				c.ClientInstitution = ptr("trainingCenter")
+				c.ClientTrainingCenterInfo = ptr("Hillel, Ashdod")
+				c.TrainingCenter = nil
+			}),
 		},
 		{name: "unknown type", contact: Contact{UserID: owner, Type: "cousin", Name: "X"}, wantErr: "invalid contact type"},
 	}
