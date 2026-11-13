@@ -143,3 +143,14 @@
   background-color: #f0f0f0;
 
 }
+
+/* Same quiet marker as on the contact rows: a training-centre client missing the new details. */
+.contact-dropdown-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  background: #2a9d8f;
+  vertical-align: middle;
+}

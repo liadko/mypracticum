@@ -118,3 +118,112 @@
   color: #333;
   border: 1px solid var(--main-color);
 }
+
+.contact-form__legacy-note {
+    margin: 0.25rem 0 0.5rem;
+    font-size: 0.85rem;
+    color: #555;
+    line-height: 1.4;
+}
+
+.edit-modal .contact-form {
+    max-height: 590px;
+    overflow-y: auto;
+}
+
+/* Keeps Save reachable when the training-centre fields make the form scroll. */
+.edit-modal .contact-form__buttons {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding-bottom: 0.5rem;
+}
+
+/* Dismissible notice for older training-centre clients. */
+.contact-form__notice {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0.25rem 0;
+    padding: 0.75rem 1rem 0.75rem 2.25rem;
+    border: 1px solid #b9e3dc;
+    border-right: 4px solid #2a9d8f;
+    border-radius: 10px;
+    background: #f1faf8;
+    text-align: right;
+}
+
+.contact-form__notice-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1d5e56;
+    margin-bottom: 0.3rem;
+}
+
+.contact-form__notice-text {
+    font-size: 0.9rem;
+    color: #3d4b49;
+    line-height: 1.45;
+}
+
+.contact-form__notice-close {
+    position: absolute;
+    top: 0.35rem;
+    left: 0.45rem;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #5b6b69;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.contact-form__notice-close:hover {
+    background: #dff1ee;
+}
+
+/* Marks the new fields while the notice is relevant. */
+.contact-form__new-pill {
+    display: inline-block;
+    margin-right: 0.4rem;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background: #2a9d8f;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
+/* Floats just above the Save/Cancel row while more fields are hidden below. */
+.edit-modal .contact-form__buttons {
+    position: sticky;
+}
+
+.contact-form__more-hint {
+    position: absolute;
+    top: -2.1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.25rem 0.85rem;
+    border: 1px solid #b9e3dc;
+    border-radius: 999px;
+    background: #f1faf8;
+    color: #1d5e56;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Marks fields that must be filled in. */
+.contact-form__required {
+    color: #c0392b;
+    margin-right: 0.15rem;
+    font-weight: 700;
+}

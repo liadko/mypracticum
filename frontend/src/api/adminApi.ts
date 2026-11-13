@@ -9,7 +9,23 @@ import type {
     ManualEntryPayload,
     AdminClass,
     CreateAdminClassRequest,
+    StudentStatusRequest,
+    StudentStatusResult,
 } from '../types';
+
+/** Freezes or unfreezes students identified by user ID, email or TAZ. */
+export async function setStudentStatus(request: StudentStatusRequest): Promise<StudentStatusResult> {
+    const res = await apiFetch('/api/v1/admin/students/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+    }, 60 * 1000);
+    if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error || 'Failed to update student status');
+    }
+    return res.json();
+}
 
 export async function getClasses(): Promise<AdminClass[]> {
     const res = await apiFetch('/api/v1/admin/classes');

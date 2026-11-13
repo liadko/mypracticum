@@ -16,6 +16,9 @@ type EntryRepo interface {
 	// for the contact, or nil when the user/contact has no applicable cutoff.
 	FindClassStartDateForEntry(ctx context.Context, userID, contactID uuid.UUID) (*time.Time, error)
 
+	UserStatus(ctx context.Context, userID uuid.UUID) (domain.StudentStatus, error)
+	EntryOwnerStatus(ctx context.Context, entryID uuid.UUID) (domain.StudentStatus, error)
+
 	Create(ctx context.Context, e domain.Entry) (domain.Entry, error)
 	DeleteIfNotApproved(ctx context.Context, id, userID uuid.UUID) error
 	UpdateApproval(ctx context.Context, entryID uuid.UUID, approverID *uuid.UUID) (domain.Entry, error)

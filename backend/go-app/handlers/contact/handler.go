@@ -1,6 +1,7 @@
 package contact
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -60,6 +61,8 @@ func (h *ContactHandler) List(ctx *gin.Context) {
 			Specialty:                d.Specialty,
 			ClientInstitution:        d.ClientInstitution,
 			ClientTrainingCenterInfo: d.ClientTrainingCenterInfo,
+			TrainingCenter:           d.TrainingCenter,
+			StudentFrozen:            d.StudentFrozen,
 		}
 	}
 	log.Printf("[ContactHandler.List] Returning %d contacts", len(resp))
@@ -103,12 +106,16 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 		Specialty:                req.Specialty,
 		ClientInstitution:        req.ClientInstitution,
 		ClientTrainingCenterInfo: req.ClientTrainingCenterInfo,
+		TrainingCenter:           req.TrainingCenter,
 	}
 	log.Printf("[ContactHandler.Update] Calling service to update contact %s for user %s", contactID, userID)
 
 	saved, err := h.svc.UpdateContact(ctx.Request.Context(), userID, contactID, newContact)
 	if err != nil {
 		log.Printf("[ContactHandler.Update] Service returned error: %v (type: %T)", err, err)
+		if writeFrozenError(ctx, err) {
+			return
+		}
 		switch e := err.(type) {
 		case domain.ValidationError:
 			log.Printf("[ContactHandler.Update] Validation error: %v", e)
@@ -139,6 +146,7 @@ func (h *ContactHandler) Update(ctx *gin.Context) {
 		Specialty:                saved.Specialty,
 		ClientInstitution:        saved.ClientInstitution,
 		ClientTrainingCenterInfo: saved.ClientTrainingCenterInfo,
+		TrainingCenter:           saved.TrainingCenter,
 	}
 
 	log.Printf("[ContactHandler.Update] Returning updated contact: %s", saved.ID)
@@ -174,12 +182,16 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 		Specialty:                req.Specialty,
 		ClientInstitution:        req.ClientInstitution,
 		ClientTrainingCenterInfo: req.ClientTrainingCenterInfo,
+		TrainingCenter:           req.TrainingCenter,
 	}
 	log.Printf("[ContactHandler.Create] Calling service to add contact for user %s", userID)
 
 	saved, err := h.svc.AddContact(ctx.Request.Context(), userID, nc)
 	if err != nil {
 		log.Printf("[ContactHandler.Create] Service returned error: %v (type: %T)", err, err)
+		if writeFrozenError(ctx, err) {
+			return
+		}
 		if ve, ok := err.(domain.ValidationError); ok {
 			log.Printf("[ContactHandler.Create] Validation error: %v", ve)
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
@@ -209,6 +221,7 @@ func (h *ContactHandler) Create(ctx *gin.Context) {
 		Specialty:                saved.Specialty,
 		ClientInstitution:        saved.ClientInstitution,
 		ClientTrainingCenterInfo: saved.ClientTrainingCenterInfo,
+		TrainingCenter:           saved.TrainingCenter,
 	}
 
 	log.Printf("[ContactHandler.Create] Returning created contact")
@@ -235,6 +248,9 @@ func (h *ContactHandler) InviteMentor(ctx *gin.Context) {
 	log.Printf("[ContactHandler.InviteMentor] Calling service to send invitation")
 	if err := h.svc.InviteMentor(ctx.Request.Context(), userID, contactID); err != nil {
 		log.Printf("[ContactHandler.InviteMentor] Service returned error: %v (type: %T)", err, err)
+		if writeFrozenError(ctx, err) {
+			return
+		}
 		if ve, ok := err.(domain.ValidationError); ok {
 			log.Printf("[ContactHandler.InviteMentor] Validation error: %v", ve)
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
@@ -247,4 +263,14 @@ func (h *ContactHandler) InviteMentor(ctx *gin.Context) {
 
 	log.Printf("[ContactHandler.InviteMentor] Invitation sent successfully for mentor %s to student %s", contactID, userID)
 	ctx.JSON(http.StatusOK, gin.H{"status": "invitation sent"})
+}
+
+// writeFrozenError answers 403 if err means the student is frozen.
+func writeFrozenError(ctx *gin.Context, err error) bool {
+	var frozen service.StudentFrozenError
+	if !errors.As(err, &frozen) {
+		return false
+	}
+	ctx.JSON(http.StatusForbidden, gin.H{"error": frozen.Error(), "code": "student_frozen"})
+	return true
 }

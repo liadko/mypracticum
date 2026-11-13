@@ -19,6 +19,16 @@ export function getContactById(list: Contact[], id: String): Contact | undefined
   return list.find(c => c.id === id)
 }
 
+/**
+ * A training-centre client saved before the detailed centre fields existed,
+ * with none of them filled in yet. Filling in any one of them is enough.
+ */
+export function needsCenterDetails(c: Contact): boolean {
+  if (c.type !== 'client' || c.clientInstitution !== 'trainingCenter') return false
+  const d = c.trainingCenter
+  return !d || ![d.name, d.city, d.contactPerson, d.contactPhone].some(v => v?.trim())
+}
+
 export function validateContact(c: NewContact): Error | null {
   // 1) Name must be non-empty
   if (!c.name.trim()) {
@@ -53,8 +63,15 @@ export function validateContact(c: NewContact): Error | null {
     if (c.clientInstitution !== 'privateClinic' && c.clientInstitution !== 'trainingCenter') {
       return new Error('יש לבחור מקור מסגרת טיפול תקינה')
     }
-    if (c.clientInstitution === 'trainingCenter' && !c.clientTrainingCenterInfo?.trim()) {
-      return new Error('יש לפרט על מרכז ההכשרה')
+    if (c.clientInstitution === 'trainingCenter') {
+      const details = c.trainingCenter
+      const isComplete = !!details?.name.trim() && !!details.city.trim() && !!details.contactPerson.trim()
+      // Older contacts already have their free-text description, so any of the
+      // new fields are optional for them. New contacts must fill in all three.
+      const isOlderContact = !!c.clientTrainingCenterInfo?.trim()
+      if (!isComplete && !isOlderContact) {
+        return new Error('יש למלא שם מרכז, עיר ואיש קשר')
+      }
     }
   }
 

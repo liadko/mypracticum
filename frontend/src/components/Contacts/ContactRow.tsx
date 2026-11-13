@@ -1,5 +1,6 @@
 import type { Contact } from '../../types'
 import './ContactRow.css'
+import { needsCenterDetails } from '../../domain/contacts'
 
 interface Props {
   contact: Contact
@@ -9,6 +10,8 @@ interface Props {
 
 export function ContactRow({ contact, onEdit }: Props) {
   const isTrainingCenter = contact.type == 'client' && contact.clientInstitution === 'trainingCenter';
+  const trainingCenter = contact.type === 'client' ? contact.trainingCenter : undefined;
+  const needsNewDetails = needsCenterDetails(contact);
 
   return (
     <div className="contact-row" onClick={() => onEdit(contact.id)}>
@@ -33,15 +36,16 @@ export function ContactRow({ contact, onEdit }: Props) {
         {contact.type === 'client' && (
           <div className="contact-row__extras">
             <div className="contact-row__institution">{isTrainingCenter ? "מרכז הכשרה" : "קליניקה פרטית"}</div>
-            {isTrainingCenter && contact.clientTrainingCenterInfo && (
+            {isTrainingCenter && (trainingCenter || contact.clientTrainingCenterInfo) && (
               <div className="contact-row__training-center">
-                {contact.clientTrainingCenterInfo}
+                {trainingCenter ? `${trainingCenter.name}, ${trainingCenter.city}` : contact.clientTrainingCenterInfo}
               </div>
             )}          </div>
         )}
       </div>
 
       <div className="contact-row__actions">
+        {needsNewDetails && <span className="contact-row__dot" title="נוספו שדות חדשים" />}
         <img
           className="icon-button edit"
           src='edit.svg'

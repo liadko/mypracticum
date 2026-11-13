@@ -1,6 +1,6 @@
 import type { Contact, NewContact } from '../types'
 import { apiFetch } from './client'
-import { HttpError } from './errors'
+import { HttpError, httpErrorFrom } from './errors'
 
 
 export async function fetchAllContacts(
@@ -45,7 +45,7 @@ export async function updateContact(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     })
-    if (!res.ok) throw new Error(await res.text())
+    if (!res.ok) throw await httpErrorFrom(res)
     return res.json() as Promise<Contact>
 }
 
@@ -55,7 +55,7 @@ export async function inviteMentorContact(
     const res = await apiFetch(`/api/v1/contacts/${id}/invite`, {
         method: 'POST',
     })
-    if (!res.ok) throw new Error(await res.text())
+    if (!res.ok) throw await httpErrorFrom(res)
     return res.json() as Promise<Contact>
 }
 

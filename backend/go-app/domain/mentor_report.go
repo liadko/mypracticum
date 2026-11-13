@@ -44,6 +44,7 @@ type MentorStudent struct {
 	Class              string
 	Taz                string
 	SubmittedHours     MentorSubmittedHours
+	Status             StudentStatus
 }
 
 type MentorEvent struct {

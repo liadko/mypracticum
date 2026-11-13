@@ -27,6 +27,14 @@ func (s *EntryService) AddEntry(
 ) (domain.Entry, error) {
 	log.Printf("[EntryService.AddEntry] Creating entry for user %s, contactID: %s, date: %s", userID, newEntry.ContactID, newEntry.DateStr)
 
+	status, err := s.repo.UserStatus(ctx, userID)
+	if err != nil {
+		return domain.Entry{}, DBError{Err: err}
+	}
+	if err := s.requireNotFrozen(status, frozenStudentMessage); err != nil {
+		return domain.Entry{}, err
+	}
+
 	// build & validate in one shot
 	entry, err := domain.NewEntryFrom(userID, newEntry)
 	if err != nil {
@@ -67,7 +75,15 @@ func (s *EntryService) RemoveEntry(ctx context.Context, entryID, userID uuid.UUI
 		return fmt.Errorf("missing user")
 	}
 
-	err := s.repo.DeleteIfNotApproved(ctx, entryID, userID)
+	status, err := s.repo.UserStatus(ctx, userID)
+	if err != nil {
+		return DBError{Err: err}
+	}
+	if err := s.requireNotFrozen(status, frozenStudentMessage); err != nil {
+		return err
+	}
+
+	err = s.repo.DeleteIfNotApproved(ctx, entryID, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			log.Printf("[EntryService.RemoveEntry] Entry not found: %s", entryID)
@@ -131,6 +147,17 @@ func (s *EntryService) SetApproval(
 	if !linked {
 		log.Printf("[EntryService.SetApproval] Mentor %s not linked to entry %s", mentorID, entryID)
 		return domain.Entry{}, ForbiddenError{"not mentor of this entry"}
+	}
+
+	status, err := s.repo.EntryOwnerStatus(ctx, entryID)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return domain.Entry{}, NotFoundError{"entry", entryID.String()}
+		}
+		return domain.Entry{}, DBError{Err: err}
+	}
+	if err := s.requireNotFrozen(status, frozenMentorMessage); err != nil {
+		return domain.Entry{}, err
 	}
 
 	// set approver_id := mentorID (approved) or NULL (unapprove)

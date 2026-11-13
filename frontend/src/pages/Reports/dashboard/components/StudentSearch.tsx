@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Filter, Clock, CheckCircle2, FileX, Users } from 'lucide-react';
+import { Filter, Clock, CheckCircle2, FileX, Users, Snowflake, Download, Loader2 } from 'lucide-react';
 import type { StudentSummary } from '../types';
 import { searchStudents, getStudentClasses } from '../services/studentApi';
 import { PaginatedDirectory } from './PaginatedDirectory';
 import type { ColumnDef } from './PaginatedDirectory';
+import { exportStudentsToExcel } from '../services/studentExport';
 
 interface StudentSearchProps {
   onSelectStudent: (studentId: string) => void;
@@ -17,6 +18,12 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState<number>(1);
   const [signatureOnlyFilter, setSignatureOnlyFilter] = useState<boolean>(false);
+  // includeFrozen is the switch beside the title; frozenOnly is the chip among the filters.
+  // Turning the chip on also turns the switch on, and turning the switch off clears the chip.
+  const [includeFrozen, setIncludeFrozen] = useState<boolean>(false);
+  const [frozenOnly, setFrozenOnly] = useState<boolean>(false);
+  const statusFilter: 'active' | 'frozen' | 'all' = frozenOnly ? 'frozen' : includeFrozen ? 'all' : 'active';
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const [students, setStudents] = useState<StudentSummary[]>([]);
   const [totalStudents, setTotalStudents] = useState<number>(0);
@@ -57,6 +64,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       className: classFilter,
       sortBy,
       sortDirection,
+      status: statusFilter,
       page,
       limit: 50,
     })
@@ -78,7 +86,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [query, classFilter, sortBy, sortDirection, page]);
+  }, [query, classFilter, sortBy, sortDirection, statusFilter, page]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -104,10 +112,27 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     setPage(1);
   };
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    setSearchError(null);
+    try {
+      await exportStudentsToExcel(
+        { query, className: classFilter, sortBy, sortDirection, status: statusFilter },
+        (s) => !(signatureOnlyFilter && s.signatureSubmitted === true),
+      );
+    } catch (err: any) {
+      setSearchError(err.message || 'הייצוא לאקסל נכשל');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleClearFilters = () => {
     setQuery('');
     setClassFilter('all');
     setSignatureOnlyFilter(false);
+    setIncludeFrozen(false);
+    setFrozenOnly(false);
     setSortBy('name');
     setSortDirection('asc');
     setPage(1);
@@ -212,6 +237,21 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
         ),
     },
     {
+      key: 'status',
+      header: 'סטטוס',
+      sortable: true,
+      align: 'center',
+      render: (s) =>
+        s.status === 'frozen' ? (
+          <span className="inline-flex items-center gap-1 text-sky-900 bg-sky-50 border border-sky-300 px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap">
+            <Snowflake className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+            בהקפאה
+          </span>
+        ) : (
+          <span className="text-slate-400 text-[11px] font-medium">פעיל</span>
+        ),
+    },
+    {
       key: 'signatureSubmitted',
       header: 'הצהרה חתומה',
       sortable: true,
@@ -280,7 +320,60 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
         <FileX className={`w-3.5 h-3.5 ${signatureOnlyFilter ? 'text-amber-700' : 'text-slate-400'}`} />
         <span>חסרה הצהרה חתומה</span>
       </button>
+
+      <button
+        onClick={() => {
+          if (frozenOnly) {
+            setFrozenOnly(false);
+          } else {
+            setFrozenOnly(true);
+            setIncludeFrozen(true);
+          }
+          setPage(1);
+        }}
+        aria-pressed={frozenOnly}
+        className={`px-2.5 py-1 rounded transition border font-medium flex items-center gap-1.5 ${
+          frozenOnly
+            ? 'bg-sky-100 text-sky-900 border-sky-300 font-bold'
+            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+        }`}
+      >
+        <Snowflake className={`w-3.5 h-3.5 ${frozenOnly ? 'text-sky-700' : 'text-slate-400'}`} />
+        <span>בהקפאה בלבד</span>
+      </button>
+
+      <button
+        onClick={handleExport}
+        disabled={isExporting}
+        className="px-2.5 py-1 rounded transition border font-medium flex items-center gap-1.5 bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 disabled:opacity-50"
+      >
+        {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5 text-slate-400" />}
+        <span>ייצוא לאקסל</span>
+      </button>
     </div>
+  );
+
+  const frozenSwitch = (
+    <label className="flex items-center gap-2 text-sm text-slate-700 font-medium cursor-pointer select-none">
+      <span>הצגת תלמידים בהקפאה</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={includeFrozen}
+        onClick={() => {
+          if (includeFrozen) {
+            setIncludeFrozen(false);
+            setFrozenOnly(false);
+          } else {
+            setIncludeFrozen(true);
+          }
+          setPage(1);
+        }}
+        className={`reports-switch ${includeFrozen ? 'reports-switch--on' : ''}`}
+      >
+        <span className="reports-switch__thumb" />
+      </button>
+    </label>
   );
 
   const displayTotal = signatureOnlyFilter ? filteredStudents.length : totalStudents;
@@ -300,7 +393,8 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       }}
       searchPlaceholder="חפש תלמיד לפי שם, דוא&quot;ל, מס' ת&quot;ז או מחזור לימודים..."
       extraFilters={extraFilters}
-      isFiltered={classFilter !== 'all' || signatureOnlyFilter}
+      headerActions={frozenSwitch}
+      isFiltered={classFilter !== 'all' || signatureOnlyFilter || includeFrozen}
       onClearFilters={handleClearFilters}
       items={filteredStudents}
       total={displayTotal}

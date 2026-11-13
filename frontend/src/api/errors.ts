@@ -25,6 +25,17 @@ export class TimeoutError extends Error {
   }
 }
 
+/** The server's message when an action was refused because a student is frozen. */
+export function frozenMessage(err: unknown): string | null {
+  return err instanceof HttpError && err.data?.code === 'student_frozen' ? err.message : null
+}
+
+/** Builds an HttpError from a failed response, keeping the server's message. */
+export async function httpErrorFrom(res: Response): Promise<HttpError> {
+  const data = await res.json().catch(() => null)
+  return new HttpError(data?.error || res.statusText, res.status, data)
+}
+
 export class HttpError extends Error {
   status: number;
   data: any;

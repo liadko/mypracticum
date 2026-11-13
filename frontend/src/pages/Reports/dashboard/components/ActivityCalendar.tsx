@@ -23,9 +23,14 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
   title = 'יומן דיווחי פעילות',
   hideCategoryFilter = false,
 }) => {
-  // Default to August 2026 or month of newest event
-  const [currentYear, setCurrentYear] = useState<number>(2026);
-  const [currentMonth, setCurrentMonth] = useState<number>(7); // 0-indexed (7 = August)
+  // Open on the month of the newest event, or this month if there are none.
+  const initialMonth = useMemo(() => {
+    const newest = events.reduce<string | null>((max, e) => (max === null || e.date > max ? e.date : max), null);
+    const d = newest ? new Date(`${newest}T00:00:00`) : new Date();
+    return { year: d.getFullYear(), month: d.getMonth() };
+  }, [events]);
+  const [currentYear, setCurrentYear] = useState<number>(initialMonth.year);
+  const [currentMonth, setCurrentMonth] = useState<number>(initialMonth.month); // 0-indexed
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | 'all'>('all');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
@@ -166,8 +171,9 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
   };
 
   const handleToday = () => {
-    setCurrentYear(2026);
-    setCurrentMonth(7); // August 2026
+    const today = new Date();
+    setCurrentYear(today.getFullYear());
+    setCurrentMonth(today.getMonth());
   };
 
   // Pattern Flag Alert
@@ -203,72 +209,51 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
         
         {/* Title & Month Navigation */}
         <div className="flex items-center space-x-2.5 space-x-reverse flex-wrap gap-y-2">
-          <CalendarIcon className="w-4 h-4 text-teal-700 shrink-0" />
-          <h3 className="text-sm font-bold text-slate-900">
+          <CalendarIcon className="w-5 h-5 text-teal-700 shrink-0" />
+          <h3 className="text-base font-bold text-slate-900">
             {title}
           </h3>
 
-          <div className="flex items-center bg-slate-100 rounded border border-slate-200 p-0.5 mr-2">
+          <div className="flex items-center bg-white rounded-md border border-slate-300 p-0.5 mr-2">
             <button
               onClick={handlePrevMonth}
-              className="p-1 hover:bg-white rounded text-slate-700 transition"
+              className="p-1.5 hover:bg-slate-100 rounded text-slate-700 transition"
               title="חודש קודם"
             >
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
-            <span className="px-2.5 text-xs font-bold text-slate-900 min-w-24 text-center">
+            <span className="px-3 text-sm font-bold text-slate-900 min-w-28 text-center">
               {HEBREW_MONTH_NAMES[currentMonth]} {currentYear}
             </span>
             <button
               onClick={handleNextMonth}
-              className="p-1 hover:bg-white rounded text-slate-700 transition"
+              className="p-1.5 hover:bg-slate-100 rounded text-slate-700 transition"
               title="חודש הבא"
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
           </div>
 
           <button
             onClick={handleToday}
-            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 px-2 py-0.5 rounded border border-slate-300 font-medium transition"
+            className="text-sm bg-white hover:bg-slate-50 text-slate-800 px-3 py-1.5 rounded-md border border-slate-300 font-medium transition"
           >
             היום
           </button>
 
-          {/* Quick Month Dropdown */}
-          <select
-            value={`${currentYear}-${currentMonth}`}
-            onChange={(e) => {
-              const [y, m] = e.target.value.split('-').map(Number);
-              setCurrentYear(y);
-              setCurrentMonth(m);
-            }}
-            className="text-xs bg-slate-50 border border-slate-300 rounded px-2 py-0.5 text-slate-800 font-medium focus:outline-none focus:ring-1 focus:ring-teal-600"
-          >
-            <option value="2026-7">אוגוסט 2026</option>
-            <option value="2026-6">יולי 2026</option>
-            <option value="2026-5">יוני 2026</option>
-            <option value="2026-4">מאי 2026</option>
-            <option value="2026-3">אפריל 2026</option>
-            <option value="2026-2">מרץ 2026</option>
-            <option value="2026-1">פברואר 2026</option>
-            <option value="2026-0">ינואר 2026</option>
-            <option value="2025-11">דצמבר 2025</option>
-            <option value="2025-10">נובמבר 2025</option>
-          </select>
         </div>
 
         {/* Filter Category Pills */}
         {!hideCategoryFilter && (
           <div className="flex items-center space-x-1 space-x-reverse flex-wrap gap-y-1">
-            <span className="text-xs font-medium text-slate-500 flex items-center gap-1 ml-1">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-sm font-medium text-slate-500 flex items-center gap-1 ml-1">
+              <Filter className="w-4 h-4 text-slate-400" />
               סינון:
             </span>
 
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`text-xs px-2 py-0.5 rounded transition border font-medium ${
+              className={`text-sm px-3 py-1.5 rounded-md transition border font-medium ${
                 selectedCategory === 'all'
                   ? 'bg-slate-800 text-white border-slate-800'
                   : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
@@ -284,7 +269,7 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
                 <button
                   key={catKey}
                   onClick={() => setSelectedCategory(catKey)}
-                  className={`text-xs px-2.5 py-1 rounded transition border font-medium flex items-center gap-1.5 ${
+                  className={`text-sm px-3 py-1.5 rounded-md transition border font-medium flex items-center gap-1.5 ${
                     isSelected
                       ? `${conf.badgeBg} ${conf.badgeText} ${conf.borderColor} font-bold`
                       : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'

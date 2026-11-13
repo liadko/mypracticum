@@ -4,12 +4,14 @@ import { StudentsForm } from '../../components/Admin/StudentsForm';
 import { EntriesForm } from '../../components/Admin/EntriesForm';
 import { ManualEntriesForm } from '../../components/Admin/ManualEntriesForm';
 import { ClassManagementForm } from '../../components/Admin/ClassManagementForm';
+import { FreezeStudentsForm } from '../../components/Admin/FreezeStudentsForm';
 
 type AdminTab =
     | 'page-import-students'
     | 'page-approve-entries'
     | 'page-manual-entries'
-    | 'page-manage-classes';
+    | 'page-manage-classes'
+    | 'page-freeze-students';
 
 export default function AdminPage() {
     const [logs, setLogs] = useState<string>('');
@@ -31,6 +33,8 @@ export default function AdminPage() {
                 return <ManualEntriesForm logMessage={logMessage} />;
             case 'page-manage-classes':
                 return <ClassManagementForm logMessage={logMessage} />;
+            case 'page-freeze-students':
+                return <FreezeStudentsForm logMessage={logMessage} />;
             default:
                 return null;
         }
@@ -67,6 +71,12 @@ export default function AdminPage() {
                         onClick={() => setActiveTab('page-manual-entries')}
                     >
                         Manage Manual Entries
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'page-freeze-students' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('page-freeze-students')}
+                    >
+                        Freeze Students
                     </button>
                 </nav>
 

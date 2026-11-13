@@ -33,6 +33,9 @@ type StudentSummary struct {
 	Class     string
 	Taz       string
 	Summary   StudentReportSummary
+
+	Status        StudentStatus
+	StatusDetails StatusDetails
 }
 
 type StudentSearchPage struct {
@@ -72,6 +75,7 @@ type ReportContact struct {
 	Specialty                string
 	ClientInstitution        string
 	ClientTrainingCenterInfo string
+	TrainingCenter           *TrainingCenterDetails
 	Hours                    int64
 	ApprovedHours            int64
 	PendingHours             int64

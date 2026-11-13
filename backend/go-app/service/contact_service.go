@@ -29,6 +29,9 @@ func (s *ContactService) AddContact(ctx context.Context, userID uuid.UUID, newCo
 		log.Printf("[ContactService.AddContact] Failed to get user: %v", err)
 		return domain.Contact{}, DBError{err}
 	}
+	if user.IsFrozen() {
+		return domain.Contact{}, StudentFrozenError{Msg: frozenStudentMessage}
+	}
 
 	if newContact.Type == domain.MentorContact {
 		log.Printf("[ContactService.AddContact] Processing mentor contact with email: %v", newContact.Email)
@@ -58,6 +61,9 @@ func (s *ContactService) UpdateContact(
 	if err != nil {
 		log.Printf("[ContactService.UpdateContact] Failed to get user: %v", err)
 		return domain.Contact{}, DBError{err}
+	}
+	if user.IsFrozen() {
+		return domain.Contact{}, StudentFrozenError{Msg: frozenStudentMessage}
 	}
 
 	if newContact.Type == domain.MentorContact {
@@ -191,6 +197,14 @@ func splitName(full string) (string, string) {
 
 func (s *ContactService) InviteMentor(ctx context.Context, userID uuid.UUID, contactID uuid.UUID) error {
 	log.Printf("[ContactService.InviteMentor] Inviting mentor from contact %s for user %s", contactID, userID)
+
+	student, err := s.userSvc.GetUserByID(ctx, userID)
+	if err != nil {
+		return DBError{Err: err}
+	}
+	if student.IsFrozen() {
+		return StudentFrozenError{Msg: frozenStudentMessage}
+	}
 
 	// fetch contact
 	mentor, err := s.repo.GetMentor(ctx, userID, contactID)

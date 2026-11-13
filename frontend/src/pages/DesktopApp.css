@@ -228,3 +228,12 @@
 .react-hot-toast .toast-success {
     z-index: 9999 !important;
 }
+
+.frozen-account-banner {
+    padding: 0.4rem 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+    background: #eef6fb;
+    color: #24506b;
+    border-bottom: 1px solid #cfe3ef;
+}

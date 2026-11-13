@@ -50,6 +50,7 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 	prot.GET("/admin/classes", userH.ListClasses)
 	prot.POST("/admin/classes", userH.CreateClass)
 	prot.GET("/admin/students", userH.GetStudents)
+	prot.POST("/admin/students/status", userH.SetStudentStatus)
 	prot.POST("/admin/classes/:classId/students/import", userH.ImportStudents)
 	prot.POST("/admin/entries/approve", entryH.BulkApprove)
 	prot.POST("/admin/entries/manual", entryH.BulkAddManualEntries)

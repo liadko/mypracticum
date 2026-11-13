@@ -19,8 +19,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onTabChange,
-  currentView,
-  onNavigateList,
   onExit,
 }) => {
   const tabs: TabConfig[] = [
@@ -86,22 +84,12 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Left side: Quick actions */}
           <div className="flex items-center space-x-2.5 space-x-reverse">
             {onExit && (
-              <button onClick={onExit} className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-teal-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded transition border border-slate-200 font-medium">
+              <button onClick={onExit} className="flex items-center gap-1.5 text-sm text-slate-700 hover:text-teal-800 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-md transition border border-slate-300 font-medium">
                 <LogOut className="w-3.5 h-3.5" />
                 <span>חזרה לאתר</span>
               </button>
             )}
             
-            {/* Return to List shortcut when in detail view */}
-            {currentView === 'details' && onNavigateList && (
-              <button
-                onClick={onNavigateList}
-                className="flex items-center space-x-1.5 space-x-reverse text-xs text-slate-600 hover:text-teal-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded transition border border-slate-200 font-medium"
-              >
-                <Users className="w-3.5 h-3.5 text-slate-500" />
-                <span>חזרה לרשימה</span>
-              </button>
-            )}
 
           </div>
 

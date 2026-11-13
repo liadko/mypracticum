@@ -88,6 +88,10 @@ export function normalizeStudentSummary(raw: any): StudentSummary {
     avatarUrl: raw.avatarUrl,
     patternFlag: raw.patternFlag || 'normal',
     patternFlagText: raw.patternFlagText,
+    status: raw.status,
+    statusReason: raw.statusReason,
+    statusNote: raw.statusNote,
+    statusLog: raw.statusLog,
   };
 }
 
@@ -150,7 +154,9 @@ export function normalizeStudentReport(raw: any): StudentReport {
     id: c.id,
     name: c.name,
     institution: c.institution || c.clientInstitution,
-    trainingCenterInfo: c.trainingCenterInfo || c.clientTrainingCenterInfo,
+    trainingCenterInfo: c.trainingCenter
+      ? [c.trainingCenter.name, c.trainingCenter.city, c.trainingCenter.contactPerson, c.trainingCenter.contactPhone].filter(Boolean).join(', ')
+      : c.trainingCenterInfo || c.clientTrainingCenterInfo,
     hours: c.hours || 0,
     ageGroup: c.ageGroup,
   }));
@@ -184,6 +190,9 @@ export interface SearchStudentsOptions {
   limit?: number;
   sortBy?: 'name' | 'class' | 'email' | 'clientHours' | 'mentorApprovedHours' | 'therapistHours' | 'mentorPendingHours' | 'signatureSubmitted' | string;
   sortDirection?: 'asc' | 'desc';
+  includeFrozen?: boolean;
+  /** 'active' (default), 'frozen' or 'all'. */
+  status?: 'active' | 'frozen' | 'all';
 }
 
 export interface SearchStudentsResult {
@@ -212,6 +221,8 @@ export async function searchStudents(
       limit: params.limit || limitParam || 50,
       sortBy: params.sortBy || 'name',
       sortDirection: params.sortDirection || 'asc',
+      includeFrozen: params.includeFrozen === true,
+      status: params.status,
     };
   }
 
@@ -230,6 +241,12 @@ export async function searchStudents(
   }
   if (options.sortDirection) {
     queryParams.append('sortDirection', options.sortDirection);
+  }
+  const status = options.status ?? (options.includeFrozen ? 'all' : 'active');
+  if (status !== 'active') {
+    queryParams.append('status', status);
+    // Understood by the backend before status existed, so either one works.
+    queryParams.append('includeFrozen', 'true');
   }
   queryParams.append('page', String(options.page || 1));
   queryParams.append('limit', String(options.limit || 50));

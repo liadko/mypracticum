@@ -25,6 +25,9 @@ export default function MentorLayout() {
   )
 
 
+  const selectedStudent = contacts.find(c => c.id === selectedStudentId)
+  const isSelectedFrozen = selectedStudent?.type === 'student' && selectedStudent.studentFrozen === true
+
   function handleContactChange(id: string) {
     setSelectedStudentId(id)
   }
@@ -72,6 +75,12 @@ export default function MentorLayout() {
             </div>
 
             <div className="selected-list-entries">
+              {isSelectedFrozen && (
+                <div className="mentor-frozen-notice" dir="rtl">
+                  חשבון התלמיד/ה אינו פעיל, ולכן לא ניתן לאשר או לבטל אישור של שעות.
+                </div>
+              )}
+
               {selectedStudentId === '' && (
                 <div style={{ padding: '0.75rem', textAlign: 'right' }}>
                   בחר תלמיד להצגת המפגשים
@@ -92,6 +101,7 @@ export default function MentorLayout() {
                       }
                       onClick={() => toggleApproved(entry.id)}
                       aria-pressed={entry.approved}
+                      disabled={isSelectedFrozen}
                     >
                       {text}
                     </button>

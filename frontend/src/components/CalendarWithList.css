@@ -233,3 +233,46 @@
 .first-contact-message__button:active {
     transform: scale(0.99);
 }
+
+/* Frozen account: the calendar stays readable but is clearly not clickable. */
+.calendar-with-list--frozen .calender-side {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Shown above the date list when the selected client is missing the new centre details. */
+.center-details-notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: -0.6rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid #b9e3dc;
+    border-right: 4px solid #2a9d8f;
+    border-radius: 10px;
+    background: #f1faf8;
+    color: #1d4f49;
+    font-size: 0.95rem;
+}
+
+.center-details-notice button {
+    flex-shrink: 0;
+    padding: 0.3rem 0.85rem;
+    border: none;
+    border-radius: 8px;
+    background: #2a9d8f;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.center-details-notice button:hover {
+    background: #23867a;
+}
+
+/* Keep the client's name on one line. */
+.center-details-notice strong {
+    white-space: nowrap;
+}

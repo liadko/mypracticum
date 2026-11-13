@@ -7,7 +7,9 @@ import { pageTitle } from '../../i18n/he'
 import { contactTypes } from '../../types'
 import { useEntries } from '../../context/EntriesContext'
 import { useContacts } from '../../context/ContactsContext'
+import { useAuth } from '../../context/AuthContext'
 import TooltipContent from '../../components/Tooltip/TooltipContent'
+import { NewFieldsNotice } from '../../components/Contacts/NewFieldsNotice'
 
 
 const countGoals = { 'client': 300, 'mentor': 150, 'therapist': 100 }
@@ -16,6 +18,7 @@ export default function StudentLayout() {
 
     const { entries, manualEntries } = useEntries()
     const { activePage, setActivePage, getContactById } = useContacts()
+    const { user } = useAuth()
 
     const entryCounts = useMemo(() => {
         const m: Record<string, number> = { 'client': 0, 'mentor': 0, 'therapist': 0 };
@@ -64,6 +67,14 @@ export default function StudentLayout() {
                     </button>
                 ))}
             </nav>
+
+            {user?.status === 'frozen' && (
+                <div className="frozen-account-banner" dir="rtl">
+                    החשבון אינו פעיל. ניתן לצפות בנתונים, אך לא לבצע שינויים.
+                </div>
+            )}
+
+            <NewFieldsNotice />
 
             {/* MAIN CONTENT */}
             {activePage === "therapist" && <TherapistPage />}

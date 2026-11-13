@@ -3,6 +3,8 @@ package report
 import (
 	"time"
 
+	"mypracticum/backend/domain"
+
 	"github.com/google/uuid"
 )
 
@@ -14,6 +16,11 @@ type StudentSummaryResponse struct {
 	Class     string    `json:"class"`
 	Taz       string    `json:"taz"`
 	Summary   Summary  `json:"summary"`
+
+	Status       string   `json:"status"`
+	StatusReason string   `json:"statusReason,omitempty"`
+	StatusNote   string   `json:"statusNote,omitempty"`
+	StatusLog    []string `json:"statusLog,omitempty"`
 }
 
 type Summary struct {
@@ -65,6 +72,7 @@ type ContactResponse struct {
 	Specialty                string    `json:"specialty,omitempty"`
 	ClientInstitution        string    `json:"clientInstitution,omitempty"`
 	ClientTrainingCenterInfo string    `json:"clientTrainingCenterInfo,omitempty"`
+	TrainingCenter           *domain.TrainingCenterDetails `json:"trainingCenter,omitempty"`
 	Hours                    int64     `json:"hours"`
 	ApprovedHours            int64     `json:"approvedHours"`
 	PendingHours             int64     `json:"pendingHours"`
@@ -112,6 +120,7 @@ type MentorStudentResponse struct {
 	Email          string              `json:"email"`
 	Class          string              `json:"class"`
 	Taz            string              `json:"taz"`
+	Status         string              `json:"status"`
 	SubmittedHours MentorHoursResponse `json:"submittedHours"`
 }
 

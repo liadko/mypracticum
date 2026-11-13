@@ -69,6 +69,27 @@ func (r *PostgresEntryRepo) ListByStudent(ctx context.Context, userID uuid.UUID)
 	return entries, nil
 }
 
+// UserStatus returns a user's status.
+func (r *PostgresEntryRepo) UserStatus(ctx context.Context, userID uuid.UUID) (domain.StudentStatus, error) {
+	var status domain.StudentStatus
+	err := r.db.QueryRowContext(ctx, `SELECT status FROM users WHERE id = $1`, userID).Scan(&status)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", repository.ErrNotFound
+	}
+	return status, err
+}
+
+// EntryOwnerStatus returns the status of the student who owns an entry.
+func (r *PostgresEntryRepo) EntryOwnerStatus(ctx context.Context, entryID uuid.UUID) (domain.StudentStatus, error) {
+	const q = `SELECT u.status FROM entries e JOIN users u ON u.id = e.user_id WHERE e.id = $1`
+	var status domain.StudentStatus
+	err := r.db.QueryRowContext(ctx, q, entryID).Scan(&status)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", repository.ErrNotFound
+	}
+	return status, err
+}
+
 func (r *PostgresEntryRepo) ListByMentor(ctx context.Context, mentorUserID uuid.UUID) ([]domain.Entry, error) {
 	const q = `
 		SELECT e.id, e.user_id, e.contact_id, e.date, e.approver_id
