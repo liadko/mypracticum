@@ -28,6 +28,15 @@ func TestAddEntryPersistsValidEntry(t *testing.T) {
 	}
 }
 
+func TestAddEntryWithSomeoneElsesContactIsNotFound(t *testing.T) {
+	repo := &fakeEntryRepo{createErr: repository.ErrNotFound}
+	_, err := NewEntryService(repo).AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-03-01"})
+	var nf NotFoundError
+	if !errors.As(err, &nf) {
+		t.Fatalf("got %T: %v", err, err)
+	}
+}
+
 func TestAddEntryRejectsInvalidDateWithoutTouchingRepo(t *testing.T) {
 	repo := &fakeEntryRepo{}
 	_, err := NewEntryService(repo).AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "nope"})
