@@ -40,14 +40,6 @@ SELECT id
   FROM users
 `
 
-// decodeStatusDetails parses users.status_details.
-func decodeStatusDetails(raw string, u *domain.User) error {
-	if err := json.Unmarshal([]byte(raw), &u.StatusDetails); err != nil {
-		return fmt.Errorf("decoding status details of user %s: %w", u.ID, err)
-	}
-	return nil
-}
-
 // loadUser runs the given WHERE clause (with one placeholder $1), scans
 // the core user fields, then loads and attaches roles.
 func (r *PostgresUserRepo) loadUser(
@@ -560,4 +552,12 @@ func (r *PostgresUserRepo) ListStudents(ctx context.Context) ([]domain.User, err
 
 	// 3. Return the simple list.
 	return users, nil
+}
+
+// decodeStatusDetails parses users.status_details.
+func decodeStatusDetails(raw string, u *domain.User) error {
+	if err := json.Unmarshal([]byte(raw), &u.StatusDetails); err != nil {
+		return fmt.Errorf("decoding status details of user %s: %w", u.ID, err)
+	}
+	return nil
 }

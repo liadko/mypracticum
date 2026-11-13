@@ -199,17 +199,6 @@ func (h *EntryHandler) SetApproval(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
-// writeFrozenError answers 403 if err means the student is frozen. The code
-// lets the frontend recognise it; the message is ready to show to the user.
-func writeFrozenError(ctx *gin.Context, err error) bool {
-	var frozen service.StudentFrozenError
-	if !errors.As(err, &frozen) {
-		return false
-	}
-	ctx.JSON(http.StatusForbidden, gin.H{"error": frozen.Error(), "code": "student_frozen"})
-	return true
-}
-
 func hasRole(rs []string, want string) bool {
 	for _, r := range rs {
 		if r == want || r == "admin" {
@@ -461,4 +450,15 @@ func (h *EntryHandler) DeleteEntries(ctx *gin.Context) {
 
 	// 5) Return the successful result
 	ctx.JSON(http.StatusOK, result)
+}
+
+// writeFrozenError answers 403 if err means the student is frozen. The code
+// lets the frontend recognise it; the message is ready to show to the user.
+func writeFrozenError(ctx *gin.Context, err error) bool {
+	var frozen service.StudentFrozenError
+	if !errors.As(err, &frozen) {
+		return false
+	}
+	ctx.JSON(http.StatusForbidden, gin.H{"error": frozen.Error(), "code": "student_frozen"})
+	return true
 }
