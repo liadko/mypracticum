@@ -1,4 +1,6 @@
 -- Read-only check for the JSONB contact migration (#18).
+-- Only meaningful until the app stops writing the old columns; after that,
+-- contacts edited since will differ by design.
 -- Run after migration 0028. Every count must be 0 before the old columns are
 -- ever dropped.
 SELECT
