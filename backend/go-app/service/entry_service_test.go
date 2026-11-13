@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -25,6 +26,43 @@ func TestAddEntryPersistsValidEntry(t *testing.T) {
 	}
 	if len(repo.created) != 1 {
 		t.Fatalf("persisted %d entries", len(repo.created))
+	}
+}
+
+func TestAddEntryWithSomeoneElsesContactIsNotFound(t *testing.T) {
+	repo := &fakeEntryRepo{createErr: repository.ErrNotFound}
+	_, err := NewEntryService(repo).AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-03-01"})
+	var nf NotFoundError
+	if !errors.As(err, &nf) {
+		t.Fatalf("got %T: %v", err, err)
+	}
+}
+
+func TestAddEntryBeforeClassStartDateIsRejected(t *testing.T) {
+	cutoff := time.Date(2024, 9, 1, 0, 0, 0, 0, time.UTC)
+	repo := &fakeEntryRepo{cutoff: &cutoff}
+	svc := NewEntryService(repo)
+
+	_, err := svc.AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-08-31"})
+	var ve domain.ValidationError
+	if !errors.As(err, &ve) {
+		t.Fatalf("got %T: %v", err, err)
+	}
+	if len(repo.created) != 0 {
+		t.Fatal("entry must not be persisted")
+	}
+
+	if _, err := svc.AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-09-01"}); err != nil {
+		t.Fatalf("the start date itself is allowed: %v", err)
+	}
+}
+
+func TestAddEntryCutoffLookupForUnknownContactIsNotFound(t *testing.T) {
+	repo := &fakeEntryRepo{cutoffErr: repository.ErrNotFound}
+	_, err := NewEntryService(repo).AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-03-01"})
+	var nf NotFoundError
+	if !errors.As(err, &nf) {
+		t.Fatalf("got %T: %v", err, err)
 	}
 }
 
