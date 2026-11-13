@@ -42,9 +42,40 @@ func (s *EntryService) AddEntry(
 		return domain.Entry{}, err
 	}
 
+	cutoff, err := s.repo.FindClassStartDateForEntry(ctx, userID, entry.ContactID)
+	if errors.Is(err, repository.ErrNotFound) {
+		log.Printf("[EntryService.AddEntry] Contact %s does not belong to user %s", entry.ContactID, userID)
+		return domain.Entry{}, NotFoundError{"contact", entry.ContactID.String()}
+	}
+	if err != nil {
+		log.Printf("[EntryService.AddEntry] Failed to resolve reporting cutoff: %v", err)
+		return domain.Entry{}, DBError{Err: err}
+	}
+	if err := validateEntryDate(entry.Date, cutoff); err != nil {
+		log.Printf("[EntryService.AddEntry] Entry date rejected for user %s: %v", userID, err)
+		return domain.Entry{}, err
+	}
+
+	usage, err := s.repo.PrivateClinicUsage(ctx, userID, entry.ContactID)
+	if errors.Is(err, repository.ErrNotFound) {
+		return domain.Entry{}, NotFoundError{"contact", entry.ContactID.String()}
+	}
+	if err != nil {
+		return domain.Entry{}, DBError{Err: err}
+	}
+	if usage.IsPrivateClinic && usage.Reached() {
+		log.Printf("[EntryService.AddEntry] Private clinic cap reached for user %s (%d/%d)", userID, usage.Used, usage.Cap)
+		return domain.Entry{}, domain.ValidationError(fmt.Sprintf(
+			"הגעת למכסה של %d שעות בקליניקה פרטית, ולכן לא ניתן להוסיף עוד. אפשר להמשיך לדווח על מטופלים במרכזי הכשרה.", usage.Cap))
+	}
+
 	// send to the repo
 	createdEntry, err := s.repo.Create(ctx, entry)
 
+	if errors.Is(err, repository.ErrNotFound) {
+		log.Printf("[EntryService.AddEntry] Contact %s does not belong to user %s", newEntry.ContactID, userID)
+		return domain.Entry{}, NotFoundError{"contact", newEntry.ContactID.String()}
+	}
 	if err != nil {
 		log.Printf("[EntryService.AddEntry] Failed to persist entry: %v", err)
 		return domain.Entry{}, DBError{Err: err}

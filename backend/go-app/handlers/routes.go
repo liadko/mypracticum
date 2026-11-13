@@ -49,6 +49,7 @@ func RegisterProtected(r *gin.Engine, entryH *entryPkg.EntryHandler, contactH *c
 	// admin
 	prot.GET("/admin/classes", userH.ListClasses)
 	prot.POST("/admin/classes", userH.CreateClass)
+	prot.PATCH("/admin/classes/:classId", userH.UpdateClassCap)
 	prot.GET("/admin/students", userH.GetStudents)
 	prot.POST("/admin/students/status", userH.SetStudentStatus)
 	prot.POST("/admin/classes/:classId/students/import", userH.ImportStudents)

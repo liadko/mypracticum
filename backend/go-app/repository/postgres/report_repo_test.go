@@ -2,9 +2,13 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"mypracticum/backend/domain"
+	"mypracticum/backend/repository"
+
+	"github.com/google/uuid"
 )
 
 func TestStudentSummaryTotals(t *testing.T) {
@@ -34,7 +38,7 @@ func TestStudentSummaryTotals(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, total, err := NewPostgresReportRepo(testDB).SearchStudentSummaries(ctx, "", "", "name", "asc", true, 50, 0)
+	got, total, err := NewPostgresReportRepo(testDB).SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListAllStudents, false, 50, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,20 +70,78 @@ func TestStudentSummaryFilters(t *testing.T) {
 	seedUser(t, "mentor@x.co", "mentor", nil)
 	repo := NewPostgresReportRepo(testDB)
 
-	if _, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", true, 50, 0); err != nil || total != 2 {
+	if _, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListAllStudents, false, 50, 0); err != nil || total != 2 {
 		t.Fatalf("mentors must not be listed as students: total=%d err=%v", total, err)
 	}
-	if got, total, err := repo.SearchStudentSummaries(ctx, "", "Class B", "name", "asc", true, 50, 0); err != nil || total != 1 || got[0].Email != "beta@x.co" {
+	if got, total, err := repo.SearchStudentSummaries(ctx, "", "Class B", "name", "asc", domain.ListAllStudents, false, 50, 0); err != nil || total != 1 || got[0].Email != "beta@x.co" {
 		t.Fatalf("class filter: total=%d err=%v", total, err)
 	}
-	if got, total, err := repo.SearchStudentSummaries(ctx, "alpha", "", "name", "asc", true, 50, 0); err != nil || total != 1 || got[0].Email != "alpha@x.co" {
+	if got, total, err := repo.SearchStudentSummaries(ctx, "alpha", "", "name", "asc", domain.ListAllStudents, false, 50, 0); err != nil || total != 1 || got[0].Email != "alpha@x.co" {
 		t.Fatalf("query filter: total=%d err=%v", total, err)
+	}
+}
+
+func TestPrivateClinicHoursAndOverCapFilter(t *testing.T) {
+	resetDB(t)
+	ctx := context.Background()
+	classID := seedClass(t, "Class A")
+	if _, err := testDB.Exec(`UPDATE classes SET private_clinic_cap = 1 WHERE id = $1`, classID); err != nil {
+		t.Fatal(err)
+	}
+	over := seedUser(t, "over@x.co", "student", &classID)
+	under := seedUser(t, "under@x.co", "student", &classID)
+
+	c := createContact(t, clientContact(over, "A.B", "privateClinic"))
+	addEntry(t, over, c.ID, "2025-01-10")
+	addEntry(t, over, c.ID, "2025-01-11")
+	d := createContact(t, clientContact(under, "C.D", "privateClinic"))
+	addEntry(t, under, d.ID, "2025-01-10")
+
+	repo := NewPostgresReportRepo(testDB)
+	got, total, err := repo.SearchStudentSummaries(ctx, "", "", "privateclinichours", "desc", domain.ListAllStudents, false, 50, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if total != 2 || got[0].Email != "over@x.co" || got[0].Summary.PrivateClinicHours != 2 || got[0].Summary.PrivateClinicCap != 1 {
+		t.Fatalf("got %+v", got)
+	}
+
+	got, total, err = repo.SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListAllStudents, true, 50, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if total != 1 || got[0].Email != "over@x.co" {
+		t.Fatalf("over-cap filter: total=%d rows=%+v (at the cap is not over)", total, got)
+	}
+}
+
+func TestClassPrivateClinicCap(t *testing.T) {
+	resetDB(t)
+	ctx := context.Background()
+	repo := NewPostgresUserRepo(testDB)
+
+	created, err := repo.CreateClass(ctx, domain.Class{Name: "Class B", PrivateClinicCap: domain.DefaultPrivateClinicCap})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if created.PrivateClinicCap != 160 {
+		t.Fatalf("got %d", created.PrivateClinicCap)
+	}
+	updated, err := repo.UpdateClassPrivateClinicCap(ctx, created.ID, 200)
+	if err != nil || updated.PrivateClinicCap != 200 {
+		t.Fatalf("got %+v, %v", updated, err)
+	}
+	if _, err := repo.UpdateClassPrivateClinicCap(ctx, uuid.New(), 10); !errors.Is(err, repository.ErrNotFound) {
+		t.Fatalf("unknown class: got %v", err)
+	}
+	if _, err := repo.UpdateClassPrivateClinicCap(ctx, created.ID, -1); err == nil {
+		t.Fatal("a negative cap must be rejected by the database")
 	}
 }
 
 func TestStudentSummaryRejectsUnknownSort(t *testing.T) {
 	resetDB(t)
-	_, _, err := NewPostgresReportRepo(testDB).SearchStudentSummaries(context.Background(), "", "", "1; DROP TABLE users", "asc", true, 50, 0)
+	_, _, err := NewPostgresReportRepo(testDB).SearchStudentSummaries(context.Background(), "", "", "1; DROP TABLE users", "asc", domain.ListAllStudents, false, 50, 0)
 	if err == nil {
 		t.Fatal("unknown sort field must be rejected, it is concatenated into SQL")
 	}

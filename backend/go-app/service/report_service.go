@@ -42,7 +42,8 @@ func (s *ReportService) SearchStudents(
 	classFilter string,
 	sortBy string,
 	sortDirection string,
-	includeFrozen bool,
+	statusFilter domain.StudentStatusFilter,
+	overPrivateClinicCap bool,
 	page int,
 	limit int,
 ) (domain.StudentSearchPage, error) {
@@ -66,7 +67,7 @@ func (s *ReportService) SearchStudents(
 		limit = MaxReportStudentLimit
 	}
 
-	students, total, err := s.reportRepo.SearchStudentSummaries(ctx, query, classFilter, sortBy, sortDirection, includeFrozen, limit, (page-1)*limit)
+	students, total, err := s.reportRepo.SearchStudentSummaries(ctx, query, classFilter, sortBy, sortDirection, statusFilter, overPrivateClinicCap, limit, (page-1)*limit)
 	if err != nil {
 		return domain.StudentSearchPage{}, DBError{fmt.Errorf("search students for reports: %w", err)}
 	}
@@ -220,8 +221,17 @@ func (s *ReportService) GetStudentReport(
 		})
 	}
 
+	isPrivateClinic := make(map[uuid.UUID]bool, len(contacts))
+	for _, contact := range contacts {
+		isPrivateClinic[contact.ID] = contact.Type == domain.ClientContact &&
+			contact.ClientInstitution != nil && *contact.ClientInstitution == "privateClinic"
+	}
+
 	for i := range events {
 		events[i].Hours = 1
+		if isPrivateClinic[events[i].ContactID] {
+			summary.PrivateClinicHours++
+		}
 		summary.LastReportedDate = latestDate(summary.LastReportedDate, &events[i].Date)
 		switch events[i].Category {
 		case domain.ClientContact:
@@ -261,12 +271,14 @@ func (s *ReportService) GetStudentReport(
 	}
 
 	studentClass := ""
+	summary.PrivateClinicCap = domain.DefaultPrivateClinicCap
 	if student.ClassID != nil {
 		class, err := s.userRepo.FindClassByID(ctx, *student.ClassID)
 		if err != nil {
 			return domain.StudentReport{}, DBError{fmt.Errorf("find report student class: %w", err)}
 		}
 		studentClass = class.Name
+		summary.PrivateClinicCap = int64(class.PrivateClinicCap)
 	}
 	studentSummary := domain.StudentSummary{
 		ID:        student.ID,

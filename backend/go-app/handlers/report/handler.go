@@ -44,6 +44,11 @@ func (h *ReportHandler) ListStudents(ctx *gin.Context) {
 		}
 		limit = parsed
 	}
+	statusFilter, err := domain.ParseStudentStatusFilter(ctx.Query("status"), ctx.Query("includeFrozen") == "true")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	log.Printf("[reports] students start page=%d limit=%d sort=%s/%s query=%t class=%t", page, limit, ctx.Query("sortBy"), ctx.Query("sortDirection"), ctx.Query("query") != "", ctx.Query("class") != "")
 
 	result, err := h.svc.SearchStudents(
@@ -52,7 +57,8 @@ func (h *ReportHandler) ListStudents(ctx *gin.Context) {
 		ctx.Query("class"),
 		ctx.Query("sortBy"),
 		ctx.Query("sortDirection"),
-		ctx.Query("includeFrozen") == "true",
+		statusFilter,
+		ctx.Query("overPrivateClinicCap") == "true",
 		page,
 		limit,
 	)
@@ -292,6 +298,8 @@ func mapSummary(summary domain.StudentReportSummary) Summary {
 		},
 		LastReportedDate:   lastReportedDate,
 		SignatureSubmitted: summary.SignatureSubmitted,
+		PrivateClinicHours: summary.PrivateClinicHours,
+		PrivateClinicCap:   summary.PrivateClinicCap,
 	}
 }
 

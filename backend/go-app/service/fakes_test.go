@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -19,6 +20,11 @@ type fakeEntryRepo struct {
 	repository.EntryRepo
 
 	status      domain.StudentStatus
+	usage       domain.PrivateClinicUsage
+	usageErr    error
+	cutoff      *time.Time
+	cutoffErr   error
+	createErr   error
 	created     []domain.Entry
 	deleteErr   error
 	linked      bool
@@ -35,7 +41,21 @@ func (f *fakeEntryRepo) EntryOwnerStatus(context.Context, uuid.UUID) (domain.Stu
 	return f.status, nil
 }
 
+func (f *fakeEntryRepo) PrivateClinicUsage(context.Context, uuid.UUID, uuid.UUID) (domain.PrivateClinicUsage, error) {
+	if f.usage.Cap == 0 && f.usageErr == nil {
+		return domain.PrivateClinicUsage{Cap: domain.DefaultPrivateClinicCap}, nil
+	}
+	return f.usage, f.usageErr
+}
+
+func (f *fakeEntryRepo) FindClassStartDateForEntry(context.Context, uuid.UUID, uuid.UUID) (*time.Time, error) {
+	return f.cutoff, f.cutoffErr
+}
+
 func (f *fakeEntryRepo) Create(_ context.Context, e domain.Entry) (domain.Entry, error) {
+	if f.createErr != nil {
+		return domain.Entry{}, f.createErr
+	}
 	f.created = append(f.created, e)
 	return e, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -26,6 +27,81 @@ func TestAddEntryPersistsValidEntry(t *testing.T) {
 	if len(repo.created) != 1 {
 		t.Fatalf("persisted %d entries", len(repo.created))
 	}
+}
+
+func TestAddEntryWithSomeoneElsesContactIsNotFound(t *testing.T) {
+	repo := &fakeEntryRepo{createErr: repository.ErrNotFound}
+	_, err := NewEntryService(repo).AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-03-01"})
+	var nf NotFoundError
+	if !errors.As(err, &nf) {
+		t.Fatalf("got %T: %v", err, err)
+	}
+}
+
+func TestAddEntryBeforeClassStartDateIsRejected(t *testing.T) {
+	cutoff := time.Date(2024, 9, 1, 0, 0, 0, 0, time.UTC)
+	repo := &fakeEntryRepo{cutoff: &cutoff}
+	svc := NewEntryService(repo)
+
+	_, err := svc.AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-08-31"})
+	var ve domain.ValidationError
+	if !errors.As(err, &ve) {
+		t.Fatalf("got %T: %v", err, err)
+	}
+	if len(repo.created) != 0 {
+		t.Fatal("entry must not be persisted")
+	}
+
+	if _, err := svc.AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-09-01"}); err != nil {
+		t.Fatalf("the start date itself is allowed: %v", err)
+	}
+}
+
+func TestAddEntryCutoffLookupForUnknownContactIsNotFound(t *testing.T) {
+	repo := &fakeEntryRepo{cutoffErr: repository.ErrNotFound}
+	_, err := NewEntryService(repo).AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-03-01"})
+	var nf NotFoundError
+	if !errors.As(err, &nf) {
+		t.Fatalf("got %T: %v", err, err)
+	}
+}
+
+func TestPrivateClinicCap(t *testing.T) {
+	add := func(usage domain.PrivateClinicUsage) (*fakeEntryRepo, error) {
+		repo := &fakeEntryRepo{usage: usage}
+		_, err := NewEntryService(repo).AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-03-01"})
+		return repo, err
+	}
+
+	t.Run("under the cap", func(t *testing.T) {
+		repo, err := add(domain.PrivateClinicUsage{IsPrivateClinic: true, Used: 159, Cap: 160})
+		if err != nil || len(repo.created) != 1 {
+			t.Fatalf("got %v, created %d", err, len(repo.created))
+		}
+	})
+
+	t.Run("at the cap is blocked", func(t *testing.T) {
+		repo, err := add(domain.PrivateClinicUsage{IsPrivateClinic: true, Used: 160, Cap: 160})
+		var ve domain.ValidationError
+		if !errors.As(err, &ve) || len(repo.created) != 0 {
+			t.Fatalf("got %T %v, created %d", err, err, len(repo.created))
+		}
+	})
+
+	t.Run("already over the cap is blocked", func(t *testing.T) {
+		_, err := add(domain.PrivateClinicUsage{IsPrivateClinic: true, Used: 618, Cap: 160})
+		var ve domain.ValidationError
+		if !errors.As(err, &ve) {
+			t.Fatalf("got %T %v", err, err)
+		}
+	})
+
+	t.Run("training-centre clients are never capped", func(t *testing.T) {
+		repo, err := add(domain.PrivateClinicUsage{IsPrivateClinic: false, Used: 618, Cap: 160})
+		if err != nil || len(repo.created) != 1 {
+			t.Fatalf("got %v, created %d", err, len(repo.created))
+		}
+	})
 }
 
 func TestAddEntryRejectsInvalidDateWithoutTouchingRepo(t *testing.T) {

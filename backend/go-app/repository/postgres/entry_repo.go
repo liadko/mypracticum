@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -121,16 +122,81 @@ func (r *PostgresEntryRepo) ListByMentor(ctx context.Context, mentorUserID uuid.
 	return out, nil
 }
 
+// FindClassStartDateForEntry resolves the cutoff for a contact owned by the
+// authenticated user. A classless user, or a class with no cutoff for this
+// contact type, has no restriction.
+func (r *PostgresEntryRepo) FindClassStartDateForEntry(
+	ctx context.Context,
+	userID, contactID uuid.UUID,
+) (*time.Time, error) {
+	const q = `
+		SELECT CASE c.type
+		         WHEN 'client' THEN cl.client_start_date
+		         WHEN 'mentor' THEN cl.mentor_start_date
+		         WHEN 'therapist' THEN cl.therapist_start_date
+		       END
+		  FROM contacts c
+		  JOIN users u ON u.id = c.user_id
+		  LEFT JOIN classes cl ON cl.id = u.class_id
+		 WHERE c.id = $1
+		   AND c.user_id = $2
+	`
+
+	var cutoff sql.NullTime
+	if err := r.db.QueryRowContext(ctx, q, contactID, userID).Scan(&cutoff); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, repository.ErrNotFound
+		}
+		return nil, fmt.Errorf("find class start date for contact %s: %w", contactID, err)
+	}
+	if !cutoff.Valid {
+		return nil, nil
+	}
+	return &cutoff.Time, nil
+}
+
+// PrivateClinicUsage reports whether the contact is a private-clinic client,
+// how many private-clinic entries the student already has, and their cap.
+// Only calendar entries count; manual hours do not.
+func (r *PostgresEntryRepo) PrivateClinicUsage(ctx context.Context, userID, contactID uuid.UUID) (domain.PrivateClinicUsage, error) {
+	const q = `
+		SELECT (c.type = 'client' AND c.metadata->>'clientInstitution' = 'privateClinic'),
+		       (SELECT count(*)
+		          FROM entries e
+		          JOIN contacts pc ON pc.id = e.contact_id
+		         WHERE e.user_id = $1
+		           AND pc.type = 'client'
+		           AND pc.metadata->>'clientInstitution' = 'privateClinic'),
+		       COALESCE(cl.private_clinic_cap, $3)
+		  FROM contacts c
+		  JOIN users u ON u.id = c.user_id
+		  LEFT JOIN classes cl ON cl.id = u.class_id
+		 WHERE c.id = $2
+		   AND c.user_id = $1
+	`
+	var usage domain.PrivateClinicUsage
+	err := r.db.QueryRowContext(ctx, q, userID, contactID, domain.DefaultPrivateClinicCap).Scan(&usage.IsPrivateClinic, &usage.Used, &usage.Cap)
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.PrivateClinicUsage{}, repository.ErrNotFound
+	}
+	if err != nil {
+		return domain.PrivateClinicUsage{}, fmt.Errorf("private clinic usage for contact %s: %w", contactID, err)
+	}
+	return usage, nil
+}
+
 // Create satisfies EntryRepository
 func (r *PostgresEntryRepo) Create(
 	ctx context.Context,
 	e domain.Entry,
 ) (domain.Entry, error) {
 
-	// 1) run INSERT … RETURNING
+	// 1) insert only if the contact belongs to this user, so nobody can log
+	//    hours against another student's contact. No row back means it doesn't.
 	const q = `
     INSERT INTO entries (id, user_id, contact_id, date)
-    VALUES ($1, $2, $3, $4)
+    SELECT $1::uuid, $2::uuid, $3::uuid, $4::date
+     WHERE EXISTS (SELECT 1 FROM contacts WHERE id = $3::uuid AND user_id = $2::uuid)
     RETURNING id, user_id, contact_id, date
     `
 	row := r.db.QueryRowContext(ctx, q,
@@ -148,6 +214,9 @@ func (r *PostgresEntryRepo) Create(
 		&out.ContactID,
 		&out.Date,
 	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Entry{}, repository.ErrNotFound
+		}
 		return domain.Entry{}, fmt.Errorf("insert entry: %w", err)
 	}
 

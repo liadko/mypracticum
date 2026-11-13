@@ -27,7 +27,8 @@ func (r *PostgresReportRepo) SearchStudentSummaries(
 	classFilter string,
 	sortBy string,
 	sortDirection string,
-	includeFrozen bool,
+	statusFilter domain.StudentStatusFilter,
+	overPrivateClinicCap bool,
 	limit int,
 	offset int,
 ) ([]domain.StudentSummary, int64, error) {
@@ -55,11 +56,13 @@ SELECT COUNT(*)
     OR u.email ILIKE '%' || $1 || '%'
     OR COALESCE(u.taz, '') ILIKE '%' || $1 || '%')
 	AND ($2 = '' OR COALESCE(cl.name, '') = $2)
-	AND ($3::boolean OR u.status = 'active')
+	AND ($3::text = 'all' OR u.status = $3::text)
+	AND (NOT $4::boolean OR (SELECT count(*) FROM entries pe JOIN contacts pc ON pc.id = pe.contact_id
+             WHERE pe.user_id = u.id AND pc.type = 'client' AND pc.metadata->>'clientInstitution' = 'privateClinic') > COALESCE(cl.private_clinic_cap, 160))
 `
 
 	var total int64
-	if err := r.db.QueryRowContext(ctx, countQ, strings.TrimSpace(query), strings.TrimSpace(classFilter), includeFrozen).Scan(&total); err != nil {
+	if err := r.db.QueryRowContext(ctx, countQ, strings.TrimSpace(query), strings.TrimSpace(classFilter), string(statusFilter), overPrivateClinicCap).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count report students: %w", err)
 	}
 
@@ -67,7 +70,8 @@ SELECT COUNT(*)
 WITH students AS (
     SELECT u.id, u.first_name, u.last_name, u.email, cl.name AS class, u.taz,
            (u.signature IS NOT NULL AND octet_length(u.signature) > 0) AS signature_submitted,
-           u.status, u.status_details
+           u.status, u.status_details,
+           COALESCE(cl.private_clinic_cap, 160) AS private_clinic_cap
       FROM users u
       LEFT JOIN classes cl ON cl.id = u.class_id
       JOIN user_roles ur ON ur.user_id = u.id
@@ -77,7 +81,9 @@ WITH students AS (
         OR u.email ILIKE '%' || $1 || '%'
         OR COALESCE(u.taz, '') ILIKE '%' || $1 || '%')
 	   AND ($2 = '' OR COALESCE(cl.name, '') = $2)
-	   AND ($3::boolean OR u.status = 'active')
+	   AND ($3::text = 'all' OR u.status = $3::text)
+	   AND (NOT $4::boolean OR (SELECT count(*) FROM entries pe JOIN contacts pc ON pc.id = pe.contact_id
+             WHERE pe.user_id = u.id AND pc.type = 'client' AND pc.metadata->>'clientInstitution' = 'privateClinic') > COALESCE(cl.private_clinic_cap, 160))
 ), regular AS (
     SELECT
         e.user_id,
@@ -85,6 +91,7 @@ WITH students AS (
         COUNT(*) FILTER (WHERE c.type = 'mentor' AND e.approver_id IS NOT NULL) AS mentor_approved_hours,
         COUNT(*) FILTER (WHERE c.type = 'mentor' AND e.approver_id IS NULL) AS mentor_pending_hours,
         COUNT(*) FILTER (WHERE c.type = 'therapist') AS therapist_hours,
+        COUNT(*) FILTER (WHERE c.type = 'client' AND c.metadata->>'clientInstitution' = 'privateClinic') AS private_clinic_hours,
         COUNT(*) AS total_hours,
         MAX(e.date) AS last_reported_date
       FROM entries e
@@ -118,15 +125,17 @@ SELECT
     r.last_reported_date,
     s.signature_submitted,
     s.status,
-    s.status_details::text
+    s.status_details::text,
+    COALESCE(r.private_clinic_hours, 0),
+    s.private_clinic_cap
   FROM students s
   LEFT JOIN regular r ON r.user_id = s.id
   LEFT JOIN manual m ON m.user_id = s.id
  ORDER BY ` + nameLanguageOrder + ` ` + orderBy + ` ` + direction + `, s.id
- LIMIT $4 OFFSET $5
+ LIMIT $5 OFFSET $6
 `
 
-	rows, err := r.db.QueryContext(ctx, q, strings.TrimSpace(query), strings.TrimSpace(classFilter), includeFrozen, limit, offset)
+	rows, err := r.db.QueryContext(ctx, q, strings.TrimSpace(query), strings.TrimSpace(classFilter), string(statusFilter), overPrivateClinicCap, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("search student report summaries: %w", err)
 	}
@@ -156,6 +165,8 @@ SELECT
 			&s.Summary.SignatureSubmitted,
 			&s.Status,
 			&rawStatusDetails,
+			&s.Summary.PrivateClinicHours,
+			&s.Summary.PrivateClinicCap,
 		); err != nil {
 			return nil, 0, fmt.Errorf("scan student report summary: %w", err)
 		}
@@ -467,6 +478,11 @@ func reportStudentSortExpression(sortBy string) (string, bool) {
 		return "COALESCE(r.mentor_pending_hours, 0)", true
 	case "signaturesubmitted":
 		return "s.signature_submitted", true
+	case "privateclinichours":
+		return "COALESCE(r.private_clinic_hours, 0)", true
+	case "status":
+		// Descending puts frozen students first.
+		return "(s.status = 'frozen')", true
 	default:
 		return "", false
 	}
