@@ -24,75 +24,6 @@ func NewPostgresContactRepo(db *sql.DB) repository.ContactRepo {
 	return &PostgresContactRepo{db: db}
 }
 
-// contactMetadata is the shape of contacts.metadata.
-//
-// While the migration in #18 is in progress, every write goes to both this
-// column and the old ones, and a row whose metadata is NULL is read from the
-// old columns. Once the old columns are dropped, the fallback goes away.
-type contactMetadata struct {
-	Email                    *string `json:"email,omitempty"`
-	Phone                    *string `json:"phone,omitempty"`
-	Specialty                *string `json:"specialty,omitempty"`
-	ClientInstitution        *string `json:"clientInstitution,omitempty"`
-	ClientTrainingCenterInfo *string `json:"clientTrainingCenterInfo,omitempty"`
-}
-
-// encodeContactMetadata returns JSON as a string because database/sql would
-// send a []byte as bytea, which Postgres won't cast to jsonb.
-func encodeContactMetadata(c domain.Contact) (string, error) {
-	encoded, err := json.Marshal(contactMetadata{
-		Email:                    c.Email,
-		Phone:                    c.Phone,
-		Specialty:                c.Specialty,
-		ClientInstitution:        c.ClientInstitution,
-		ClientTrainingCenterInfo: c.ClientTrainingCenterInfo,
-	})
-	if err != nil {
-		return "", fmt.Errorf("encoding contact metadata: %w", err)
-	}
-	return string(encoded), nil
-}
-
-const contactColumns = `id, user_id, type, name,
-		email, phone, specialty,
-		mentor_user_id,
-		client_institution, client_training_center_info,
-		metadata`
-
-type rowScanner interface {
-	Scan(dest ...any) error
-}
-
-// scanContact reads a row selected with contactColumns. Metadata wins when
-// present; a NULL means the row hasn't been migrated, so the columns are used.
-func scanContact(row rowScanner) (domain.Contact, error) {
-	var c domain.Contact
-	var rawMetadata []byte
-	if err := row.Scan(
-		&c.ID, &c.UserID, &c.Type, &c.Name,
-		&c.Email, &c.Phone, &c.Specialty,
-		&c.MentorUserID,
-		&c.ClientInstitution, &c.ClientTrainingCenterInfo,
-		&rawMetadata,
-	); err != nil {
-		return domain.Contact{}, err
-	}
-	if rawMetadata == nil {
-		return c, nil
-	}
-
-	var metadata contactMetadata
-	if err := json.Unmarshal(rawMetadata, &metadata); err != nil {
-		return domain.Contact{}, fmt.Errorf("decoding metadata of contact %s: %w", c.ID, err)
-	}
-	c.Email = metadata.Email
-	c.Phone = metadata.Phone
-	c.Specialty = metadata.Specialty
-	c.ClientInstitution = metadata.ClientInstitution
-	c.ClientTrainingCenterInfo = metadata.ClientTrainingCenterInfo
-	return c, nil
-}
-
 // Create implements repository.ContactRepository.
 func (r *PostgresContactRepo) Create(ctx context.Context, userID uuid.UUID, c domain.Contact) (domain.Contact, error) {
 	metadata, err := encodeContactMetadata(c)
@@ -258,3 +189,74 @@ func (r *PostgresContactRepo) GetMentor(ctx context.Context, userID, contactID u
 // 	// DELETE FROM contacts WHERE id=$1 AND user_id=$2
 // 	return fmt.Errorf("Delete Not Implemented Yet")
 // }
+
+// ---- private helpers ----
+
+// contactMetadata is the shape of contacts.metadata.
+//
+// While the migration in #18 is in progress, every write goes to both this
+// column and the old ones, and a row whose metadata is NULL is read from the
+// old columns. Once the old columns are dropped, the fallback goes away.
+type contactMetadata struct {
+	Email                    *string `json:"email,omitempty"`
+	Phone                    *string `json:"phone,omitempty"`
+	Specialty                *string `json:"specialty,omitempty"`
+	ClientInstitution        *string `json:"clientInstitution,omitempty"`
+	ClientTrainingCenterInfo *string `json:"clientTrainingCenterInfo,omitempty"`
+}
+
+// encodeContactMetadata returns JSON as a string because database/sql would
+// send a []byte as bytea, which Postgres won't cast to jsonb.
+func encodeContactMetadata(c domain.Contact) (string, error) {
+	encoded, err := json.Marshal(contactMetadata{
+		Email:                    c.Email,
+		Phone:                    c.Phone,
+		Specialty:                c.Specialty,
+		ClientInstitution:        c.ClientInstitution,
+		ClientTrainingCenterInfo: c.ClientTrainingCenterInfo,
+	})
+	if err != nil {
+		return "", fmt.Errorf("encoding contact metadata: %w", err)
+	}
+	return string(encoded), nil
+}
+
+const contactColumns = `id, user_id, type, name,
+		email, phone, specialty,
+		mentor_user_id,
+		client_institution, client_training_center_info,
+		metadata`
+
+type rowScanner interface {
+	Scan(dest ...any) error
+}
+
+// scanContact reads a row selected with contactColumns. Metadata wins when
+// present; a NULL means the row hasn't been migrated, so the columns are used.
+func scanContact(row rowScanner) (domain.Contact, error) {
+	var c domain.Contact
+	var rawMetadata []byte
+	if err := row.Scan(
+		&c.ID, &c.UserID, &c.Type, &c.Name,
+		&c.Email, &c.Phone, &c.Specialty,
+		&c.MentorUserID,
+		&c.ClientInstitution, &c.ClientTrainingCenterInfo,
+		&rawMetadata,
+	); err != nil {
+		return domain.Contact{}, err
+	}
+	if rawMetadata == nil {
+		return c, nil
+	}
+
+	var metadata contactMetadata
+	if err := json.Unmarshal(rawMetadata, &metadata); err != nil {
+		return domain.Contact{}, fmt.Errorf("decoding metadata of contact %s: %w", c.ID, err)
+	}
+	c.Email = metadata.Email
+	c.Phone = metadata.Phone
+	c.Specialty = metadata.Specialty
+	c.ClientInstitution = metadata.ClientInstitution
+	c.ClientTrainingCenterInfo = metadata.ClientTrainingCenterInfo
+	return c, nil
+}
