@@ -2,6 +2,28 @@ package domain
 
 import "testing"
 
+func TestParseStudentStatusFilter(t *testing.T) {
+	tests := []struct {
+		status        string
+		includeFrozen bool
+		want          StudentStatusFilter
+		wantErr       bool
+	}{
+		{"", false, ListActiveStudents, false},
+		{"", true, ListAllStudents, false},
+		{"frozen", false, ListFrozenStudents, false},
+		{" ALL ", false, ListAllStudents, false},
+		{"active", true, ListActiveStudents, false},
+		{"paused", false, "", true},
+	}
+	for _, tt := range tests {
+		got, err := ParseStudentStatusFilter(tt.status, tt.includeFrozen)
+		if (err != nil) != tt.wantErr || got != tt.want {
+			t.Errorf("ParseStudentStatusFilter(%q, %v) = %q, %v", tt.status, tt.includeFrozen, got, err)
+		}
+	}
+}
+
 func TestStatusChangeValidate(t *testing.T) {
 	tests := []struct {
 		name   string

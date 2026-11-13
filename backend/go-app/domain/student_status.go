@@ -64,6 +64,34 @@ func (c StatusChange) Validate() error {
 	return nil
 }
 
+// StudentStatusFilter picks which students a report lists.
+type StudentStatusFilter string
+
+const (
+	ListActiveStudents StudentStatusFilter = "active" // the default
+	ListFrozenStudents StudentStatusFilter = "frozen"
+	ListAllStudents    StudentStatusFilter = "all"
+)
+
+// ParseStudentStatusFilter reads the "status" query value. An empty value
+// falls back to the older includeFrozen flag so existing pages keep working.
+func ParseStudentStatusFilter(status string, includeFrozen bool) (StudentStatusFilter, error) {
+	switch StudentStatusFilter(strings.ToLower(strings.TrimSpace(status))) {
+	case "":
+		if includeFrozen {
+			return ListAllStudents, nil
+		}
+		return ListActiveStudents, nil
+	case ListActiveStudents:
+		return ListActiveStudents, nil
+	case ListFrozenStudents:
+		return ListFrozenStudents, nil
+	case ListAllStudents:
+		return ListAllStudents, nil
+	}
+	return "", ValidationError("status must be 'active', 'frozen' or 'all'")
+}
+
 // IsFrozen reports whether the user is a frozen student.
 func (u User) IsFrozen() bool {
 	return u.Status == StudentFrozen
