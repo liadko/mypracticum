@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useContacts } from '../../context/ContactsContext'
 import type { ContactType, FormMode, NewContact } from '../../types'
 import './ContactForm.css'
-import { validateContact } from '../../domain/contacts'
+import { needsCenterDetails, validateContact } from '../../domain/contacts'
 import { showError } from '../../utils/toast'
 import { MentorConfirmModal } from './MentorConfirmModal'
 import { useAuth } from '../../context/AuthContext'
@@ -41,6 +41,19 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
     const [alreadyFocusedNameFlag, setFocusedNameFlag] = useState(false);
 
     const [showMentorConfirm, setShowMentorConfirm] = useState(false);
+
+    // Set when editing an older training-centre client that has none of the new
+    // fields: holds what the student originally typed, shown in a dismissible notice.
+    const [olderCenterText, setOlderCenterText] = useState<string | null>(null)
+
+    // The form scrolls inside the modal; this says whether fields are hidden below.
+    const formRef = useRef<HTMLFormElement>(null)
+    const [hasMoreBelow, setHasMoreBelow] = useState(false)
+    const updateHasMoreBelow = () => {
+        const el = formRef.current
+        if (el) setHasMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 24)
+    }
+    useEffect(updateHasMoreBelow, [formValues?.clientInstitution, olderCenterText])
     const [addedMentor, setAddedMentor] = useState<NewContact | null>(null);
 
     // initialize once on mount
@@ -54,6 +67,9 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
             }
 
             const isClient = existing.type === 'client'
+            if (needsCenterDetails(existing) && existing.type === 'client') {
+                setOlderCenterText(existing.clientTrainingCenterInfo ?? '')
+            }
             const isMentor = existing.type === 'mentor'
             const isTherapist = existing.type === 'therapist'
 
@@ -109,17 +125,18 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
         centerName, centerCity, centerContactPerson, centerContactPhone,
     } = formValues
 
-    // Saved before the detailed fields existed: has the old text and nothing else.
-    const isLegacyCenter = formMode.mode === 'edit' && !!clientTrainingCenterInfo
-        && !centerName && !centerCity && !centerContactPerson
-
+    const isNudged = olderCenterText !== null
+    // New contacts must name the centre; older ones already have a description.
+    const centerRequired = !clientTrainingCenterInfo
+    const centerStar = centerRequired && <span className="contact-form__required" aria-hidden="true">*</span>
     const trainingCenter = {
         name: centerName.trim(),
         city: centerCity.trim(),
         contactPerson: centerContactPerson.trim(),
         ...(centerContactPhone.trim() && { contactPhone: centerContactPhone.trim() }),
     }
-    const hasCenterDetails = !!(trainingCenter.name || trainingCenter.city || trainingCenter.contactPerson)
+    const hasCenterDetails = !!(trainingCenter.name || trainingCenter.city || trainingCenter.contactPerson || trainingCenter.contactPhone)
+    const isCenterComplete = !!(trainingCenter.name && trainingCenter.city && trainingCenter.contactPerson)
 
 
 
@@ -145,9 +162,9 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
             name,
             ...(type === 'client' && {
                 clientInstitution,
-                // Kept filled in so the contact still saves against a backend
-                // that doesn't know the detailed fields yet.
-                clientTrainingCenterInfo: isCenter && hasCenterDetails
+                // An older contact keeps its original text. A new one gets a
+                // summary, so it also saves against an older backend.
+                clientTrainingCenterInfo: isCenter && !clientTrainingCenterInfo && isCenterComplete
                     ? `${trainingCenter.name}, ${trainingCenter.city}`
                     : clientTrainingCenterInfo,
                 ...(isCenter && (hasCenterDetails || !clientTrainingCenterInfo) && { trainingCenter }),
@@ -178,11 +195,11 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
     return (
         <>
             <div className='contact-form__fake-navbar' />
-            <form className="contact-form" onSubmit={handleSubmit} noValidate>
+            <form className="contact-form" onSubmit={handleSubmit} noValidate ref={formRef} onScroll={updateHasMoreBelow}>
 
                 <div className="contact-form__field">
                     <label className="contact-form__label">
-                        {type === 'client' ? 'שם המטופל בראשי תיבות' : 'שם מלא'}
+                        {type === 'client' ? 'שם המטופל בראשי תיבות' : 'שם מלא'}<span className="contact-form__required" aria-hidden="true">*</span>
                         < input
                             ref={nameRef}
                             type="text"
@@ -198,7 +215,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                 {type === 'mentor' && (
                     <div className="contact-form__field">
                         <label className="contact-form__label">
-                            אימייל
+                            אימייל<span className="contact-form__required" aria-hidden="true">*</span>
                             <input
                                 type="email"
                                 className="contact-form__input"
@@ -215,7 +232,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                     <>
                         <div className="contact-form__field">
                             <label className="contact-form__label">
-                                טלפון
+                                טלפון<span className="contact-form__required" aria-hidden="true">*</span>
                                 <input
                                     type="tel"
                                     className="contact-form__input"
@@ -228,7 +245,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                         </div>
                         <div className="contact-form__field">
                             <label className="contact-form__label">
-                                הכשרה
+                                הכשרה<span className="contact-form__required" aria-hidden="true">*</span>
                                 <input
                                     type="text"
                                     className="contact-form__input"
@@ -247,7 +264,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                         <div className='contact-form__gap' />
                         <div className="contact-form__field">
                             <label className="contact-form__label">
-                                מסגרת טיפול
+                                מסגרת טיפול<span className="contact-form__required" aria-hidden="true">*</span>
                                 <div className="contact-form__radio-group">
                                     <label className="contact-form__radio">
                                         <input
@@ -274,16 +291,28 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                         </div>
                         {clientInstitution == 'trainingCenter' && (
                             <>
-                                {isLegacyCenter && (
-                                    <p className="contact-form__legacy-note" dir="rtl">
-                                        <strong>{clientTrainingCenterInfo}</strong>
-                                        <br />
-                                        הוספנו כמה שדות חדשים, אפשר למלא אותם כאן.
-                                    </p>
+                                {isNudged && (
+                                    <div className="contact-form__notice" dir="rtl" role="status">
+                                        <button
+                                            type="button"
+                                            className="contact-form__notice-close"
+                                            aria-label="סגירה"
+                                            onClick={() => setOlderCenterText(null)}
+                                        >×</button>
+                                        <div className="contact-form__notice-title">הוספנו שדות חדשים למרכז ההכשרה</div>
+                                        {olderCenterText && (
+                                            <div className="contact-form__notice-text">
+                                                מה שכתבת בעבר: <strong>{olderCenterText}</strong>
+                                            </div>
+                                        )}
+                                        <div className="contact-form__notice-text">
+                                            אפשר להשלים למטה את שם המרכז, העיר ואיש הקשר.
+                                        </div>
+                                    </div>
                                 )}
                                 <div className="contact-form__field">
                                     <label className="contact-form__label">
-                                        שם המרכז
+                                        <span>שם המרכז{centerStar}{isNudged && <span className="contact-form__new-pill">חדש</span>}</span>
                                         <input
                                             type="text"
                                             className="contact-form__input"
@@ -296,7 +325,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                                 </div>
                                 <div className="contact-form__field">
                                     <label className="contact-form__label">
-                                        עיר
+                                        <span>עיר{centerStar}{isNudged && <span className="contact-form__new-pill">חדש</span>}</span>
                                         <input
                                             type="text"
                                             className="contact-form__input"
@@ -309,7 +338,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                                 </div>
                                 <div className="contact-form__field">
                                     <label className="contact-form__label">
-                                        איש קשר במרכז
+                                        <span>איש קשר במרכז{centerStar}{isNudged && <span className="contact-form__new-pill">חדש</span>}</span>
                                         <input
                                             type="text"
                                             className="contact-form__input"
@@ -321,7 +350,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                                 </div>
                                 <div className="contact-form__field">
                                     <label className="contact-form__label">
-                                        טלפון ליצירת קשר (לא חובה)
+                                        <span>טלפון ליצירת קשר{isNudged && <span className="contact-form__new-pill">חדש</span>}</span>
                                         <input
                                             type="tel"
                                             className="contact-form__input"
@@ -338,6 +367,15 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                 )}
 
                 <div className="contact-form__buttons">
+                    {hasMoreBelow && (
+                        <button
+                            type="button"
+                            className="contact-form__more-hint"
+                            onClick={() => formRef.current?.scrollBy({ top: 200, behavior: 'smooth' })}
+                        >
+                            {isNudged ? 'יש למטה שדות חדשים' : 'יש עוד שדות למטה'} ↓
+                        </button>
+                    )}
                     <button
                         type="button"
                         className="contact-form__cancel-button"

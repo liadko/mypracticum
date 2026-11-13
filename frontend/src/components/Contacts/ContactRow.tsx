@@ -1,5 +1,6 @@
 import type { Contact } from '../../types'
 import './ContactRow.css'
+import { needsCenterDetails } from '../../domain/contacts'
 
 interface Props {
   contact: Contact
@@ -10,7 +11,7 @@ interface Props {
 export function ContactRow({ contact, onEdit }: Props) {
   const isTrainingCenter = contact.type == 'client' && contact.clientInstitution === 'trainingCenter';
   const trainingCenter = contact.type === 'client' ? contact.trainingCenter : undefined;
-  const needsNewDetails = isTrainingCenter && !trainingCenter;
+  const needsNewDetails = needsCenterDetails(contact);
 
   return (
     <div className="contact-row" onClick={() => onEdit(contact.id)}>

@@ -55,3 +55,37 @@
 .reports-mentor-student-list td {
   padding-inline: 0.5rem;
 }
+
+/* On/off switch. !important because legacy app styles restyle every button. */
+.reports-root .reports-switch {
+  position: relative;
+  width: 2.5rem !important;
+  height: 1.4rem !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 999px !important;
+  background: #cbd5e1 !important;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.reports-root .reports-switch--on {
+  background: #0284c7 !important;
+}
+
+.reports-root .reports-switch__thumb {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.15rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.25);
+  transition: right 0.15s;
+}
+
+.reports-root .reports-switch--on .reports-switch__thumb {
+  right: 1.25rem;
+}

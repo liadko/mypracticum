@@ -9,6 +9,7 @@ import { useEntries } from '../../context/EntriesContext'
 import { useContacts } from '../../context/ContactsContext'
 import { useAuth } from '../../context/AuthContext'
 import TooltipContent from '../../components/Tooltip/TooltipContent'
+import { NewFieldsNotice } from '../../components/Contacts/NewFieldsNotice'
 
 
 const countGoals = { 'client': 300, 'mentor': 150, 'therapist': 100 }
@@ -72,6 +73,8 @@ export default function StudentLayout() {
                     החשבון אינו פעיל. ניתן לצפות בנתונים, אך לא לבצע שינויים.
                 </div>
             )}
+
+            <NewFieldsNotice />
 
             {/* MAIN CONTENT */}
             {activePage === "therapist" && <TherapistPage />}

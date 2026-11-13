@@ -47,13 +47,13 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
       {/* 1. Client Hours (Max 300) */}
       <div className="relative group cursor-pointer">
         <div className="bg-teal-50/80 hover:bg-teal-100/80 border border-teal-200 rounded p-2 text-right min-w-[130px] flex flex-col justify-between transition shadow-2xs">
-          <div className="flex items-center justify-between text-teal-900 text-[11px] font-bold">
+          <div className="flex items-center justify-between text-teal-900 text-xs font-bold">
             <span>1. מטופלים</span>
             <span className="w-2 h-2 rounded-full bg-teal-600 inline-block" />
           </div>
           <div className="mt-1">
             <div className="text-sm font-bold text-teal-950 font-mono flex items-center justify-between">
-              <span>{clientHours} <span className="text-[10px] font-normal text-slate-500">/ 300</span></span>
+              <span>{clientHours} <span className="text-[11px] font-normal text-slate-500">/ 300</span></span>
             </div>
             <div className="w-full bg-teal-200/70 h-1 rounded-full mt-1 overflow-hidden">
               <div
@@ -65,7 +65,7 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
         </div>
 
         {/* Hover Modal Popover - Client Split */}
-        <div className="absolute top-full right-0 mt-1.5 z-40 hidden group-hover:block w-56 p-3 bg-white rounded-lg border border-slate-200 shadow-xl text-xs text-slate-800 dir-rtl animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute top-full right-0 mt-1.5 z-40 hidden group-hover:block w-56 p-3 bg-white rounded-lg border border-slate-200 shadow-xl text-sm text-slate-800 dir-rtl animate-in fade-in zoom-in-95 duration-150">
           <div className="font-bold border-b border-slate-100 pb-1.5 mb-2 text-teal-900 flex justify-between items-center">
             <span>פירוט שעות: מטופלים</span>
             <span className="w-2 h-2 rounded-full bg-teal-600" />
@@ -90,12 +90,12 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
       {/* 2. Mentor Approved Hours (Max 100) */}
       <div className="relative group cursor-pointer">
         <div className="bg-sky-50/80 hover:bg-sky-100/80 border border-sky-200 rounded p-2 text-right min-w-[130px] flex flex-col justify-between transition shadow-2xs">
-          <div className="flex items-center justify-between text-sky-900 text-[11px] font-bold">
+          <div className="flex items-center justify-between text-sky-900 text-xs font-bold">
             <span>2. הדרכה</span>
           </div>
           <div className="mt-1">
             <div className="text-sm font-bold text-sky-950 font-mono flex items-center justify-between">
-              <span>{mentorApprovedHours} <span className="text-[10px] font-normal text-slate-500">/ 150</span></span>
+              <span>{mentorApprovedHours} <span className="text-[11px] font-normal text-slate-500">/ 150</span></span>
             </div>
             <div className="w-full bg-sky-200/70 h-1 rounded-full mt-1 overflow-hidden">
               <div
@@ -107,7 +107,7 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
         </div>
 
         {/* Hover Modal Popover - Mentor Split */}
-        <div className="absolute top-full right-0 mt-1.5 z-40 hidden group-hover:block w-56 p-3 bg-white rounded-lg border border-slate-200 shadow-xl text-xs text-slate-800 dir-rtl animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute top-full right-0 mt-1.5 z-40 hidden group-hover:block w-56 p-3 bg-white rounded-lg border border-slate-200 shadow-xl text-sm text-slate-800 dir-rtl animate-in fade-in zoom-in-95 duration-150">
           <div className="font-bold border-b border-slate-100 pb-1.5 mb-2 text-sky-900 flex justify-between items-center">
             <span>פירוט שעות: הדרכה</span>
           </div>
@@ -131,12 +131,12 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
       {/* 3. Personal Therapy Hours (Max 100) */}
       <div className="relative group cursor-pointer">
         <div className="bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200 rounded p-2 text-right min-w-[130px] flex flex-col justify-between transition shadow-2xs">
-          <div className="flex items-center justify-between text-amber-900 text-[11px] font-bold">
+          <div className="flex items-center justify-between text-amber-900 text-xs font-bold">
             <span>3. טיפול אישי</span>
           </div>
           <div className="mt-1">
             <div className="text-sm font-bold text-amber-950 font-mono flex items-center justify-between">
-              <span>{therapistHours} <span className="text-[10px] font-normal text-slate-500">/ 100</span></span>
+              <span>{therapistHours} <span className="text-[11px] font-normal text-slate-500">/ 100</span></span>
             </div>
             <div className="w-full bg-amber-200/70 h-1 rounded-full mt-1 overflow-hidden">
               <div
@@ -148,7 +148,7 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
         </div>
 
         {/* Hover Modal Popover - Therapist Split */}
-        <div className="absolute top-full left-0 sm:right-0 sm:left-auto mt-1.5 z-40 hidden group-hover:block w-56 p-3 bg-white rounded-lg border border-slate-200 shadow-xl text-xs text-slate-800 dir-rtl animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute top-full left-0 sm:right-0 sm:left-auto mt-1.5 z-40 hidden group-hover:block w-56 p-3 bg-white rounded-lg border border-slate-200 shadow-xl text-sm text-slate-800 dir-rtl animate-in fade-in zoom-in-95 duration-150">
           <div className="font-bold border-b border-slate-100 pb-1.5 mb-2 text-amber-900 flex justify-between items-center">
             <span>פירוט שעות: טיפול אישי</span>
           </div>
@@ -175,14 +175,14 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
           ? 'bg-amber-50 border-amber-300 text-amber-950'
           : 'bg-slate-50 border-slate-200 text-slate-800'
       }`}>
-        <div className="flex items-center justify-between text-[11px] font-bold">
+        <div className="flex items-center justify-between text-xs font-bold">
           <span>4. ממתין לאישור</span>
         </div>
         <div className="mt-1">
           <div className="text-sm font-bold font-mono">
-            {mentorPendingHours} <span className="text-[10px] font-normal text-slate-600">ש'</span>
+            {mentorPendingHours} <span className="text-[11px] font-normal text-slate-600">ש'</span>
           </div>
-          <div className="text-[10px] font-medium opacity-90 mt-0.5 truncate flex items-center gap-1">
+          <div className="text-[11px] font-medium opacity-90 mt-0.5 truncate flex items-center gap-1">
             {mentorPendingHours > 0 ? (
               <span className="text-amber-700 font-bold flex items-center gap-1">
                 ממתין לאישור

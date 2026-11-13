@@ -63,8 +63,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--main-color);
-    opacity: 0.55;
+    background: #2a9d8f;
     margin-left: 0.4rem;
     vertical-align: middle;
 }

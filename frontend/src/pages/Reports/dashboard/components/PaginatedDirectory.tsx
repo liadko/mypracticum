@@ -20,6 +20,8 @@ interface PaginatedDirectoryProps<T> {
   onQueryChange: (q: string) => void;
   searchPlaceholder?: string;
   extraFilters?: ReactNode;
+  /** Controls shown beside the page title, away from the filter chips. */
+  headerActions?: ReactNode;
   isFiltered?: boolean;
   onClearFilters: () => void;
 
@@ -53,6 +55,7 @@ export function PaginatedDirectory<T>({
   onQueryChange,
   searchPlaceholder = 'חיפוש...',
   extraFilters,
+  headerActions,
   isFiltered = false,
   onClearFilters,
   items,
@@ -90,6 +93,7 @@ export function PaginatedDirectory<T>({
               <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
             )}
           </div>
+          {headerActions}
         </div>
       </div>
 

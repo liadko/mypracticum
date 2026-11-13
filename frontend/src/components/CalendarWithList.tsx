@@ -11,6 +11,7 @@ import { useContacts } from '../context/ContactsContext'
 import { useAuth } from '../context/AuthContext'
 import { reportingStartDateFor } from '../utils/entryDateRules'
 import { showError } from '../utils/toast'
+import { needsCenterDetails } from '../domain/contacts'
 
 const hebrewWeekdays = [
     "ראשון",
@@ -42,6 +43,7 @@ export function CalendarWithList({
     // selected contact UUID
     const { setSelected, getSelected } = useContacts()
     const [isEditOpen, setEditOpen] = useState(false)
+    const [editContactId, setEditContactId] = useState<string | undefined>(undefined)
 
     const { activePage: contactType } = useContacts()
     const { user } = useAuth()
@@ -230,6 +232,8 @@ export function CalendarWithList({
         );
     }
 
+    const selectedContact = contacts.find(c => c.id === selectedContactId)
+
     function selectedList(): ReactNode {
         return <div className="selected-list" >
             <div className="side-header">
@@ -243,6 +247,15 @@ export function CalendarWithList({
                 />
 
             </div>
+            {selectedContact && needsCenterDetails(selectedContact) && user?.status !== 'frozen' && (
+                <div className="center-details-notice" dir="rtl">
+                    <span>הוספנו שדות חדשים למרכז ההכשרה של <strong>{selectedContact.name}</strong>.</span>
+                    <button
+                        type="button"
+                        onClick={() => { setEditContactId(selectedContact.id); setEditOpen(true) }}
+                    >להשלמת הפרטים</button>
+                </div>
+            )}
             <div className="selected-list-entries" id="selected-list-entries">
                 {filtered.map(entry => {
                     const dateObj = parseISO(entry.date)
@@ -302,7 +315,8 @@ export function CalendarWithList({
                 <EditContactsModal
                     initialType={contactType}
                     isInitialCreation={!selectedContactId}
-                    onCloseModal={() => setEditOpen(false)}
+                    initialEditId={editContactId}
+                    onCloseModal={() => { setEditOpen(false); setEditContactId(undefined) }}
                 />
             )}
 

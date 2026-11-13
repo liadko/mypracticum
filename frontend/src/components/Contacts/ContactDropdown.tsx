@@ -3,6 +3,7 @@ import type { Contact, ContactType } from '../../types'
 import { contactLabelPluralShort } from '../../i18n/he'
 import './ContactDropdown.css'
 import { useEntries } from '../../context/EntriesContext'
+import { needsCenterDetails } from '../../domain/contacts'
 
 interface Props {
   contacts: Contact[]
@@ -62,6 +63,7 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
       <div className="contact-dropdown-toggle">
         <span className="contact-dropdown-label">
           {selected?.name ?? 'בחר…'}
+          {selected && needsCenterDetails(selected) && <span className="contact-dropdown-dot" title="חסרים פרטי מרכז" />}
         </span>
         {unapprovedCount(selected) &&
           <span className='unapproved-entries-flag'>
@@ -84,7 +86,10 @@ export function ContactDropdown({ contacts, value, onChange, contactType }: Prop
                 setOpen(false)
               }}
             >
-              {c.name}
+              <span>
+                {c.name}
+                {needsCenterDetails(c) && <span className="contact-dropdown-dot" title="חסרים פרטי מרכז" />}
+              </span>
               {unapprovedCount(c) &&
                 <span className='unapproved-entries-flag smaller'>
                   {unapprovedFlagText(c)}

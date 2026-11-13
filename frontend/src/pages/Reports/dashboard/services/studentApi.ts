@@ -191,6 +191,8 @@ export interface SearchStudentsOptions {
   sortBy?: 'name' | 'class' | 'email' | 'clientHours' | 'mentorApprovedHours' | 'therapistHours' | 'mentorPendingHours' | 'signatureSubmitted' | string;
   sortDirection?: 'asc' | 'desc';
   includeFrozen?: boolean;
+  /** 'active' (default), 'frozen' or 'all'. */
+  status?: 'active' | 'frozen' | 'all';
 }
 
 export interface SearchStudentsResult {
@@ -220,6 +222,7 @@ export async function searchStudents(
       sortBy: params.sortBy || 'name',
       sortDirection: params.sortDirection || 'asc',
       includeFrozen: params.includeFrozen === true,
+      status: params.status,
     };
   }
 
@@ -239,7 +242,10 @@ export async function searchStudents(
   if (options.sortDirection) {
     queryParams.append('sortDirection', options.sortDirection);
   }
-  if (options.includeFrozen) {
+  const status = options.status ?? (options.includeFrozen ? 'all' : 'active');
+  if (status !== 'active') {
+    queryParams.append('status', status);
+    // Understood by the backend before status existed, so either one works.
     queryParams.append('includeFrozen', 'true');
   }
   queryParams.append('page', String(options.page || 1));

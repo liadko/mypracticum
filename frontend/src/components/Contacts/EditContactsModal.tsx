@@ -11,12 +11,17 @@ interface Props {
     initialType: ContactType
     isInitialCreation: boolean
     onCloseModal: () => void
+    /** Opens the modal directly on this contact's edit form. */
+    initialEditId?: string
 }
 
 
-export function EditContactsModal({ initialType, isInitialCreation, onCloseModal }: Props) {
+export function EditContactsModal({ initialType, isInitialCreation, onCloseModal, initialEditId }: Props) {
     const [currentPage, setPage] = useState<ContactType>(initialType)
-    const [formMode, setFormMode] = useState<FormMode | null>(isInitialCreation ? { mode: 'add', type: initialType } : null)
+    const [formMode, setFormMode] = useState<FormMode | null>(
+        initialEditId ? { mode: 'edit', id: initialEditId }
+            : isInitialCreation ? { mode: 'add', type: initialType } : null
+    )
 
 
     const {

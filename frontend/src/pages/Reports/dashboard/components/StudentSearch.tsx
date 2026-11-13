@@ -18,7 +18,11 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState<number>(1);
   const [signatureOnlyFilter, setSignatureOnlyFilter] = useState<boolean>(false);
+  // includeFrozen is the switch beside the title; frozenOnly is the chip among the filters.
+  // Turning the chip on also turns the switch on, and turning the switch off clears the chip.
   const [includeFrozen, setIncludeFrozen] = useState<boolean>(false);
+  const [frozenOnly, setFrozenOnly] = useState<boolean>(false);
+  const statusFilter: 'active' | 'frozen' | 'all' = frozenOnly ? 'frozen' : includeFrozen ? 'all' : 'active';
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const [students, setStudents] = useState<StudentSummary[]>([]);
@@ -60,7 +64,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       className: classFilter,
       sortBy,
       sortDirection,
-      includeFrozen,
+      status: statusFilter,
       page,
       limit: 50,
     })
@@ -82,7 +86,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [query, classFilter, sortBy, sortDirection, includeFrozen, page]);
+  }, [query, classFilter, sortBy, sortDirection, statusFilter, page]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -113,7 +117,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     setSearchError(null);
     try {
       await exportStudentsToExcel(
-        { query, className: classFilter, sortBy, sortDirection, includeFrozen },
+        { query, className: classFilter, sortBy, sortDirection, status: statusFilter },
         (s) => !(signatureOnlyFilter && s.signatureSubmitted === true),
       );
     } catch (err: any) {
@@ -128,6 +132,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     setClassFilter('all');
     setSignatureOnlyFilter(false);
     setIncludeFrozen(false);
+    setFrozenOnly(false);
     setSortBy('name');
     setSortDirection('asc');
     setPage(1);
@@ -142,12 +147,6 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
         <div>
           <span className="block text-xs font-bold text-slate-900">
             {s.firstName} {s.lastName}
-            {s.status === 'frozen' && (
-              <span className="mr-1.5 inline-flex items-center gap-1 bg-sky-50 text-sky-900 border border-sky-300 px-1.5 py-px rounded text-[10px] font-bold">
-                <Snowflake className="w-3 h-3 text-sky-600" />
-                בהקפאה
-              </span>
-            )}
           </span>
           <span className="text-[10px] text-slate-500 font-normal sm:hidden">{s.email}</span>
         </div>
@@ -238,6 +237,21 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
         ),
     },
     {
+      key: 'status',
+      header: 'סטטוס',
+      sortable: true,
+      align: 'center',
+      render: (s) =>
+        s.status === 'frozen' ? (
+          <span className="inline-flex items-center gap-1 text-sky-900 bg-sky-50 border border-sky-300 px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap">
+            <Snowflake className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+            בהקפאה
+          </span>
+        ) : (
+          <span className="text-slate-400 text-[11px] font-medium">פעיל</span>
+        ),
+    },
+    {
       key: 'signatureSubmitted',
       header: 'הצהרה חתומה',
       sortable: true,
@@ -309,18 +323,23 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
 
       <button
         onClick={() => {
-          setIncludeFrozen((prev) => !prev);
+          if (frozenOnly) {
+            setFrozenOnly(false);
+          } else {
+            setFrozenOnly(true);
+            setIncludeFrozen(true);
+          }
           setPage(1);
         }}
-        aria-pressed={includeFrozen}
+        aria-pressed={frozenOnly}
         className={`px-2.5 py-1 rounded transition border font-medium flex items-center gap-1.5 ${
-          includeFrozen
+          frozenOnly
             ? 'bg-sky-100 text-sky-900 border-sky-300 font-bold'
             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
         }`}
       >
-        <Snowflake className={`w-3.5 h-3.5 ${includeFrozen ? 'text-sky-700' : 'text-slate-400'}`} />
-        <span>הצג תלמידים בהקפאה</span>
+        <Snowflake className={`w-3.5 h-3.5 ${frozenOnly ? 'text-sky-700' : 'text-slate-400'}`} />
+        <span>בהקפאה בלבד</span>
       </button>
 
       <button
@@ -332,6 +351,29 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
         <span>ייצוא לאקסל</span>
       </button>
     </div>
+  );
+
+  const frozenSwitch = (
+    <label className="flex items-center gap-2 text-sm text-slate-700 font-medium cursor-pointer select-none">
+      <span>הצגת תלמידים בהקפאה</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={includeFrozen}
+        onClick={() => {
+          if (includeFrozen) {
+            setIncludeFrozen(false);
+            setFrozenOnly(false);
+          } else {
+            setIncludeFrozen(true);
+          }
+          setPage(1);
+        }}
+        className={`reports-switch ${includeFrozen ? 'reports-switch--on' : ''}`}
+      >
+        <span className="reports-switch__thumb" />
+      </button>
+    </label>
   );
 
   const displayTotal = signatureOnlyFilter ? filteredStudents.length : totalStudents;
@@ -351,6 +393,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       }}
       searchPlaceholder="חפש תלמיד לפי שם, דוא&quot;ל, מס' ת&quot;ז או מחזור לימודים..."
       extraFilters={extraFilters}
+      headerActions={frozenSwitch}
       isFiltered={classFilter !== 'all' || signatureOnlyFilter || includeFrozen}
       onClearFilters={handleClearFilters}
       items={filteredStudents}
