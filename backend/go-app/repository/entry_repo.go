@@ -15,6 +15,7 @@ type EntryRepo interface {
 	UserStatus(ctx context.Context, userID uuid.UUID) (domain.StudentStatus, error)
 	EntryOwnerStatus(ctx context.Context, entryID uuid.UUID) (domain.StudentStatus, error)
 
+	// Create returns ErrNotFound if the entry's contact does not belong to its user.
 	Create(ctx context.Context, e domain.Entry) (domain.Entry, error)
 	DeleteIfNotApproved(ctx context.Context, id, userID uuid.UUID) error
 	UpdateApproval(ctx context.Context, entryID uuid.UUID, approverID *uuid.UUID) (domain.Entry, error)

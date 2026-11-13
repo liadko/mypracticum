@@ -51,6 +51,11 @@ func (h *EntryHandler) Create(ctx *gin.Context) {
 		if writeFrozenError(ctx, err) {
 			return
 		}
+		var notFound service.NotFoundError
+		if errors.As(err, &notFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": notFound.Error()})
+			return
+		}
 		if ve, ok := err.(domain.ValidationError); ok {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": ve.Error()})
 		} else {

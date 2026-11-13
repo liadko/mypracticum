@@ -127,10 +127,12 @@ func (r *PostgresEntryRepo) Create(
 	e domain.Entry,
 ) (domain.Entry, error) {
 
-	// 1) run INSERT … RETURNING
+	// 1) insert only if the contact belongs to this user, so nobody can log
+	//    hours against another student's contact. No row back means it doesn't.
 	const q = `
     INSERT INTO entries (id, user_id, contact_id, date)
-    VALUES ($1, $2, $3, $4)
+    SELECT $1::uuid, $2::uuid, $3::uuid, $4::date
+     WHERE EXISTS (SELECT 1 FROM contacts WHERE id = $3::uuid AND user_id = $2::uuid)
     RETURNING id, user_id, contact_id, date
     `
 	row := r.db.QueryRowContext(ctx, q,
@@ -148,6 +150,9 @@ func (r *PostgresEntryRepo) Create(
 		&out.ContactID,
 		&out.Date,
 	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Entry{}, repository.ErrNotFound
+		}
 		return domain.Entry{}, fmt.Errorf("insert entry: %w", err)
 	}
 

@@ -19,6 +19,7 @@ type fakeEntryRepo struct {
 	repository.EntryRepo
 
 	status      domain.StudentStatus
+	createErr   error
 	created     []domain.Entry
 	deleteErr   error
 	linked      bool
@@ -36,6 +37,9 @@ func (f *fakeEntryRepo) EntryOwnerStatus(context.Context, uuid.UUID) (domain.Stu
 }
 
 func (f *fakeEntryRepo) Create(_ context.Context, e domain.Entry) (domain.Entry, error) {
+	if f.createErr != nil {
+		return domain.Entry{}, f.createErr
+	}
 	f.created = append(f.created, e)
 	return e, nil
 }

@@ -55,6 +55,27 @@ func TestApprovalLocksStudentDeletion(t *testing.T) {
 	}
 }
 
+func TestStudentCannotLogHoursOnAnotherStudentsContact(t *testing.T) {
+	resetDB(t)
+	owner := seedUser(t, "owner@x.co", "student", nil)
+	intruder := seedUser(t, "intruder@x.co", "student", nil)
+	contact := createContact(t, clientContact(owner, "A.B", "privateClinic"))
+
+	_, err := NewPostgresEntryRepo(testDB).Create(context.Background(), domain.Entry{
+		ID: uuid.New(), UserID: intruder, ContactID: contact.ID, Date: time.Date(2025, 1, 10, 0, 0, 0, 0, time.UTC),
+	})
+	if !errors.Is(err, repository.ErrNotFound) {
+		t.Fatalf("got %v, want ErrNotFound", err)
+	}
+	var n int
+	if err := testDB.QueryRow(`SELECT count(*) FROM entries`).Scan(&n); err != nil || n != 0 {
+		t.Fatalf("entry was written: count=%d err=%v", n, err)
+	}
+
+	// The owner still can.
+	addEntry(t, owner, contact.ID, "2025-01-10")
+}
+
 func TestStudentCannotDeleteAnotherStudentsEntry(t *testing.T) {
 	resetDB(t)
 	student := seedUser(t, "s@x.co", "student", nil)
