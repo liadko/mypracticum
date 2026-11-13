@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"mypracticum/backend/domain"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -11,6 +12,9 @@ import (
 type EntryRepo interface {
 	ListByStudent(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error)
 	ListByMentor(ctx context.Context, userID uuid.UUID) ([]domain.Entry, error)
+	// FindClassStartDateForEntry returns the authenticated user's class cutoff
+	// for the contact, or nil when the user/contact has no applicable cutoff.
+	FindClassStartDateForEntry(ctx context.Context, userID, contactID uuid.UUID) (*time.Time, error)
 
 	UserStatus(ctx context.Context, userID uuid.UUID) (domain.StudentStatus, error)
 	EntryOwnerStatus(ctx context.Context, entryID uuid.UUID) (domain.StudentStatus, error)
