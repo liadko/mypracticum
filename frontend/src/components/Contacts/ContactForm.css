@@ -27,7 +27,8 @@
 .contact-form__field {
   display: flex;
   flex-direction: column;
-  width: 330px;
+  width: min(330px, calc(100% - 2rem));
+  flex-shrink: 0;
 }
 
 .contact-form__label {
@@ -92,13 +93,16 @@
   display: flex;
   justify-content: center;
   gap: 1rem;
+  flex-shrink: 0;
+  max-width: calc(100% - 2rem);
   margin-top: auto;
   margin-bottom: 2rem;
 }
 
 .contact-form__save-button,
 .contact-form__cancel-button {
-  min-width: 160px;
+  min-width: 0;
+  flex: 1;
   padding: 0.75rem 1.5rem;
   font-size: 1.1rem;
   font-weight: 600;
@@ -127,6 +131,7 @@
 }
 
 .edit-modal .contact-form {
+    min-height: 0;
     max-height: 590px;
     overflow-y: auto;
 }
@@ -137,12 +142,14 @@
     bottom: 0;
     background: #fff;
     padding-bottom: 0.5rem;
+    width: 340px;
 }
 
 /* Dismissible notice for older training-centre clients. */
 .contact-form__notice {
     position: relative;
-    width: 100%;
+    width: min(380px, calc(100% - 2rem));
+    flex-shrink: 0;
     box-sizing: border-box;
     margin: 0.25rem 0;
     padding: 0.75rem 1rem 0.75rem 2.25rem;

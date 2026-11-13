@@ -84,6 +84,10 @@ export interface StudentSummary {
   patternFlag?: 'normal' | 'suspicious_concentration' | 'sparse_activity' | 'pending_approval_backlog';
   patternFlagText?: string;
 
+  /** Calendar entries on private-clinic clients (manual hours excluded), and the class cap. */
+  privateClinicHours?: number;
+  privateClinicCap?: number;
+
   status?: 'active' | 'frozen';
   statusReason?: string;
   statusNote?: string;
@@ -250,4 +254,3 @@ export interface UnifiedCalendarEvent {
   studentName?: string;
   studentClass?: string;
 }
-

@@ -13,7 +13,51 @@ const emptyClassRequest: CreateAdminClassRequest = {
         mentor: '',
         therapist: '',
     },
+    privateClinicCap: 160,
 };
+
+/** Shows a class's private-clinic cap with a small editor beside it. */
+function ClassCapEditor({ classItem, onSaved, logMessage }: {
+    classItem: AdminClass;
+    onSaved: (updated: AdminClass) => void;
+    logMessage: (message: string) => void;
+}) {
+    const saved = classItem.privateClinicCap ?? 160;
+    const [value, setValue] = useState(String(saved));
+    const [isSaving, setIsSaving] = useState(false);
+    const parsed = Number(value);
+    const isValid = value.trim() !== '' && Number.isInteger(parsed) && parsed >= 0;
+
+    const save = async () => {
+        setIsSaving(true);
+        try {
+            const updated = await adminApi.updateClassCap(classItem.id, parsed);
+            onSaved(updated);
+            logMessage(`SUCCESS: ${classItem.name} private-clinic cap is now ${updated.privateClinicCap}.`);
+        } catch (err: unknown) {
+            logMessage(`Error updating cap: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <span>
+            Private-clinic cap:{' '}
+            <input
+                type="number"
+                min={0}
+                value={value}
+                onChange={(event) => setValue(event.target.value)}
+                style={{ width: '5rem' }}
+                aria-label={`Private-clinic cap for ${classItem.name}`}
+            />{' '}
+            <button type="button" onClick={save} disabled={isSaving || !isValid || parsed === saved}>
+                {isSaving ? 'Saving...' : 'Save'}
+            </button>
+        </span>
+    );
+}
 
 export function ClassManagementForm({ logMessage }: Props) {
     const [classes, setClasses] = useState<AdminClass[]>([]);
@@ -92,6 +136,17 @@ export function ClassManagementForm({ logMessage }: Props) {
                     <label htmlFor="class-therapist-start-date">Therapist reporting start date:</label>
                     <input id="class-therapist-start-date" type="date" value={request.reportingStartDates.therapist} onChange={(event) => updateDate('therapist', event.target.value)} required />
                 </div>
+                <div className="form-group">
+                    <label htmlFor="class-private-clinic-cap">Private-clinic hours cap:</label>
+                    <input
+                        id="class-private-clinic-cap"
+                        type="number"
+                        min={0}
+                        value={request.privateClinicCap ?? 160}
+                        onChange={(event) => setRequest((current) => ({ ...current, privateClinicCap: Number(event.target.value) }))}
+                        required
+                    />
+                </div>
                 <button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? 'Creating...' : 'Add Class'}
                 </button>
@@ -107,6 +162,11 @@ export function ClassManagementForm({ logMessage }: Props) {
                             <span>Client: {classItem.reportingStartDates.client ?? '—'}</span>
                             <span>Mentor: {classItem.reportingStartDates.mentor ?? '—'}</span>
                             <span>Therapist: {classItem.reportingStartDates.therapist ?? '—'}</span>
+                            <ClassCapEditor
+                                classItem={classItem}
+                                logMessage={logMessage}
+                                onSaved={(updated) => setClasses((current) => current.map((c) => (c.id === updated.id ? updated : c)))}
+                            />
                         </li>
                     ))}
                     {classes.length === 0 && <li>No classes yet.</li>}

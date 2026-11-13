@@ -30,6 +30,17 @@ export function frozenMessage(err: unknown): string | null {
   return err instanceof HttpError && err.data?.code === 'student_frozen' ? err.message : null
 }
 
+/**
+ * The server's own wording when it refuses an entry (hours cap reached, date
+ * before the class start, frozen account). Only Hebrew messages are shown, so
+ * an unexpected English validation error falls back to the generic text.
+ */
+export function refusalMessage(err: unknown): string | null {
+  if (!(err instanceof HttpError)) return null
+  if (err.data?.code === 'student_frozen') return err.message
+  return err.status === 400 && /[\u0590-\u05FF]/.test(err.message) ? err.message : null
+}
+
 /** Builds an HttpError from a failed response, keeping the server's message. */
 export async function httpErrorFrom(res: Response): Promise<HttpError> {
   const data = await res.json().catch(() => null)

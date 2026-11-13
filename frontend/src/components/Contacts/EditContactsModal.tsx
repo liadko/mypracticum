@@ -104,7 +104,7 @@ export function EditContactsModal({ initialType, isInitialCreation, onCloseModal
             className="edit-modal-overlay"
             onClick={() => { if (!formMode) onCloseModal() }}
         >
-            <div className="edit-modal" onClick={e => e.stopPropagation()}>
+            <div className={`edit-modal ${currentPage}-page-theme`} onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <header className="edit-modal__header">
                     <h2>{headerText()}</h2>
@@ -129,4 +129,3 @@ export function EditContactsModal({ initialType, isInitialCreation, onCloseModal
         </div>
     )
 }
-

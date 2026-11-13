@@ -49,6 +49,14 @@ export function CalendarWithList({
     const { user } = useAuth()
 
     const selectedContactId = getSelected(contactType)
+    const selectedContact = contacts.find(c => c.id === selectedContactId)
+
+    // Private-clinic hours count toward a cap set per class (160 unless the class says otherwise).
+    const privateClinicCap = user?.class?.privateClinicCap ?? 160
+    const isPrivateClinicContact = (c?: Contact) => c?.type === 'client' && c.clientInstitution === 'privateClinic'
+    const privateClinicCount = contactType === 'client'
+        ? entries.filter(e => isPrivateClinicContact(contacts.find(c => c.id === e.contactId))).length
+        : 0
 
     // highlighted date for scrolling/focus
     const [highlightedDate, setHighlightedDate] = useState<string>('')
@@ -62,6 +70,12 @@ export function CalendarWithList({
     async function handleDayClick(date: string) {
         if (user?.status === 'frozen') {
             showError('החשבון אינו פעיל, ולכן לא ניתן לדווח או למחוק שעות.')
+            return
+        }
+        // At the cap, adding is refused; removing a day you already marked is not.
+        const alreadyMarked = entries.some(e => e.contactId === selectedContactId && e.date === date)
+        if (isPrivateClinicContact(selectedContact) && privateClinicCount >= privateClinicCap && !alreadyMarked) {
+            showError(`הגעת למכסה של ${privateClinicCap} שעות בקליניקה פרטית. אפשר להמשיך לדווח על מטופלים במרכזי הכשרה.`)
             return
         }
         const startDate = reportingStartDateFor(user?.class, contactType)
@@ -232,8 +246,6 @@ export function CalendarWithList({
         );
     }
 
-    const selectedContact = contacts.find(c => c.id === selectedContactId)
-
     function selectedList(): ReactNode {
         return <div className="selected-list" >
             <div className="side-header">
@@ -247,6 +259,7 @@ export function CalendarWithList({
                 />
 
             </div>
+            {filtered.length === 0 && extraMessage()}
             {selectedContact && needsCenterDetails(selectedContact) && user?.status !== 'frozen' && (
                 <div className="center-details-notice" dir="rtl">
                     <span>הוספנו שדות חדשים למרכז ההכשרה של <strong>{selectedContact.name}</strong>.</span>
@@ -277,7 +290,7 @@ export function CalendarWithList({
                 })}
 
             </div>
-            {extraMessage()}
+            {filtered.length > 0 && extraMessage()}
         </div>
     }
 
