@@ -72,14 +72,6 @@ type TrainingCenterDetails struct {
 	ContactPhone  *string `json:"contactPhone,omitempty"` // the one optional field
 }
 
-// hasRequiredFields reports whether name, city and contact person are all set.
-func (d *TrainingCenterDetails) hasRequiredFields() bool {
-	return d != nil &&
-		strings.TrimSpace(d.Name) != "" &&
-		strings.TrimSpace(d.City) != "" &&
-		strings.TrimSpace(d.ContactPerson) != ""
-}
-
 // Validate enforces all the business rules for Contact.
 // It returns an error if any invariant is broken.
 func (contact Contact) Validate() error {
@@ -190,4 +182,12 @@ func MapUsersToStudentContactViews(us []User) []Contact {
 		})
 	}
 	return out
+}
+
+// hasRequiredFields reports whether name, city and contact person are all set.
+func (d *TrainingCenterDetails) hasRequiredFields() bool {
+	return d != nil &&
+		strings.TrimSpace(d.Name) != "" &&
+		strings.TrimSpace(d.City) != "" &&
+		strings.TrimSpace(d.ContactPerson) != ""
 }

@@ -23,16 +23,6 @@ func NewContactHandler(svc *service.ContactService) *ContactHandler {
 	return &ContactHandler{svc: svc}
 }
 
-// writeFrozenError answers 403 if err means the student is frozen.
-func writeFrozenError(ctx *gin.Context, err error) bool {
-	var frozen service.StudentFrozenError
-	if !errors.As(err, &frozen) {
-		return false
-	}
-	ctx.JSON(http.StatusForbidden, gin.H{"error": frozen.Error(), "code": "student_frozen"})
-	return true
-}
-
 // List handles GET /contacts
 func (h *ContactHandler) List(ctx *gin.Context) {
 	log.Printf("[ContactHandler.List] Starting - retrieving contacts for user")
@@ -273,4 +263,14 @@ func (h *ContactHandler) InviteMentor(ctx *gin.Context) {
 
 	log.Printf("[ContactHandler.InviteMentor] Invitation sent successfully for mentor %s to student %s", contactID, userID)
 	ctx.JSON(http.StatusOK, gin.H{"status": "invitation sent"})
+}
+
+// writeFrozenError answers 403 if err means the student is frozen.
+func writeFrozenError(ctx *gin.Context, err error) bool {
+	var frozen service.StudentFrozenError
+	if !errors.As(err, &frozen) {
+		return false
+	}
+	ctx.JSON(http.StatusForbidden, gin.H{"error": frozen.Error(), "code": "student_frozen"})
+	return true
 }
