@@ -27,7 +27,7 @@ func (r *PostgresReportRepo) SearchStudentSummaries(
 	classFilter string,
 	sortBy string,
 	sortDirection string,
-	includeFrozen bool,
+	statusFilter domain.StudentStatusFilter,
 	limit int,
 	offset int,
 ) ([]domain.StudentSummary, int64, error) {
@@ -55,11 +55,11 @@ SELECT COUNT(*)
     OR u.email ILIKE '%' || $1 || '%'
     OR COALESCE(u.taz, '') ILIKE '%' || $1 || '%')
 	AND ($2 = '' OR COALESCE(cl.name, '') = $2)
-	AND ($3::boolean OR u.status = 'active')
+	AND ($3::text = 'all' OR u.status = $3::text)
 `
 
 	var total int64
-	if err := r.db.QueryRowContext(ctx, countQ, strings.TrimSpace(query), strings.TrimSpace(classFilter), includeFrozen).Scan(&total); err != nil {
+	if err := r.db.QueryRowContext(ctx, countQ, strings.TrimSpace(query), strings.TrimSpace(classFilter), string(statusFilter)).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count report students: %w", err)
 	}
 
@@ -77,7 +77,7 @@ WITH students AS (
         OR u.email ILIKE '%' || $1 || '%'
         OR COALESCE(u.taz, '') ILIKE '%' || $1 || '%')
 	   AND ($2 = '' OR COALESCE(cl.name, '') = $2)
-	   AND ($3::boolean OR u.status = 'active')
+	   AND ($3::text = 'all' OR u.status = $3::text)
 ), regular AS (
     SELECT
         e.user_id,
@@ -126,7 +126,7 @@ SELECT
  LIMIT $4 OFFSET $5
 `
 
-	rows, err := r.db.QueryContext(ctx, q, strings.TrimSpace(query), strings.TrimSpace(classFilter), includeFrozen, limit, offset)
+	rows, err := r.db.QueryContext(ctx, q, strings.TrimSpace(query), strings.TrimSpace(classFilter), string(statusFilter), limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("search student report summaries: %w", err)
 	}
@@ -467,6 +467,9 @@ func reportStudentSortExpression(sortBy string) (string, bool) {
 		return "COALESCE(r.mentor_pending_hours, 0)", true
 	case "signaturesubmitted":
 		return "s.signature_submitted", true
+	case "status":
+		// Descending puts frozen students first.
+		return "(s.status = 'frozen')", true
 	default:
 		return "", false
 	}

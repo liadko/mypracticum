@@ -34,7 +34,7 @@ func TestStudentSummaryTotals(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, total, err := NewPostgresReportRepo(testDB).SearchStudentSummaries(ctx, "", "", "name", "asc", true, 50, 0)
+	got, total, err := NewPostgresReportRepo(testDB).SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListAllStudents, 50, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,20 +66,20 @@ func TestStudentSummaryFilters(t *testing.T) {
 	seedUser(t, "mentor@x.co", "mentor", nil)
 	repo := NewPostgresReportRepo(testDB)
 
-	if _, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", true, 50, 0); err != nil || total != 2 {
+	if _, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListAllStudents, 50, 0); err != nil || total != 2 {
 		t.Fatalf("mentors must not be listed as students: total=%d err=%v", total, err)
 	}
-	if got, total, err := repo.SearchStudentSummaries(ctx, "", "Class B", "name", "asc", true, 50, 0); err != nil || total != 1 || got[0].Email != "beta@x.co" {
+	if got, total, err := repo.SearchStudentSummaries(ctx, "", "Class B", "name", "asc", domain.ListAllStudents, 50, 0); err != nil || total != 1 || got[0].Email != "beta@x.co" {
 		t.Fatalf("class filter: total=%d err=%v", total, err)
 	}
-	if got, total, err := repo.SearchStudentSummaries(ctx, "alpha", "", "name", "asc", true, 50, 0); err != nil || total != 1 || got[0].Email != "alpha@x.co" {
+	if got, total, err := repo.SearchStudentSummaries(ctx, "alpha", "", "name", "asc", domain.ListAllStudents, 50, 0); err != nil || total != 1 || got[0].Email != "alpha@x.co" {
 		t.Fatalf("query filter: total=%d err=%v", total, err)
 	}
 }
 
 func TestStudentSummaryRejectsUnknownSort(t *testing.T) {
 	resetDB(t)
-	_, _, err := NewPostgresReportRepo(testDB).SearchStudentSummaries(context.Background(), "", "", "1; DROP TABLE users", "asc", true, 50, 0)
+	_, _, err := NewPostgresReportRepo(testDB).SearchStudentSummaries(context.Background(), "", "", "1; DROP TABLE users", "asc", domain.ListAllStudents, 50, 0)
 	if err == nil {
 		t.Fatal("unknown sort field must be rejected, it is concatenated into SQL")
 	}

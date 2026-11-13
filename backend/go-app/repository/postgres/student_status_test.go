@@ -101,7 +101,7 @@ func TestReportHidesFrozenStudentsUnlessAsked(t *testing.T) {
 	frozen := seedUser(t, "frozen@x.co", "student", nil)
 	freeze(t, frozen, domain.FreezeOnLeave, "", "line")
 
-	got, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", false, 50, 0)
+	got, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListActiveStudents, 50, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,12 +109,38 @@ func TestReportHidesFrozenStudentsUnlessAsked(t *testing.T) {
 		t.Fatalf("default view: total=%d rows=%+v", total, got)
 	}
 
-	got, total, err = repo.SearchStudentSummaries(ctx, "frozen", "", "name", "asc", true, 50, 0)
+	got, total, err = repo.SearchStudentSummaries(ctx, "frozen", "", "name", "asc", domain.ListAllStudents, 50, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if total != 1 || got[0].Status != domain.StudentFrozen || got[0].StatusDetails.Reason != domain.FreezeOnLeave {
 		t.Fatalf("with frozen: total=%d rows=%+v", total, got)
+	}
+}
+
+func TestReportFrozenOnlyAndStatusSort(t *testing.T) {
+	resetDB(t)
+	ctx := context.Background()
+	repo := NewPostgresReportRepo(testDB)
+	seedUser(t, "a-live@x.co", "student", nil)
+	frozen := seedUser(t, "b-frozen@x.co", "student", nil)
+	seedUser(t, "c-live@x.co", "student", nil)
+	freeze(t, frozen, domain.FreezeOnLeave, "", "line")
+
+	got, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListFrozenStudents, 50, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if total != 1 || got[0].Email != "b-frozen@x.co" {
+		t.Fatalf("frozen only: total=%d rows=%+v", total, got)
+	}
+
+	got, _, err = repo.SearchStudentSummaries(ctx, "", "", "status", "desc", domain.ListAllStudents, 50, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 3 || got[0].Email != "b-frozen@x.co" {
+		t.Fatalf("status sort should put frozen first, got %+v", got)
 	}
 }
 
