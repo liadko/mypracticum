@@ -38,7 +38,7 @@ export function ContactRow({ contact, onEdit }: Props) {
             <div className="contact-row__institution">{isTrainingCenter ? "מרכז הכשרה" : "קליניקה פרטית"}</div>
             {isTrainingCenter && (trainingCenter || contact.clientTrainingCenterInfo) && (
               <div className="contact-row__training-center">
-                {trainingCenter ? `${trainingCenter.name}, ${trainingCenter.city}` : contact.clientTrainingCenterInfo}
+                {trainingCenter ? [trainingCenter.name, trainingCenter.city].map(value => value?.trim()).filter(Boolean).join(', ') : contact.clientTrainingCenterInfo}
               </div>
             )}          </div>
         )}
