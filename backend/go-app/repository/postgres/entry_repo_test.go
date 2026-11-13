@@ -76,6 +76,50 @@ func TestStudentCannotLogHoursOnAnotherStudentsContact(t *testing.T) {
 	addEntry(t, owner, contact.ID, "2025-01-10")
 }
 
+func TestFindClassStartDateForEntry(t *testing.T) {
+	resetDB(t)
+	ctx := context.Background()
+	repo := NewPostgresEntryRepo(testDB)
+
+	classID := seedClass(t, "Class A")
+	if _, err := testDB.Exec(`UPDATE classes SET client_start_date = '2024-09-01', mentor_start_date = '2024-10-01' WHERE id = $1`, classID); err != nil {
+		t.Fatal(err)
+	}
+	student := seedUser(t, "s@x.co", "student", &classID)
+	classless := seedUser(t, "c@x.co", "student", nil)
+	stranger := seedUser(t, "x@x.co", "student", nil)
+
+	client := createContact(t, clientContact(student, "A.B", "privateClinic"))
+	mentor := createContact(t, mentorContact(student, "Dana", "m@x.co", nil))
+	therapist := createContact(t, domain.Contact{UserID: student, Type: domain.TherapistContact, Name: "Tal", Phone: strptr("050")})
+	classlessClient := createContact(t, clientContact(classless, "C.D", "privateClinic"))
+
+	check := func(name string, user, contact uuid.UUID, want string) {
+		t.Helper()
+		got, err := repo.FindClassStartDateForEntry(ctx, user, contact)
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		if want == "" {
+			if got != nil {
+				t.Fatalf("%s: want no cutoff, got %v", name, got)
+			}
+			return
+		}
+		if got == nil || got.Format("2006-01-02") != want {
+			t.Fatalf("%s: got %v, want %s", name, got, want)
+		}
+	}
+	check("client uses the client date", student, client.ID, "2024-09-01")
+	check("mentor uses the mentor date", student, mentor.ID, "2024-10-01")
+	check("therapist with no date set", student, therapist.ID, "")
+	check("student without a class", classless, classlessClient.ID, "")
+
+	if _, err := repo.FindClassStartDateForEntry(ctx, stranger, client.ID); !errors.Is(err, repository.ErrNotFound) {
+		t.Fatalf("another student's contact: got %v, want ErrNotFound", err)
+	}
+}
+
 func TestStudentCannotDeleteAnotherStudentsEntry(t *testing.T) {
 	resetDB(t)
 	student := seedUser(t, "s@x.co", "student", nil)

@@ -17,7 +17,7 @@ func TestValidateEntryDate(t *testing.T) {
 		cutoff  *time.Time
 		wantErr string
 	}{
-		{name: "date before cutoff", date: time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC), cutoff: &cutoff, wantErr: "cannot report before 2026-01-01"},
+		{name: "date before cutoff", date: time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC), cutoff: &cutoff, wantErr: "לא ניתן לדווח לפני 01/01/2026"},
 		{name: "date on cutoff", date: cutoff, cutoff: &cutoff},
 		{name: "no cutoff", date: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
 	}

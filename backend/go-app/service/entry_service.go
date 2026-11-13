@@ -43,6 +43,10 @@ func (s *EntryService) AddEntry(
 	}
 
 	cutoff, err := s.repo.FindClassStartDateForEntry(ctx, userID, entry.ContactID)
+	if errors.Is(err, repository.ErrNotFound) {
+		log.Printf("[EntryService.AddEntry] Contact %s does not belong to user %s", entry.ContactID, userID)
+		return domain.Entry{}, NotFoundError{"contact", entry.ContactID.String()}
+	}
 	if err != nil {
 		log.Printf("[EntryService.AddEntry] Failed to resolve reporting cutoff: %v", err)
 		return domain.Entry{}, DBError{Err: err}

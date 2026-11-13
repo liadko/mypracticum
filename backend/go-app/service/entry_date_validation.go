@@ -11,5 +11,6 @@ func validateEntryDate(entryDate time.Time, cutoff *time.Time) error {
 	if cutoff == nil || !entryDate.Before(*cutoff) {
 		return nil
 	}
-	return domain.ValidationError(fmt.Sprintf("cannot report before %s", cutoff.Format("2006-01-02")))
+	// Shown to the student as-is, in the same words the calendar uses.
+	return domain.ValidationError(fmt.Sprintf("לא ניתן לדווח לפני %s", cutoff.Format("02/01/2006")))
 }

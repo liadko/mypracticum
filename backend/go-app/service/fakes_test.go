@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"mypracticum/backend/domain"
 	"mypracticum/backend/repository"
@@ -19,6 +20,8 @@ type fakeEntryRepo struct {
 	repository.EntryRepo
 
 	status      domain.StudentStatus
+	cutoff      *time.Time
+	cutoffErr   error
 	createErr   error
 	created     []domain.Entry
 	deleteErr   error
@@ -34,6 +37,10 @@ func (f *fakeEntryRepo) UserStatus(context.Context, uuid.UUID) (domain.StudentSt
 
 func (f *fakeEntryRepo) EntryOwnerStatus(context.Context, uuid.UUID) (domain.StudentStatus, error) {
 	return f.status, nil
+}
+
+func (f *fakeEntryRepo) FindClassStartDateForEntry(context.Context, uuid.UUID, uuid.UUID) (*time.Time, error) {
+	return f.cutoff, f.cutoffErr
 }
 
 func (f *fakeEntryRepo) Create(_ context.Context, e domain.Entry) (domain.Entry, error) {
