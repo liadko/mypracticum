@@ -120,6 +120,62 @@ func TestFindClassStartDateForEntry(t *testing.T) {
 	}
 }
 
+func TestPrivateClinicUsage(t *testing.T) {
+	resetDB(t)
+	ctx := context.Background()
+	repo := NewPostgresEntryRepo(testDB)
+
+	classID := seedClass(t, "Class A")
+	if _, err := testDB.Exec(`UPDATE classes SET private_clinic_cap = 2 WHERE id = $1`, classID); err != nil {
+		t.Fatal(err)
+	}
+	student := seedUser(t, "s@x.co", "student", &classID)
+	classless := seedUser(t, "c@x.co", "student", nil)
+	stranger := seedUser(t, "x@x.co", "student", nil)
+
+	private := createContact(t, clientContact(student, "A.B", "privateClinic"))
+	centre := createContact(t, domain.Contact{
+		UserID: student, Type: domain.ClientContact, Name: "C.D",
+		ClientInstitution: strptr("trainingCenter"),
+		TrainingCenter:    &domain.TrainingCenterDetails{Name: "Hillel", City: "Ashdod", ContactPerson: "Rina"},
+	})
+	addEntry(t, student, private.ID, "2025-01-10")
+	addEntry(t, student, centre.ID, "2025-01-11")
+	addEntry(t, student, centre.ID, "2025-01-12")
+	if _, err := repo.CreateManualEntry(ctx, domain.NewManualEntry{UserID: student, Hours: 500, Cause: "summary", Type: "client"}); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := repo.PrivateClinicUsage(ctx, student, private.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !got.IsPrivateClinic || got.Used != 1 || got.Cap != 2 {
+		t.Fatalf("private clinic contact: %+v (manual hours and training-centre entries must not count)", got)
+	}
+
+	got, err = repo.PrivateClinicUsage(ctx, student, centre.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.IsPrivateClinic {
+		t.Fatalf("training-centre contact reported as private clinic: %+v", got)
+	}
+
+	classlessContact := createContact(t, clientContact(classless, "E.F", "privateClinic"))
+	got, err = repo.PrivateClinicUsage(ctx, classless, classlessContact.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Cap != domain.DefaultPrivateClinicCap {
+		t.Fatalf("student without a class should get the default cap, got %+v", got)
+	}
+
+	if _, err := repo.PrivateClinicUsage(ctx, stranger, private.ID); !errors.Is(err, repository.ErrNotFound) {
+		t.Fatalf("another student's contact: got %v", err)
+	}
+}
+
 func TestStudentCannotDeleteAnotherStudentsEntry(t *testing.T) {
 	resetDB(t)
 	student := seedUser(t, "s@x.co", "student", nil)

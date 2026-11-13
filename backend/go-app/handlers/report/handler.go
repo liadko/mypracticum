@@ -58,6 +58,7 @@ func (h *ReportHandler) ListStudents(ctx *gin.Context) {
 		ctx.Query("sortBy"),
 		ctx.Query("sortDirection"),
 		statusFilter,
+		ctx.Query("overPrivateClinicCap") == "true",
 		page,
 		limit,
 	)
@@ -297,6 +298,8 @@ func mapSummary(summary domain.StudentReportSummary) Summary {
 		},
 		LastReportedDate:   lastReportedDate,
 		SignatureSubmitted: summary.SignatureSubmitted,
+		PrivateClinicHours: summary.PrivateClinicHours,
+		PrivateClinicCap:   summary.PrivateClinicCap,
 	}
 }
 

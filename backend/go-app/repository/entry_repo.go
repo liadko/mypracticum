@@ -15,6 +15,8 @@ type EntryRepo interface {
 	// FindClassStartDateForEntry returns the authenticated user's class cutoff
 	// for the contact, or nil when the user/contact has no applicable cutoff.
 	FindClassStartDateForEntry(ctx context.Context, userID, contactID uuid.UUID) (*time.Time, error)
+	// PrivateClinicUsage returns ErrNotFound if the contact is not the user's.
+	PrivateClinicUsage(ctx context.Context, userID, contactID uuid.UUID) (domain.PrivateClinicUsage, error)
 
 	UserStatus(ctx context.Context, userID uuid.UUID) (domain.StudentStatus, error)
 	EntryOwnerStatus(ctx context.Context, entryID uuid.UUID) (domain.StudentStatus, error)

@@ -66,6 +66,44 @@ func TestAddEntryCutoffLookupForUnknownContactIsNotFound(t *testing.T) {
 	}
 }
 
+func TestPrivateClinicCap(t *testing.T) {
+	add := func(usage domain.PrivateClinicUsage) (*fakeEntryRepo, error) {
+		repo := &fakeEntryRepo{usage: usage}
+		_, err := NewEntryService(repo).AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "2024-03-01"})
+		return repo, err
+	}
+
+	t.Run("under the cap", func(t *testing.T) {
+		repo, err := add(domain.PrivateClinicUsage{IsPrivateClinic: true, Used: 159, Cap: 160})
+		if err != nil || len(repo.created) != 1 {
+			t.Fatalf("got %v, created %d", err, len(repo.created))
+		}
+	})
+
+	t.Run("at the cap is blocked", func(t *testing.T) {
+		repo, err := add(domain.PrivateClinicUsage{IsPrivateClinic: true, Used: 160, Cap: 160})
+		var ve domain.ValidationError
+		if !errors.As(err, &ve) || len(repo.created) != 0 {
+			t.Fatalf("got %T %v, created %d", err, err, len(repo.created))
+		}
+	})
+
+	t.Run("already over the cap is blocked", func(t *testing.T) {
+		_, err := add(domain.PrivateClinicUsage{IsPrivateClinic: true, Used: 618, Cap: 160})
+		var ve domain.ValidationError
+		if !errors.As(err, &ve) {
+			t.Fatalf("got %T %v", err, err)
+		}
+	})
+
+	t.Run("training-centre clients are never capped", func(t *testing.T) {
+		repo, err := add(domain.PrivateClinicUsage{IsPrivateClinic: false, Used: 618, Cap: 160})
+		if err != nil || len(repo.created) != 1 {
+			t.Fatalf("got %v, created %d", err, len(repo.created))
+		}
+	})
+}
+
 func TestAddEntryRejectsInvalidDateWithoutTouchingRepo(t *testing.T) {
 	repo := &fakeEntryRepo{}
 	_, err := NewEntryService(repo).AddEntry(context.Background(), uuid.New(), domain.NewEntry{ContactID: uuid.New(), DateStr: "nope"})

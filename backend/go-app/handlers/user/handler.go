@@ -70,6 +70,7 @@ func (h *UserHandler) GetMe(ctx *gin.Context) {
 			ClientStartDate:    format.OptionalDate(profile.Class.ClientStartDate),
 			MentorStartDate:    format.OptionalDate(profile.Class.MentorStartDate),
 			TherapistStartDate: format.OptionalDate(profile.Class.TherapistStartDate),
+			PrivateClinicCap:   profile.Class.PrivateClinicCap,
 		}
 	}
 
@@ -113,6 +114,33 @@ func (h *UserHandler) CreateClass(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusCreated, mapAdminClass(created))
+}
+
+// UpdateClassCap handles PATCH /admin/classes/:classId with {privateClinicCap}.
+func (h *UserHandler) UpdateClassCap(ctx *gin.Context) {
+	if !requireAdmin(ctx) {
+		return
+	}
+	classID, err := uuid.Parse(ctx.Param("classId"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid class ID"})
+		return
+	}
+	var req ClassCapRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "privateClinicCap is required"})
+		return
+	}
+	class, err := h.svc.UpdateClassPrivateClinicCap(ctx.Request.Context(), classID, *req.PrivateClinicCap)
+	var notFound service.NotFoundError
+	if errors.As(err, &notFound) {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": notFound.Error()})
+		return
+	}
+	if !writeAdminClassError(ctx, err) {
+		return
+	}
+	ctx.JSON(http.StatusOK, mapAdminClass(class))
 }
 
 // UpdateProfile handles PATCH /users/me
@@ -413,11 +441,16 @@ func populateClassCreationRequest(ctx *gin.Context) (domain.Class, bool) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "all reporting start dates are required"})
 		return domain.Class{}, false
 	}
+	privateClinicCap := domain.DefaultPrivateClinicCap
+	if request.PrivateClinicCap != nil {
+		privateClinicCap = *request.PrivateClinicCap
+	}
 	return domain.Class{
 		Name:               request.Name,
 		ClientStartDate:    clientStartDate,
 		MentorStartDate:    mentorStartDate,
 		TherapistStartDate: therapistStartDate,
+		PrivateClinicCap:   privateClinicCap,
 	}, true
 }
 
@@ -441,6 +474,7 @@ func mapAdminClass(class domain.Class) AdminClassResponse {
 			Mentor:    format.OptionalDate(class.MentorStartDate),
 			Therapist: format.OptionalDate(class.TherapistStartDate),
 		},
+		PrivateClinicCap: class.PrivateClinicCap,
 	}
 }
 

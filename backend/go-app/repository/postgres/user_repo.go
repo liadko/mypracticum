@@ -149,44 +149,32 @@ func (r *PostgresUserRepo) FindByID(ctx context.Context, id uuid.UUID) (domain.U
 }
 
 func (r *PostgresUserRepo) FindClassByID(ctx context.Context, id uuid.UUID) (domain.Class, error) {
-	const q = `
-SELECT id,
-       name,
-       client_start_date,
-       mentor_start_date,
-       therapist_start_date
-  FROM classes
- WHERE id = $1
-`
-
-	var class domain.Class
-	var clientStartDate sql.NullTime
-	var mentorStartDate sql.NullTime
-	var therapistStartDate sql.NullTime
-	if err := r.db.QueryRowContext(ctx, q, id).Scan(
-		&class.ID,
-		&class.Name,
-		&clientStartDate,
-		&mentorStartDate,
-		&therapistStartDate,
-	); err != nil {
+	q := `SELECT ` + classColumns + ` FROM classes WHERE id = $1`
+	class, err := scanClass(r.db.QueryRowContext(ctx, q, id))
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Class{}, repository.ErrNotFound
 		}
 		return domain.Class{}, err
 	}
-	class.ClientStartDate = nullTimePointer(clientStartDate)
-	class.MentorStartDate = nullTimePointer(mentorStartDate)
-	class.TherapistStartDate = nullTimePointer(therapistStartDate)
+	return class, nil
+}
+
+// UpdateClassPrivateClinicCap sets how many private-clinic hours the class allows.
+func (r *PostgresUserRepo) UpdateClassPrivateClinicCap(ctx context.Context, id uuid.UUID, cap int) (domain.Class, error) {
+	q := `UPDATE classes SET private_clinic_cap = $2 WHERE id = $1 RETURNING ` + classColumns
+	class, err := scanClass(r.db.QueryRowContext(ctx, q, id, cap))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Class{}, repository.ErrNotFound
+		}
+		return domain.Class{}, err
+	}
 	return class, nil
 }
 
 func (r *PostgresUserRepo) ListClasses(ctx context.Context) ([]domain.Class, error) {
-	const q = `
-SELECT id, name, client_start_date, mentor_start_date, therapist_start_date
-  FROM classes
- ORDER BY name
-`
+	q := `SELECT ` + classColumns + ` FROM classes ORDER BY name`
 	rows, err := r.db.QueryContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -208,17 +196,18 @@ SELECT id, name, client_start_date, mentor_start_date, therapist_start_date
 }
 
 func (r *PostgresUserRepo) CreateClass(ctx context.Context, class domain.Class) (domain.Class, error) {
-	const q = `
-INSERT INTO classes (name, client_start_date, mentor_start_date, therapist_start_date)
-VALUES ($1, $2, $3, $4)
-RETURNING id, name, client_start_date, mentor_start_date, therapist_start_date
-`
-	created, err := scanClass(r.db.QueryRowContext(ctx, q, class.Name, class.ClientStartDate, class.MentorStartDate, class.TherapistStartDate))
+	q := `
+INSERT INTO classes (name, client_start_date, mentor_start_date, therapist_start_date, private_clinic_cap)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING ` + classColumns
+	created, err := scanClass(r.db.QueryRowContext(ctx, q, class.Name, class.ClientStartDate, class.MentorStartDate, class.TherapistStartDate, class.PrivateClinicCap))
 	if err != nil {
 		return domain.Class{}, classDuplicateError(err)
 	}
 	return created, nil
 }
+
+const classColumns = `id, name, client_start_date, mentor_start_date, therapist_start_date, private_clinic_cap`
 
 type classScanner interface {
 	Scan(dest ...any) error
@@ -229,7 +218,7 @@ func scanClass(scanner classScanner) (domain.Class, error) {
 	var clientStartDate sql.NullTime
 	var mentorStartDate sql.NullTime
 	var therapistStartDate sql.NullTime
-	if err := scanner.Scan(&class.ID, &class.Name, &clientStartDate, &mentorStartDate, &therapistStartDate); err != nil {
+	if err := scanner.Scan(&class.ID, &class.Name, &clientStartDate, &mentorStartDate, &therapistStartDate, &class.PrivateClinicCap); err != nil {
 		return domain.Class{}, err
 	}
 	class.ClientStartDate = nullTimePointer(clientStartDate)

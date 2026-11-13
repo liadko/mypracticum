@@ -116,6 +116,24 @@ func normalizeClass(class domain.Class) (domain.Class, error) {
 	if class.Name == "" {
 		return domain.Class{}, ValidationError("class name must not be empty")
 	}
+	if class.PrivateClinicCap < 0 {
+		return domain.Class{}, ValidationError("private clinic cap must not be negative")
+	}
+	return class, nil
+}
+
+// UpdateClassPrivateClinicCap changes how many private-clinic hours a class allows.
+func (s *UserService) UpdateClassPrivateClinicCap(ctx context.Context, id uuid.UUID, cap int) (domain.Class, error) {
+	if cap < 0 {
+		return domain.Class{}, ValidationError("private clinic cap must not be negative")
+	}
+	class, err := s.userRepo.UpdateClassPrivateClinicCap(ctx, id, cap)
+	if errors.Is(err, repository.ErrNotFound) {
+		return domain.Class{}, NotFoundError{"class", id.String()}
+	}
+	if err != nil {
+		return domain.Class{}, DBError{Err: err}
+	}
 	return class, nil
 }
 

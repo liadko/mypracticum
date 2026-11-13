@@ -56,6 +56,19 @@ func (s *EntryService) AddEntry(
 		return domain.Entry{}, err
 	}
 
+	usage, err := s.repo.PrivateClinicUsage(ctx, userID, entry.ContactID)
+	if errors.Is(err, repository.ErrNotFound) {
+		return domain.Entry{}, NotFoundError{"contact", entry.ContactID.String()}
+	}
+	if err != nil {
+		return domain.Entry{}, DBError{Err: err}
+	}
+	if usage.IsPrivateClinic && usage.Reached() {
+		log.Printf("[EntryService.AddEntry] Private clinic cap reached for user %s (%d/%d)", userID, usage.Used, usage.Cap)
+		return domain.Entry{}, domain.ValidationError(fmt.Sprintf(
+			"הגעת למכסה של %d שעות בקליניקה פרטית, ולכן לא ניתן להוסיף עוד. אפשר להמשיך לדווח על מטופלים במרכזי הכשרה.", usage.Cap))
+	}
+
 	// send to the repo
 	createdEntry, err := s.repo.Create(ctx, entry)
 
