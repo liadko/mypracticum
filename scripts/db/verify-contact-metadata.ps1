@@ -6,6 +6,9 @@
     Read-only. Run it after migration 0028. Every number must be 0 before the
     old contact columns can ever be dropped.
 
+    Run it BEFORE deploying the code that stops writing the old columns. After
+    that, any contact edited since will rightly show as different here.
+
 .EXAMPLE
     .\scripts\db\verify-contact-metadata.ps1
 #>

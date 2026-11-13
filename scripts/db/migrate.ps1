@@ -14,6 +14,7 @@
         0027  add contacts.metadata         before deploying the JSONB backend
         0028  backfill contacts.metadata    after that deploy, then run verify-contact-metadata.ps1
         0029  add users.status              before deploying the freeze backend
+        0030  require contacts.metadata     before or after deploying the metadata-only backend
 
 .EXAMPLE
     .\scripts\db\migrate.ps1              # shows what will run, asks, applies one file

@@ -32,17 +32,11 @@ func (r *PostgresContactRepo) Create(ctx context.Context, userID uuid.UUID, c do
 	}
 
 	query := `
-		INSERT INTO contacts (
-			id, user_id, type, name,
-			email, phone, specialty,
-			mentor_user_id,
-			client_institution, client_training_center_info,
-			metadata
-		)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb)
+		INSERT INTO contacts (id, user_id, type, name, mentor_user_id, metadata)
+		VALUES ($1, $2, $3, $4, $5, $6::jsonb)
 		RETURNING ` + contactColumns
 
-	row := r.db.QueryRowContext(ctx, query, c.ID, c.UserID, c.Type, c.Name, c.Email, c.Phone, c.Specialty, c.MentorUserID, c.ClientInstitution, c.ClientTrainingCenterInfo, metadata)
+	row := r.db.QueryRowContext(ctx, query, c.ID, c.UserID, c.Type, c.Name, c.MentorUserID, metadata)
 
 	out, err := scanContact(row)
 	if err != nil {
@@ -66,32 +60,15 @@ func (r *PostgresContactRepo) Update(
 
 	q := `
 		UPDATE contacts
-			SET type                     = $1,
-				name                     = $2,
-				email                    = $3,
-				phone                    = $4,
-				specialty                = $5,
-				mentor_user_id           = $6,
-				client_institution       = $7,
-				client_training_center_info = $8,
-				metadata                 = $9::jsonb
-		WHERE user_id = $10
-			AND id      = $11
+		   SET type           = $1,
+		       name           = $2,
+		       mentor_user_id = $3,
+		       metadata       = $4::jsonb
+		 WHERE user_id = $5
+		   AND id      = $6
 		RETURNING ` + contactColumns
 
-	row := r.db.QueryRowContext(ctx, q,
-		c.Type,
-		c.Name,
-		c.Email,
-		c.Phone,
-		c.Specialty,
-		c.MentorUserID,
-		c.ClientInstitution,
-		c.ClientTrainingCenterInfo,
-		metadata,
-		userID,
-		contactID,
-	)
+	row := r.db.QueryRowContext(ctx, q, c.Type, c.Name, c.MentorUserID, metadata, userID, contactID)
 
 	out, err := scanContact(row)
 	if err != nil {
@@ -148,12 +125,12 @@ func (r *PostgresContactRepo) UserHasMentorExcept(
 ) (bool, error) {
 	const q = `
 		SELECT 1
-			FROM contacts
-		WHERE user_id			= $1
-			AND type			= 'mentor'
-			AND COALESCE(metadata->>'email', email) = $2
-			AND id  		   <> $3
-		LIMIT 1;
+		  FROM contacts
+		 WHERE user_id = $1
+		   AND type = 'mentor'
+		   AND metadata->>'email' = $2
+		   AND id <> $3
+		 LIMIT 1;
 	`
 	var dummy int
 	err := r.db.QueryRowContext(ctx, q, userID, email, exceptContactID).Scan(&dummy)
@@ -192,20 +169,17 @@ func (r *PostgresContactRepo) GetMentor(ctx context.Context, userID, contactID u
 
 // ---- private helpers ----
 
-// contactMetadata is the shape of contacts.metadata.
-//
-// While the migration in #18 is in progress, every write goes to both this
-// column and the old ones, and a row whose metadata is NULL is read from the
-// old columns. Once the old columns are dropped, the fallback goes away.
+// contactMetadata is the shape of contacts.metadata, where every
+// type-specific contact detail lives. The old per-field columns (email, phone,
+// specialty, client_institution, client_training_center_info) are no longer
+// read or written; they are dropped in a later migration (#18).
 type contactMetadata struct {
-	Email                    *string `json:"email,omitempty"`
-	Phone                    *string `json:"phone,omitempty"`
-	Specialty                *string `json:"specialty,omitempty"`
-	ClientInstitution        *string `json:"clientInstitution,omitempty"`
-	ClientTrainingCenterInfo *string `json:"clientTrainingCenterInfo,omitempty"`
-
-	// Lives only here. No column backs it, which is the point of the JSONB move.
-	TrainingCenter *domain.TrainingCenterDetails `json:"trainingCenter,omitempty"`
+	Email                    *string                       `json:"email,omitempty"`
+	Phone                    *string                       `json:"phone,omitempty"`
+	Specialty                *string                       `json:"specialty,omitempty"`
+	ClientInstitution        *string                       `json:"clientInstitution,omitempty"`
+	ClientTrainingCenterInfo *string                       `json:"clientTrainingCenterInfo,omitempty"`
+	TrainingCenter           *domain.TrainingCenterDetails `json:"trainingCenter,omitempty"`
 }
 
 // encodeContactMetadata returns JSON as a string because database/sql would
@@ -225,32 +199,18 @@ func encodeContactMetadata(c domain.Contact) (string, error) {
 	return string(encoded), nil
 }
 
-const contactColumns = `id, user_id, type, name,
-		email, phone, specialty,
-		mentor_user_id,
-		client_institution, client_training_center_info,
-		metadata`
+const contactColumns = `id, user_id, type, name, mentor_user_id, metadata`
 
 type rowScanner interface {
 	Scan(dest ...any) error
 }
 
-// scanContact reads a row selected with contactColumns. Metadata wins when
-// present; a NULL means the row hasn't been migrated, so the columns are used.
+// scanContact reads a row selected with contactColumns.
 func scanContact(row rowScanner) (domain.Contact, error) {
 	var c domain.Contact
 	var rawMetadata []byte
-	if err := row.Scan(
-		&c.ID, &c.UserID, &c.Type, &c.Name,
-		&c.Email, &c.Phone, &c.Specialty,
-		&c.MentorUserID,
-		&c.ClientInstitution, &c.ClientTrainingCenterInfo,
-		&rawMetadata,
-	); err != nil {
+	if err := row.Scan(&c.ID, &c.UserID, &c.Type, &c.Name, &c.MentorUserID, &rawMetadata); err != nil {
 		return domain.Contact{}, err
-	}
-	if rawMetadata == nil {
-		return c, nil
 	}
 
 	var metadata contactMetadata
