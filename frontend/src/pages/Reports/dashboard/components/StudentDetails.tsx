@@ -179,6 +179,22 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({ studentId, onBac
               <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200">
                 <span>הצהרה חתומה: <strong className="text-slate-900 font-bold">{(summary.signatureSubmitted ?? student.signatureSubmitted) ? 'הוגשה למזכירות' : 'טרם הוגשה למזכירות'}</strong></span>
               </div>
+
+              {student.privateClinicHours !== undefined && student.privateClinicCap !== undefined && (
+                <div
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border ${
+                    student.privateClinicHours > student.privateClinicCap
+                      ? 'bg-rose-50 border-rose-300 text-rose-900'
+                      : 'bg-slate-50 border-slate-200'
+                  }`}
+                  title="שעות על מטופלים בקליניקה פרטית מתוך מכסת המחזור. שעות מנהלתיות לא נספרות."
+                >
+                  <span>
+                    קליניקה פרטית: <strong className="font-bold">{student.privateClinicHours} / {student.privateClinicCap}</strong>
+                    {student.privateClinicHours > student.privateClinicCap && ' · חריגה מהמכסה'}
+                  </span>
+                </div>
+              )}
             </div>
 
           </div>
@@ -269,4 +285,3 @@ export const StudentDetails: React.FC<StudentDetailsProps> = ({ studentId, onBac
     </div>
   );
 };
-

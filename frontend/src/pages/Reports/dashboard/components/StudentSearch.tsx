@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Filter, Clock, CheckCircle2, FileX, Users, Snowflake, Download, Loader2 } from 'lucide-react';
+import { Filter, Clock, CheckCircle2, FileX, Users, Snowflake, Download, Loader2, AlertTriangle } from 'lucide-react';
 import type { StudentSummary } from '../types';
 import { searchStudents, getStudentClasses } from '../services/studentApi';
 import { PaginatedDirectory } from './PaginatedDirectory';
@@ -18,6 +18,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState<number>(1);
   const [signatureOnlyFilter, setSignatureOnlyFilter] = useState<boolean>(false);
+  const [overCapOnly, setOverCapOnly] = useState<boolean>(false);
   // includeFrozen is the switch beside the title; frozenOnly is the chip among the filters.
   // Turning the chip on also turns the switch on, and turning the switch off clears the chip.
   const [includeFrozen, setIncludeFrozen] = useState<boolean>(false);
@@ -65,6 +66,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       sortBy,
       sortDirection,
       status: statusFilter,
+      overPrivateClinicCap: overCapOnly,
       page,
       limit: 50,
     })
@@ -86,7 +88,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [query, classFilter, sortBy, sortDirection, statusFilter, page]);
+  }, [query, classFilter, sortBy, sortDirection, statusFilter, overCapOnly, page]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -117,7 +119,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     setSearchError(null);
     try {
       await exportStudentsToExcel(
-        { query, className: classFilter, sortBy, sortDirection, status: statusFilter },
+        { query, className: classFilter, sortBy, sortDirection, status: statusFilter, overPrivateClinicCap: overCapOnly },
         (s) => !(signatureOnlyFilter && s.signatureSubmitted === true),
       );
     } catch (err: any) {
@@ -133,6 +135,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
     setSignatureOnlyFilter(false);
     setIncludeFrozen(false);
     setFrozenOnly(false);
+    setOverCapOnly(false);
     setSortBy('name');
     setSortDirection('asc');
     setPage(1);
@@ -203,6 +206,29 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
           </div>
         </div>
       ),
+    },
+    {
+      key: 'privateClinicHours',
+      header: 'קליניקה פרטית',
+      sortable: true,
+      render: (s) => {
+        const hours = s.privateClinicHours ?? 0;
+        const cap = s.privateClinicCap ?? 160;
+        const over = hours > cap;
+        const atCap = hours === cap;
+        return (
+          <div className="inline-block" title="שעות על מטופלים בקליניקה פרטית מתוך מכסת המחזור. שעות מנהלתיות לא נספרות.">
+            <div className={`font-bold text-xs ${over ? 'text-rose-700' : atCap ? 'text-amber-700' : 'text-slate-900'}`}>
+              {hours} <span className="text-[10px] font-normal text-slate-500">/ {cap} ש'</span>
+            </div>
+            {over && (
+              <span className="inline-block mt-0.5 bg-rose-50 text-rose-800 border border-rose-200 px-1.5 rounded text-[10px] font-bold">
+                חריגה
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'therapistHours',
@@ -343,6 +369,22 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       </button>
 
       <button
+        onClick={() => {
+          setOverCapOnly((prev) => !prev);
+          setPage(1);
+        }}
+        aria-pressed={overCapOnly}
+        className={`px-2.5 py-1 rounded transition border font-medium flex items-center gap-1.5 ${
+          overCapOnly
+            ? 'bg-rose-100 text-rose-900 border-rose-300 font-bold'
+            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+        }`}
+      >
+        <AlertTriangle className={`w-3.5 h-3.5 ${overCapOnly ? 'text-rose-700' : 'text-slate-400'}`} />
+        <span>חריגה ממכסת קליניקה פרטית</span>
+      </button>
+
+      <button
         onClick={handleExport}
         disabled={isExporting}
         className="px-2.5 py-1 rounded transition border font-medium flex items-center gap-1.5 bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 disabled:opacity-50"
@@ -394,7 +436,7 @@ export const StudentSearch: React.FC<StudentSearchProps> = ({ onSelectStudent })
       searchPlaceholder="חפש תלמיד לפי שם, דוא&quot;ל, מס' ת&quot;ז או מחזור לימודים..."
       extraFilters={extraFilters}
       headerActions={frozenSwitch}
-      isFiltered={classFilter !== 'all' || signatureOnlyFilter || includeFrozen}
+      isFiltered={classFilter !== 'all' || signatureOnlyFilter || includeFrozen || overCapOnly}
       onClearFilters={handleClearFilters}
       items={filteredStudents}
       total={displayTotal}

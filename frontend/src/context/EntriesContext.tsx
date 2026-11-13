@@ -4,7 +4,7 @@ import * as domain from '../domain/entries'         // pure helpers: addEntry, r
 import * as api from '../api/entriesApi' // I/O: fetchAllEntries, createEntry, deleteEntry
 import { showAsyncToastWithError, showError } from '../utils/toast'
 import { v4 as uuidv4 } from 'uuid';
-import { TimeoutError, frozenMessage } from '../api/errors'
+import { TimeoutError, frozenMessage, refusalMessage } from '../api/errors'
 import { formatIsraeliDate, isEntryDateAllowed } from '../utils/entryDateRules'
 
 
@@ -133,7 +133,7 @@ export function EntriesProvider({ children }: EntriesProviderProps) {
                 if (err instanceof TimeoutError) {
                     showError('יש בעיה ברשת, לא ניתן לדווח')
                 } else {
-                    showError(frozenMessage(err) ?? 'לא ניתן להוסיף את השעה הזאת')
+                    showError(refusalMessage(err) ?? 'לא ניתן להוסיף את השעה הזאת')
                 }
                 return false
             }

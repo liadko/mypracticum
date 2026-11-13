@@ -47,6 +47,19 @@ export async function createClass(request: CreateAdminClassRequest): Promise<Adm
     return res.json();
 }
 
+/** Changes how many private-clinic hours students in a class may log. */
+export async function updateClassCap(classId: string, privateClinicCap: number): Promise<AdminClass> {
+    const res = await apiFetch(`/api/v1/admin/classes/${encodeURIComponent(classId)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ privateClinicCap }),
+    });
+    if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error || 'Failed to update the cap');
+    }
+    return res.json();
+}
+
 /**
  * Fetches all students for the admin portal.
  */

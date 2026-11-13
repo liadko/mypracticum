@@ -42,9 +42,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
 
     const [showMentorConfirm, setShowMentorConfirm] = useState(false);
 
-    // Set when editing an older training-centre client that has none of the new
-    // fields: holds what the student originally typed, shown in a dismissible notice.
-    const [olderCenterText, setOlderCenterText] = useState<string | null>(null)
+    const [showNewFieldsNotice, setShowNewFieldsNotice] = useState(false)
 
     // The form scrolls inside the modal; this says whether fields are hidden below.
     const formRef = useRef<HTMLFormElement>(null)
@@ -53,7 +51,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
         const el = formRef.current
         if (el) setHasMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 24)
     }
-    useEffect(updateHasMoreBelow, [formValues?.clientInstitution, olderCenterText])
+    useEffect(updateHasMoreBelow, [formValues?.clientInstitution, showNewFieldsNotice])
     const [addedMentor, setAddedMentor] = useState<NewContact | null>(null);
 
     // initialize once on mount
@@ -68,7 +66,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
 
             const isClient = existing.type === 'client'
             if (needsCenterDetails(existing) && existing.type === 'client') {
-                setOlderCenterText(existing.clientTrainingCenterInfo ?? '')
+                setShowNewFieldsNotice(true)
             }
             const isMentor = existing.type === 'mentor'
             const isTherapist = existing.type === 'therapist'
@@ -84,7 +82,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
 
                 clientInstitution: isClient ? existing.clientInstitution : '',
                 clientTrainingCenterInfo: isClient ? existing.clientTrainingCenterInfo : '',
-                centerName: isClient ? existing.trainingCenter?.name ?? '' : '',
+                centerName: isClient ? existing.trainingCenter?.name?.trim() || existing.clientTrainingCenterInfo || '' : '',
                 centerCity: isClient ? existing.trainingCenter?.city ?? '' : '',
                 centerContactPerson: isClient ? existing.trainingCenter?.contactPerson ?? '' : '',
                 centerContactPhone: isClient ? existing.trainingCenter?.contactPhone ?? '' : '',
@@ -125,7 +123,7 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
         centerName, centerCity, centerContactPerson, centerContactPhone,
     } = formValues
 
-    const isNudged = olderCenterText !== null
+    const isNudged = showNewFieldsNotice
     // New contacts must name the centre; older ones already have a description.
     const centerRequired = !clientTrainingCenterInfo
     const centerStar = centerRequired && <span className="contact-form__required" aria-hidden="true">*</span>
@@ -297,14 +295,9 @@ export function ContactForm({ formMode, isInitialCreation, onCloseForm, onCloseA
                                             type="button"
                                             className="contact-form__notice-close"
                                             aria-label="סגירה"
-                                            onClick={() => setOlderCenterText(null)}
+                                            onClick={() => setShowNewFieldsNotice(false)}
                                         >×</button>
                                         <div className="contact-form__notice-title">הוספנו שדות חדשים למרכז ההכשרה</div>
-                                        {olderCenterText && (
-                                            <div className="contact-form__notice-text">
-                                                מה שכתבת בעבר: <strong>{olderCenterText}</strong>
-                                            </div>
-                                        )}
                                         <div className="contact-form__notice-text">
                                             אפשר להשלים למטה את שם המרכז, העיר ואיש הקשר.
                                         </div>

@@ -24,6 +24,7 @@
   align-items: center;
 
   height: 650px;
+  max-height: calc(100dvh - 2rem);
 
   border: 1px solid rgb(185, 185, 185);
   border-radius: 16px;
@@ -38,6 +39,7 @@
 
 /* Header */
 .edit-modal__header {
+  flex-shrink: 0;
 
   width: 100%;
 

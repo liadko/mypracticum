@@ -85,6 +85,8 @@ export function normalizeStudentSummary(raw: any): StudentSummary {
     submittedHours,
     manualHoursByCategory,
     signatureSubmitted: sum.signatureSubmitted ?? raw.signatureSubmitted,
+    privateClinicHours: sum.privateClinicHours ?? raw.privateClinicHours,
+    privateClinicCap: sum.privateClinicCap ?? raw.privateClinicCap,
     avatarUrl: raw.avatarUrl,
     patternFlag: raw.patternFlag || 'normal',
     patternFlagText: raw.patternFlagText,
@@ -193,6 +195,8 @@ export interface SearchStudentsOptions {
   includeFrozen?: boolean;
   /** 'active' (default), 'frozen' or 'all'. */
   status?: 'active' | 'frozen' | 'all';
+  /** Only students strictly over their class's private-clinic cap. */
+  overPrivateClinicCap?: boolean;
 }
 
 export interface SearchStudentsResult {
@@ -223,6 +227,7 @@ export async function searchStudents(
       sortDirection: params.sortDirection || 'asc',
       includeFrozen: params.includeFrozen === true,
       status: params.status,
+      overPrivateClinicCap: params.overPrivateClinicCap === true,
     };
   }
 
@@ -247,6 +252,9 @@ export async function searchStudents(
     queryParams.append('status', status);
     // Understood by the backend before status existed, so either one works.
     queryParams.append('includeFrozen', 'true');
+  }
+  if (options.overPrivateClinicCap) {
+    queryParams.append('overPrivateClinicCap', 'true');
   }
   queryParams.append('page', String(options.page || 1));
   queryParams.append('limit', String(options.limit || 50));

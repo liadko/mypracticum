@@ -125,6 +125,8 @@ export interface UserClass {
     clientStartDate: string | null
     mentorStartDate: string | null
     therapistStartDate: string | null
+    /** Private-clinic hours a student in this class may log. */
+    privateClinicCap?: number
 }
 
 export interface FullName {
@@ -188,6 +190,7 @@ export interface AdminClass {
         mentor: string | null;
         therapist: string | null;
     };
+    privateClinicCap?: number;
 }
 
 export interface CreateAdminClassRequest {
@@ -197,6 +200,7 @@ export interface CreateAdminClassRequest {
         mentor: string;
         therapist: string;
     };
+    privateClinicCap?: number;
 }
 
 /**
