@@ -1,6 +1,6 @@
 import { TimeoutError } from "./errors";
 
-export async function apiFetch(url: string, options: RequestInit = {}, timeoutMs = 5000) {
+export async function apiFetch(url: string, options: RequestInit = {}, timeoutMs = 10000) {
     // 1. Get the token from localStorage
     const token = localStorage.getItem('token');
 
