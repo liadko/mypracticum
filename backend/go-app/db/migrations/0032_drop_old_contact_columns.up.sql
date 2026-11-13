@@ -1,4 +1,5 @@
--- Step 4 (last) of moving contact details into JSONB (#18).
+-- Step 4 (last) of moving contact details into JSONB (#18). Numbered after
+-- the private-clinic cap (0031) so it can be applied whenever you choose.
 --
 -- The app stopped reading and writing these columns in 0030's release; all of
 -- their data lives in contacts.metadata. This deletes them for good.
