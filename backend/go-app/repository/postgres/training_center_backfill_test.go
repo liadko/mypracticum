@@ -12,6 +12,11 @@ import (
 
 func TestTrainingCenterNameBackfill(t *testing.T) {
 	resetDB(t)
+	const legacyColumnCount = `SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'contacts' AND column_name IN ('email', 'phone', 'specialty', 'client_institution', 'client_training_center_info')`
+	var columnsBefore int
+	if err := testDB.QueryRow(legacyColumnCount).Scan(&columnsBefore); err != nil {
+		t.Fatal(err)
+	}
 	student := seedUser(t, "backfill@x.co", "student", nil)
 	migration, err := os.ReadFile("../../db/migrations/0032_backfill_training_center_names.up.sql")
 	if err != nil {
@@ -66,12 +71,14 @@ func TestTrainingCenterNameBackfill(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The backfill must be deployable while all five legacy columns still exist.
-	rows, err := testDB.Query(`SELECT email, phone, specialty, client_institution, client_training_center_info FROM contacts LIMIT 0`)
-	if err != nil {
-		t.Fatalf("backfill must retain the legacy columns: %v", err)
+	// Preserve old columns when present; keep the test valid after optional 0033.
+	var columnsAfter int
+	if err := testDB.QueryRow(legacyColumnCount).Scan(&columnsAfter); err != nil {
+		t.Fatal(err)
 	}
-	rows.Close()
+	if columnsAfter != columnsBefore {
+		t.Fatalf("backfill changed legacy columns: before=%d after=%d", columnsBefore, columnsAfter)
+	}
 	for _, c := range contacts {
 		if c.ClientTrainingCenterInfo != nil && *c.ClientTrainingCenterInfo == "עמותת הלל, אשדוד" {
 			if c.TrainingCenter == nil || c.TrainingCenter.Name != *c.ClientTrainingCenterInfo {
