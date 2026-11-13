@@ -28,6 +28,8 @@ type Summary struct {
 	ManualHours        ManualHours    `json:"manualHours"`
 	LastReportedDate   string         `json:"lastReportedDate,omitempty"`
 	SignatureSubmitted bool           `json:"signatureSubmitted"`
+	PrivateClinicHours int64          `json:"privateClinicHours"`
+	PrivateClinicCap   int64          `json:"privateClinicCap"`
 }
 
 type ManualHours struct {

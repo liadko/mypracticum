@@ -17,6 +17,11 @@ type StudentReportSummary struct {
 	ManualHoursByCategory ManualHoursByCategory
 	LastReportedDate    *time.Time
 	SignatureSubmitted  bool
+
+	// Calendar entries on private-clinic clients, and the cap that applies.
+	// Manual hours are not included.
+	PrivateClinicHours int64
+	PrivateClinicCap   int64
 }
 
 type ManualHoursByCategory struct {

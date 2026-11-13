@@ -101,7 +101,7 @@ func TestReportHidesFrozenStudentsUnlessAsked(t *testing.T) {
 	frozen := seedUser(t, "frozen@x.co", "student", nil)
 	freeze(t, frozen, domain.FreezeOnLeave, "", "line")
 
-	got, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListActiveStudents, 50, 0)
+	got, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListActiveStudents, false, 50, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +109,7 @@ func TestReportHidesFrozenStudentsUnlessAsked(t *testing.T) {
 		t.Fatalf("default view: total=%d rows=%+v", total, got)
 	}
 
-	got, total, err = repo.SearchStudentSummaries(ctx, "frozen", "", "name", "asc", domain.ListAllStudents, 50, 0)
+	got, total, err = repo.SearchStudentSummaries(ctx, "frozen", "", "name", "asc", domain.ListAllStudents, false, 50, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +127,7 @@ func TestReportFrozenOnlyAndStatusSort(t *testing.T) {
 	seedUser(t, "c-live@x.co", "student", nil)
 	freeze(t, frozen, domain.FreezeOnLeave, "", "line")
 
-	got, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListFrozenStudents, 50, 0)
+	got, total, err := repo.SearchStudentSummaries(ctx, "", "", "name", "asc", domain.ListFrozenStudents, false, 50, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +135,7 @@ func TestReportFrozenOnlyAndStatusSort(t *testing.T) {
 		t.Fatalf("frozen only: total=%d rows=%+v", total, got)
 	}
 
-	got, _, err = repo.SearchStudentSummaries(ctx, "", "", "status", "desc", domain.ListAllStudents, 50, 0)
+	got, _, err = repo.SearchStudentSummaries(ctx, "", "", "status", "desc", domain.ListAllStudents, false, 50, 0)
 	if err != nil {
 		t.Fatal(err)
 	}

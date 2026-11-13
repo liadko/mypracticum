@@ -8,6 +8,7 @@ type ClassDTO struct {
 	ClientStartDate    *string   `json:"clientStartDate"`
 	MentorStartDate    *string   `json:"mentorStartDate"`
 	TherapistStartDate *string   `json:"therapistStartDate"`
+	PrivateClinicCap   int       `json:"privateClinicCap"`
 }
 
 type ReportingStartDatesDTO struct {
@@ -20,11 +21,18 @@ type AdminClassResponse struct {
 	ID                  uuid.UUID              `json:"id"`
 	Name                string                 `json:"name"`
 	ReportingStartDates ReportingStartDatesDTO `json:"reportingStartDates"`
+	PrivateClinicCap    int                    `json:"privateClinicCap"`
 }
 
 type AdminClassRequest struct {
 	Name                string                  `json:"name" binding:"required"`
 	ReportingStartDates *ReportingStartDatesDTO `json:"reportingStartDates" binding:"required"`
+	// Optional; defaults to 160.
+	PrivateClinicCap *int `json:"privateClinicCap"`
+}
+
+type ClassCapRequest struct {
+	PrivateClinicCap *int `json:"privateClinicCap" binding:"required"`
 }
 
 type ProfileResponse struct {

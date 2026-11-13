@@ -155,6 +155,36 @@ func (r *PostgresEntryRepo) FindClassStartDateForEntry(
 	return &cutoff.Time, nil
 }
 
+// PrivateClinicUsage reports whether the contact is a private-clinic client,
+// how many private-clinic entries the student already has, and their cap.
+// Only calendar entries count; manual hours do not.
+func (r *PostgresEntryRepo) PrivateClinicUsage(ctx context.Context, userID, contactID uuid.UUID) (domain.PrivateClinicUsage, error) {
+	const q = `
+		SELECT (c.type = 'client' AND c.metadata->>'clientInstitution' = 'privateClinic'),
+		       (SELECT count(*)
+		          FROM entries e
+		          JOIN contacts pc ON pc.id = e.contact_id
+		         WHERE e.user_id = $1
+		           AND pc.type = 'client'
+		           AND pc.metadata->>'clientInstitution' = 'privateClinic'),
+		       COALESCE(cl.private_clinic_cap, $3)
+		  FROM contacts c
+		  JOIN users u ON u.id = c.user_id
+		  LEFT JOIN classes cl ON cl.id = u.class_id
+		 WHERE c.id = $2
+		   AND c.user_id = $1
+	`
+	var usage domain.PrivateClinicUsage
+	err := r.db.QueryRowContext(ctx, q, userID, contactID, domain.DefaultPrivateClinicCap).Scan(&usage.IsPrivateClinic, &usage.Used, &usage.Cap)
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.PrivateClinicUsage{}, repository.ErrNotFound
+	}
+	if err != nil {
+		return domain.PrivateClinicUsage{}, fmt.Errorf("private clinic usage for contact %s: %w", contactID, err)
+	}
+	return usage, nil
+}
+
 // Create satisfies EntryRepository
 func (r *PostgresEntryRepo) Create(
 	ctx context.Context,

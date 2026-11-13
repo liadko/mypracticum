@@ -20,6 +20,8 @@ type fakeEntryRepo struct {
 	repository.EntryRepo
 
 	status      domain.StudentStatus
+	usage       domain.PrivateClinicUsage
+	usageErr    error
 	cutoff      *time.Time
 	cutoffErr   error
 	createErr   error
@@ -37,6 +39,13 @@ func (f *fakeEntryRepo) UserStatus(context.Context, uuid.UUID) (domain.StudentSt
 
 func (f *fakeEntryRepo) EntryOwnerStatus(context.Context, uuid.UUID) (domain.StudentStatus, error) {
 	return f.status, nil
+}
+
+func (f *fakeEntryRepo) PrivateClinicUsage(context.Context, uuid.UUID, uuid.UUID) (domain.PrivateClinicUsage, error) {
+	if f.usage.Cap == 0 && f.usageErr == nil {
+		return domain.PrivateClinicUsage{Cap: domain.DefaultPrivateClinicCap}, nil
+	}
+	return f.usage, f.usageErr
 }
 
 func (f *fakeEntryRepo) FindClassStartDateForEntry(context.Context, uuid.UUID, uuid.UUID) (*time.Time, error) {
