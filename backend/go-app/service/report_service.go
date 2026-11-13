@@ -42,7 +42,7 @@ func (s *ReportService) SearchStudents(
 	classFilter string,
 	sortBy string,
 	sortDirection string,
-	includeFrozen bool,
+	statusFilter domain.StudentStatusFilter,
 	page int,
 	limit int,
 ) (domain.StudentSearchPage, error) {
@@ -66,7 +66,7 @@ func (s *ReportService) SearchStudents(
 		limit = MaxReportStudentLimit
 	}
 
-	students, total, err := s.reportRepo.SearchStudentSummaries(ctx, query, classFilter, sortBy, sortDirection, includeFrozen, limit, (page-1)*limit)
+	students, total, err := s.reportRepo.SearchStudentSummaries(ctx, query, classFilter, sortBy, sortDirection, statusFilter, limit, (page-1)*limit)
 	if err != nil {
 		return domain.StudentSearchPage{}, DBError{fmt.Errorf("search students for reports: %w", err)}
 	}
