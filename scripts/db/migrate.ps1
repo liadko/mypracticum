@@ -16,7 +16,8 @@
         0029  add users.status              before deploying the freeze backend
         0030  require contacts.metadata     before or after deploying the metadata-only backend
         0031  add classes.private_clinic_cap  before deploying the cap backend
-        0032  drop the old contact columns  only once the metadata-only backend is live; back up first
+        0032  backfill training-center names  keeps the old contact columns
+        0033  drop the old contact columns  only once the metadata-only backend is live; back up first
 
 .EXAMPLE
     .\scripts\db\migrate.ps1              # shows what will run, asks, applies one file
