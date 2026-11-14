@@ -263,7 +263,7 @@ export function CalendarWithList({
             {isPrivateClinicContact(selectedContact) && privateClinicCount >= privateClinicCap && (
                 <div className="private-clinic-banner" dir="rtl" role="status">
                     <strong>מילאתם את כל {privateClinicCap} שעות הקליניקה הפרטית.</strong>
-                    <span>אפשר להמשיך לדווח על מטופלים במרכזי הכשרה. כדי לסמן כאן יום חדש, יש להסיר קודם יום קיים.</span>
+                    <span>לא ניתן לסמן שעות נוספות.</span>
                 </div>
             )}
             {selectedContact && needsCenterDetails(selectedContact) && user?.status !== 'frozen' && (
