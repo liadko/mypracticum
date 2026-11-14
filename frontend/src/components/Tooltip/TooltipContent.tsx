@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import type { ContactType, Entry, ManualEntry } from '../../types';
 import { useContacts } from '../../context/ContactsContext';
-import { useAuth } from '../../context/AuthContext';
 import './Tooltip.css';
 
 interface TooltipContentProps {
@@ -39,13 +38,6 @@ export default function TooltipContent({
 }: TooltipContentProps) {
 
     const { getContactById } = useContacts()
-    const { user } = useAuth()
-    const privateClinicHours = page === 'client'
-        ? entries.filter(e => {
-            const contact = getContactById(e.contactId)
-            return contact?.type === 'client' && contact.clientInstitution === 'privateClinic'
-        }).length
-        : 0
 
     // 1. Find the manual entries that match the current page type
     const relevantManualEntries = useMemo(() => {
@@ -85,7 +77,6 @@ export default function TooltipContent({
                         return (
                             <>
                                 שעות שדיווחת:  <div className='number'>{entryCounts[page]}</div><br />
-                                קליניקה פרטית: <div className='number'>{privateClinicHours}/{user?.class?.privateClinicCap ?? 160}</div><br />
                             </>
                         );
                 }

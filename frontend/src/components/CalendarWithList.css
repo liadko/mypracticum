@@ -276,3 +276,24 @@
 .center-details-notice strong {
     white-space: nowrap;
 }
+
+/* Shown above the hours list once the private-clinic cap is reached. */
+.private-clinic-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: -0.6rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid #f0c98a;
+    border-radius: 10px;
+    background: #fff7e8;
+    color: #6b4700;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    text-align: right;
+}
+
+.private-clinic-banner strong {
+    font-size: 1.02rem;
+    color: #8a5a00;
+}

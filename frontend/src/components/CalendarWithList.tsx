@@ -260,6 +260,12 @@ export function CalendarWithList({
 
             </div>
             {filtered.length === 0 && extraMessage()}
+            {isPrivateClinicContact(selectedContact) && privateClinicCount >= privateClinicCap && (
+                <div className="private-clinic-banner" dir="rtl" role="status">
+                    <strong>מילאתם את כל {privateClinicCap} שעות הקליניקה הפרטית.</strong>
+                    <span>אפשר להמשיך לדווח על מטופלים במרכזי הכשרה. כדי לסמן כאן יום חדש, יש להסיר קודם יום קיים.</span>
+                </div>
+            )}
             {selectedContact && needsCenterDetails(selectedContact) && user?.status !== 'frozen' && (
                 <div className="center-details-notice" dir="rtl">
                     <span>הוספנו שדות חדשים למרכז ההכשרה של <strong>{selectedContact.name}</strong>.</span>
