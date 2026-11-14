@@ -14,7 +14,7 @@ export function ContactRow({ contact, onEdit }: Props) {
   const needsNewDetails = needsCenterDetails(contact);
 
   return (
-    <div className="contact-row" onClick={() => onEdit(contact.id)}>
+    <div className={`contact-row${needsNewDetails ? ' contact-row--needs-details' : ''}`} onClick={() => onEdit(contact.id)}>
       <div className="contact-row__details">
         <div className="contact-row__name">{contact.name}</div>
 
@@ -45,7 +45,7 @@ export function ContactRow({ contact, onEdit }: Props) {
       </div>
 
       <div className="contact-row__actions">
-        {needsNewDetails && <span className="contact-row__dot" title="נוספו שדות חדשים" />}
+        {needsNewDetails && <span className="contact-row__new-badge">שדות חדשים</span>}
         <img
           className="icon-button edit"
           src='edit.svg'
