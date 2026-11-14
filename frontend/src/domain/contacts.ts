@@ -20,13 +20,20 @@ export function getContactById(list: Contact[], id: String): Contact | undefined
 }
 
 /**
- * A training-centre client saved before the detailed centre fields existed,
- * with none of them filled in yet. Filling in any one of them is enough.
+ * A training-centre client whose student hasn't filled in any of the new centre
+ * details yet. Filling in any one of them is enough.
+ *
+ * A migration copied each client's old free-text description into the centre
+ * name, so a name identical to that text is not something the student entered
+ * and doesn't count. Only a different name, a city, a contact person or a
+ * phone does.
  */
 export function needsCenterDetails(c: Contact): boolean {
   if (c.type !== 'client' || c.clientInstitution !== 'trainingCenter') return false
   const d = c.trainingCenter
-  return !d || ![d.name, d.city, d.contactPerson, d.contactPhone].some(v => v?.trim())
+  const name = d?.name?.trim() ?? ''
+  const nameIsNew = name !== '' && name !== (c.clientTrainingCenterInfo ?? '').trim()
+  return ![nameIsNew ? name : '', d?.city, d?.contactPerson, d?.contactPhone].some(v => v?.trim())
 }
 
 export function validateContact(c: NewContact): Error | null {
