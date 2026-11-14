@@ -170,9 +170,7 @@ func (r *PostgresContactRepo) GetMentor(ctx context.Context, userID, contactID u
 // ---- private helpers ----
 
 // contactMetadata is the shape of contacts.metadata, where every
-// type-specific contact detail lives. The old per-field columns (email, phone,
-// specialty, client_institution, client_training_center_info) are no longer
-// read or written; they are dropped in a later migration (#18).
+// type-specific contact detail lives.
 type contactMetadata struct {
 	Email                    *string                       `json:"email,omitempty"`
 	Phone                    *string                       `json:"phone,omitempty"`
