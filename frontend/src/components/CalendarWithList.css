@@ -297,3 +297,27 @@
     font-size: 1.02rem;
     color: #8a5a00;
 }
+
+/* Permanent guidance above mentor hours, including the first-contact view. */
+.mentor-reporting-notice {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 0.2rem;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 460px;
+    padding: 0.7rem 1rem;
+    border: 1px solid #c9dbef;
+    border-inline-start: 4px solid #3a75c4;
+    border-radius: 10px;
+    background: #f0f6ff;
+    color: #244b78;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: right;
+}
+
+.mentor-reporting-notice strong {
+    font-size: 1.02rem;
+}

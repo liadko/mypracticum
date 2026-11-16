@@ -51,6 +51,13 @@ export function CalendarWithList({
     const selectedContactId = getSelected(contactType)
     const selectedContact = contacts.find(c => c.id === selectedContactId)
 
+    const mentorNotice = contactType === 'mentor' && (
+        <div className="mentor-reporting-notice" dir="rtl" role="note">
+            <strong>דיווח על הדרכה אישית בלבד</strong>
+            <span>לא ניתן לדווח בעמוד זה על שעות הדרכה קבוצתית.</span>
+        </div>
+    )
+
     // Private-clinic hours count toward a cap set per class (160 unless the class says otherwise).
     const privateClinicCap = user?.class?.privateClinicCap ?? 160
     const isPrivateClinicContact = (c?: Contact) => c?.type === 'client' && c.clientInstitution === 'privateClinic'
@@ -233,6 +240,7 @@ export function CalendarWithList({
 
         return (
             <div className="first-contact-message" dir="rtl">
+                {mentorNotice}
                 <h2 className="first-contact-message__title">
                     ברוכים הבאים לאזור  {pageTitleDefinite[contactType]}
                 </h2>
@@ -259,6 +267,7 @@ export function CalendarWithList({
                 />
 
             </div>
+            {mentorNotice}
             {filtered.length === 0 && extraMessage()}
             {isPrivateClinicContact(selectedContact) && privateClinicCount >= privateClinicCap && (
                 <div className="private-clinic-banner" dir="rtl" role="status">
