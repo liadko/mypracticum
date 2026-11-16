@@ -53,8 +53,8 @@ export function CalendarWithList({
 
     const mentorNotice = contactType === 'mentor' && (
         <div className="mentor-reporting-notice" dir="rtl" role="note">
-            <strong>דיווח על הדרכה אישית בלבד</strong>
-            <span>לא ניתן לדווח בעמוד זה על שעות הדרכה קבוצתית.</span>
+            <strong>אין להזין הדרכה קבוצתית במערכת</strong>
+            <span>תמורות תעדכן שעות קבוצתיות כשבועיים לאחר סיום הקבוצה</span>
         </div>
     )
 

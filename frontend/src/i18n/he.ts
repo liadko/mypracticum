@@ -34,7 +34,7 @@ export const pageHeaderText: Record<ContactType, string> = {
 
 export const pageTitle: Record<ContactType, string> = {
   client: 'מטופלים שלי',
-  mentor: 'הדרכה',
+  mentor: 'הדרכה אישית',
   therapist: 'טיפול אישי',
 }
 
