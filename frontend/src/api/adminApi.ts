@@ -6,6 +6,7 @@ import type {
     BulkApproveResult,
     BulkAddManualEntriesResult,
     DeleteEntriesResult,
+    DeleteManualEntriesResult,
     ManualEntryPayload,
     AdminClass,
     CreateAdminClassRequest,
@@ -67,6 +68,18 @@ export async function getStudents(): Promise<StudentResponse[]> {
     const res = await apiFetch('/api/v1/admin/students');
     if (!res.ok) {
         throw new Error('Failed to fetch students');
+    }
+    return res.json();
+}
+
+export async function updateClassDates(classId: string, reportingStartDates: CreateAdminClassRequest['reportingStartDates']): Promise<AdminClass> {
+    const res = await apiFetch(`/api/v1/admin/classes/${encodeURIComponent(classId)}/reporting-start-dates`, {
+        method: 'PATCH',
+        body: JSON.stringify({ reportingStartDates }),
+    });
+    if (!res.ok) {
+        const result = await res.json().catch(() => null);
+        throw new Error(result?.error || 'Failed to update class reporting dates');
     }
     return res.json();
 }
@@ -139,7 +152,7 @@ export async function bulkAddManualEntries(
  */
 export async function deleteManualEntries(
     ids: string[],
-): Promise<DeleteEntriesResult> {
+): Promise<DeleteManualEntriesResult> {
     const res = await apiFetch('/api/v1/admin/entries/manual/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

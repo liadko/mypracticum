@@ -1,104 +1,164 @@
-import { useCallback, useState } from 'react';
-import './AdminPage.css';
-import { StudentsForm } from '../../components/Admin/StudentsForm';
-import { EntriesForm } from '../../components/Admin/EntriesForm';
-import { ManualEntriesForm } from '../../components/Admin/ManualEntriesForm';
-import { ClassManagementForm } from '../../components/Admin/ClassManagementForm';
-import { FreezeStudentsForm } from '../../components/Admin/FreezeStudentsForm';
+import { useCallback, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowUpLeft,
+  BarChart3,
+  BookOpen,
+  Clock3,
+  FileCheck2,
+  Snowflake,
+  UserPlus,
+  LogOut,
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import "./AdminPage.css";
+import { StudentsForm } from "../../components/Admin/StudentsForm";
+import { EntriesForm } from "../../components/Admin/EntriesForm";
+import { ManualEntriesForm } from "../../components/Admin/ManualEntriesForm";
+import { ClassManagementForm } from "../../components/Admin/ClassManagementForm";
+import { FreezeStudentsForm } from "../../components/Admin/FreezeStudentsForm";
 
-type AdminTab =
-    | 'page-import-students'
-    | 'page-approve-entries'
-    | 'page-manual-entries'
-    | 'page-manage-classes'
-    | 'page-freeze-students';
+const tabs = [
+  {
+    id: "students",
+    label: "הוספת סטודנטים",
+    description: "הוספה אישית או ייבוא למחזור",
+    icon: UserPlus,
+  },
+  {
+    id: "classes",
+    label: "מחזורי לימוד",
+    description: "תאריכי דיווח ומכסות שעות",
+    icon: BookOpen,
+  },
+  {
+    id: "manual",
+    label: "שעות מנהלתיות",
+    description: "הזנת שעות לקבוצה או ליחידים",
+    icon: Clock3,
+  },
+  {
+    id: "status",
+    label: "הקפאת חשבונות",
+    description: "הקפאה והחזרה לפעילות",
+    icon: Snowflake,
+  },
+  {
+    id: "entries",
+    label: "ניהול דיווחים",
+    description: "אישור ומחיקת דיווחי שעות",
+    icon: FileCheck2,
+  },
+] as const;
+type AdminTab = (typeof tabs)[number]["id"];
 
 export default function AdminPage() {
-    const [logs, setLogs] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<AdminTab>('page-import-students');
-
-    // A single, shared logging function passed to all components
-    const logMessage = useCallback((message: string) => {
-        const timestamp = new Date().toLocaleTimeString();
-        setLogs((prevLogs) => `[${timestamp}] ${message}\n` + prevLogs);
-    }, []); // Empty array: the function reference never changes
-
-    const renderTabContent = () => {
-        switch (activeTab) {
-            case 'page-import-students':
-                return <StudentsForm logMessage={logMessage} />;
-            case 'page-approve-entries':
-                return <EntriesForm logMessage={logMessage} />;
-            case 'page-manual-entries':
-                return <ManualEntriesForm logMessage={logMessage} />;
-            case 'page-manage-classes':
-                return <ClassManagementForm logMessage={logMessage} />;
-            case 'page-freeze-students':
-                return <FreezeStudentsForm logMessage={logMessage} />;
-            default:
-                return null;
-        }
-    };
-
-    return (
-        <>
-            <header>
-                <h1>My Practicum - Admin Portal</h1>
-            </header>
-
-            <main>
-                <nav className="tab-nav">
-                    <button
-                        className={`tab-button ${activeTab === 'page-import-students' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('page-import-students')}
-                    >
-                        Add Students
-                    </button>
-                    <button
-                        className={`tab-button ${activeTab === 'page-manage-classes' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('page-manage-classes')}
-                    >
-                        Manage Classes
-                    </button>
-                    <button
-                        className={`tab-button ${activeTab === 'page-approve-entries' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('page-approve-entries')}
-                    >
-                        Manage Entries
-                    </button>
-                    <button
-                        className={`tab-button ${activeTab === 'page-manual-entries' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('page-manual-entries')}
-                    >
-                        Manage Manual Entries
-                    </button>
-                    <button
-                        className={`tab-button ${activeTab === 'page-freeze-students' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('page-freeze-students')}
-                    >
-                        Freeze Students
-                    </button>
-                </nav>
-
-                {/* Render the active tab's content */}
-                {renderTabContent()}
-
-                <section className="admin-card">
-                    <div className="logs-header">
-                        <h2>Logs & Results</h2>
-                        <button
-                            className="clear-logs-btn"
-                            onClick={() => setLogs('')}
-                            disabled={!logs}
-                        >
-                            Clear Logs
-                        </button>
-                    </div>
-                    <div id="log-output">
-                        {logs}
-                    </div>
-                </section>
-            </main>
-        </>
+  const [logs, setLogs] = useState("");
+  const [activeTab, setActiveTab] = useState<AdminTab>("students");
+  const { user, logout } = useAuth();
+  const logMessage = useCallback((message: string) => {
+    setLogs(
+      (previous) =>
+        `[${new Date().toLocaleTimeString("he-IL")}] ${message}\n${previous}`,
     );
+  }, []);
+  return (
+    <div className="admin-shell" dir="rtl">
+      <header className="admin-topbar">
+        <Link className="admin-brand" to="/student">
+          <img src="/logo-text.png" alt="תמורות" />
+          <span>
+            פרקטיקום<span>אזור הניהול</span>
+          </span>
+        </Link>
+        <nav aria-label="ניווט באתר">
+          <Link to="/student">
+            לאתר הפרקטיקום
+            <ArrowUpLeft size={17} />
+          </Link>
+          <Link to="/reports">
+            <BarChart3 size={17} />
+            דוחות ומעקב
+          </Link>
+        </nav>
+        <div className="admin-account">
+          <span>
+            {user?.firstName} {user?.lastName}
+          </span>
+          <button
+            type="button"
+            className="admin-icon-button"
+            onClick={logout}
+            aria-label="יציאה מהמערכת"
+          >
+            <LogOut size={18} />
+          </button>
+        </div>
+      </header>
+      <div className="admin-workspace">
+        <aside className="admin-sidebar">
+          <p className="admin-sidebar-label">ניהול הפרקטיקום</p>
+          <nav aria-label="כלי ניהול">
+            {tabs.map((tab) => (
+              <button
+                type="button"
+                key={tab.id}
+                className={activeTab === tab.id ? "is-active" : ""}
+                aria-current={activeTab === tab.id ? "page" : undefined}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <tab.icon size={21} strokeWidth={1.7} />
+                <span>
+                  {tab.label}
+                  <small>{tab.description}</small>
+                </span>
+              </button>
+            ))}
+          </nav>
+          <div className="admin-sidebar-note">
+            תמורות · פרקטיקום
+            <br />
+            כל כלי הניהול במקום אחד
+          </div>
+        </aside>
+        <main className="admin-main">
+          <div className="admin-page-heading">
+            <span>
+              אזור הניהול / {tabs.find((tab) => tab.id === activeTab)?.label}
+            </span>
+            <h1>{tabs.find((tab) => tab.id === activeTab)?.label}</h1>
+            <p>{tabs.find((tab) => tab.id === activeTab)?.description}</p>
+          </div>
+          {activeTab === "students" && <StudentsForm logMessage={logMessage} />}
+          {activeTab === "classes" && (
+            <ClassManagementForm logMessage={logMessage} />
+          )}
+          {activeTab === "manual" && (
+            <ManualEntriesForm logMessage={logMessage} />
+          )}
+          {activeTab === "status" && (
+            <FreezeStudentsForm logMessage={logMessage} />
+          )}
+          {activeTab === "entries" && <EntriesForm logMessage={logMessage} />}
+          <details className="admin-logs">
+            <summary>יומן פעולות ותוצאות {logs && <span>עודכן</span>}</summary>
+            <div className="logs-header">
+              <p>פרטי הפעולות מוצגים באנגלית לצורך מעקב ובירור.</p>
+              <button
+                type="button"
+                className="admin-secondary"
+                disabled={!logs}
+                onClick={() => setLogs("")}
+              >
+                ניקוי היומן
+              </button>
+            </div>
+            <pre id="log-output" dir="ltr">
+              {logs || "No actions yet."}
+            </pre>
+          </details>
+        </main>
+      </div>
+    </div>
+  );
 }

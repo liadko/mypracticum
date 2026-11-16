@@ -1,203 +1,288 @@
-import { useEffect, useState } from 'react';
-import * as adminApi from '../../api/adminApi';
-import type { AdminClass, StudentImportResponse } from '../../types';
+import { useCallback, useEffect, useState } from "react";
+import * as adminApi from "../../api/adminApi";
+import type { AdminClass } from "../../types";
+import { AdminFeedback, type Feedback } from "./AdminShared";
 
-interface Props {
-    logMessage: (message: string) => void;
-}
-
-export function StudentsForm({ logMessage }: Props) {
-    const [file, setFile] = useState<File | null>(null);
-    const [classId, setClassId] = useState('');
-    const [classes, setClasses] = useState<AdminClass[]>([]);
-    const [dryRun, setDryRun] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isLoadingClasses, setIsLoadingClasses] = useState(true);
-    const [activeStudentTab, setActiveStudentTab] = useState<'single' | 'many'>('single');
-    const [singleStudent, setSingleStudent] = useState({ firstName: '', lastName: '', email: '', taz: '' });
-
-    useEffect(() => {
-        const loadClasses = async () => {
-            try {
-                setClasses(await adminApi.getClasses());
-            } catch (err: unknown) {
-                const message = err instanceof Error ? err.message : 'Unknown error while loading classes';
-                logMessage(`Error loading classes: ${message}`);
-            } finally {
-                setIsLoadingClasses(false);
-            }
-        };
-        void loadClasses();
-    }, [logMessage]);
-
-    const reportResult = (result: StudentImportResponse, description: string) => {
-        logMessage(`SUCCESS: ${description}. Created: ${result.created}; failed: ${result.failed}; skipped: ${result.skipped}.`);
-        const errors = result.errors || [];
-        const warnings = result.parseWarnings || [];
-        if (errors.length > 0 || warnings.length > 0) {
-            logMessage(JSON.stringify(result, null, 2));
-        }
-        if (dryRun && result.failed === 0 && errors.length === 0 && warnings.length === 0) {
-            window.alert('בדיקת ההוספה הסתיימה בהצלחה!\n\nלא נמצאו שגיאות. אפשר להוריד את הסימון ולהעלות בבטחה.');
-        } else if (dryRun) {
-            window.alert('נמצאו בעיות במהלך בדיקת ההוספה. בדוק את יומן ההודעות.');
-        }
-    };
-
-    const importStudents = async (studentFile: File, description: string): Promise<boolean> => {
-        if (!classId) {
-            logMessage('Error: Select a class before adding students.');
-            return false;
-        }
-
-        if (!dryRun) {
-            const confirmMsg = 'This is a LIVE import and will create students in the database.\n\nAre you sure you want to continue?';
-            if (!window.confirm(confirmMsg)) {
-                logMessage('Import canceled by user.');
-                return false;
-            }
-        }
-
-        setIsLoading(true);
-        logMessage(`${description}... (Dry Run: ${dryRun})`);
-        try {
-            const result = await adminApi.importStudents(classId, studentFile, dryRun);
-            reportResult(result, description);
-            return true;
-        } catch (err: unknown) {
-            window.alert('נמצאו בעיות במהלך בדיקת ההוספה. בדוק את יומן ההודעות.');
-            logMessage(`FATAL ERROR: ${err instanceof Error ? err.message : 'Unknown error'}`);
-            return false;
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!file) {
-            logMessage('Error: No file selected.');
-            return;
-        }
-        await importStudents(file, 'CSV import');
-    };
-
-    const handleSingleStudentSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const csv = [
-            'firstname,lastname,email,taz',
-            [singleStudent.firstName, singleStudent.lastName, singleStudent.email, singleStudent.taz]
-                .map((value) => `"${value.replace(/"/g, '""')}"`)
-                .join(','),
-        ].join('\r\n');
-        const imported = await importStudents(new File([csv], 'single-student.csv', { type: 'text/csv' }), 'Single student import');
-        if (imported) {
-            setSingleStudent({ firstName: '', lastName: '', email: '', taz: '' });
-        }
-    };
-
-    return (
-        <section className="admin-card admin-page active" id="page-import-students">
-            <h2>Add Students</h2>
-            <div className="form-group">
-                <label htmlFor="student-class">Class:</label>
-                <select
-                    id="student-class"
-                    value={classId}
-                    onChange={(e) => setClassId(e.target.value)}
-                    required
-                    disabled={isLoadingClasses || isLoading}
-                >
-                    <option value="">Select a class</option>
-                    {classes.map((classItem) => (
-                        <option key={classItem.id} value={classItem.id}>{classItem.name}</option>
-                    ))}
-                </select>
-                {!isLoadingClasses && classes.length === 0 && <p className="form-error">Create a class before adding students.</p>}
+export function StudentsForm({
+  logMessage,
+}: {
+  logMessage: (message: string) => void;
+}) {
+  const [classes, setClasses] = useState<AdminClass[]>([]);
+  const [classId, setClassId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [dryRun, setDryRun] = useState(true);
+  const [mode, setMode] = useState<"single" | "csv">("single");
+  const [file, setFile] = useState<File | null>(null);
+  const [student, setStudent] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    taz: "",
+  });
+  const [message, setMessage] = useState<Feedback>(null);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setClasses(await adminApi.getClasses());
+      setLoadError(false);
+    } catch (err) {
+      setLoadError(true);
+      logMessage(
+        `Error loading classes: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [logMessage]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!classId || busy) return;
+    let upload = file;
+    if (mode === "single") {
+      const csv = [
+        "firstname,lastname,email,taz",
+        [
+          student.firstName.trim(),
+          student.lastName.trim(),
+          student.email.trim(),
+          student.taz.trim(),
+        ]
+          .map((value) => `"${value.replace(/"/g, '""')}"`)
+          .join(","),
+      ].join("\r\n");
+      upload = new File([csv], "single-student.csv", { type: "text/csv" });
+    }
+    if (!upload) return;
+    if (
+      !dryRun &&
+      !window.confirm(
+        `להוסיף את ${mode === "single" ? "הסטודנט" : "הסטודנטים מהקובץ"} למחזור ״${classes.find((item) => item.id === classId)?.name}״? הפעולה תעדכן את המערכת בפועל.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const result = await adminApi.importStudents(classId, upload, dryRun);
+      logMessage(
+        `Student import (dryRun=${dryRun}): ${JSON.stringify(result)}`,
+      );
+      const hasProblems =
+        result.failed > 0 ||
+        !!result.errors?.length ||
+        !!result.parseWarnings?.length;
+      setMessage({
+        kind: hasProblems ? "error" : "success",
+        text: dryRun
+          ? `בדיקת הנתונים הסתיימה. לא בוצעו שינויים במערכת.${hasProblems ? " נמצאו בעיות; פרטים ביומן הפעולות." : " הנתונים תקינים. בטלו את הסימון ״בדיקה בלבד״ ושלחו שוב להוספה בפועל."}`
+          : `נוספו ${result.created} סטודנטים. ${result.skipped} דולגו, ${result.failed} נכשלו.${hasProblems ? " פרטים ביומן הפעולות." : ""}`,
+      });
+      if (!dryRun && !hasProblems && mode === "single")
+        setStudent({ firstName: "", lastName: "", email: "", taz: "" });
+    } catch (err) {
+      logMessage(
+        `Student import failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      setMessage({
+        kind: "error",
+        text: "לא ניתן להשלים את הפעולה. בדקו ביומן הפעולות ובמערכת לפני ניסיון נוסף.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <section className="admin-card">
+      <h2>הוספה למחזור לימודים</h2>
+      <p className="description">
+        בחרו מחזור, הזינו פרטים ובדקו אותם לפני ההוספה. אפשר להוסיף סטודנט יחיד
+        או לייבא רשימה מקובץ.
+      </p>
+      <AdminFeedback message={message} />
+      <form onSubmit={submit}>
+        <fieldset disabled={busy}>
+          <label className="form-group" htmlFor="student-class">
+            מחזור לימודים
+            <select
+              id="student-class"
+              value={classId}
+              onChange={(e) => setClassId(e.target.value)}
+              required
+              disabled={loading}
+            >
+              <option value="">
+                {loading ? "טוענים מחזורים…" : "בחירת מחזור"}
+              </option>
+              {classes.map((item) => (
+                <option value={item.id} key={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {loadError && (
+            <div className="admin-feedback admin-feedback--error">
+              טעינת המחזורים נכשלה.{" "}
+              <button type="button" onClick={() => void load()}>
+                ניסיון נוסף
+              </button>
             </div>
-            <div className="dryrun-form-group">
+          )}
+          {!loading && !loadError && !classes.length && (
+            <p className="form-error">
+              יש ליצור מחזור בלשונית מחזורי לימוד לפני הוספת סטודנטים.
+            </p>
+          )}
+          <nav className="admin-source-tabs" aria-label="אופן הוספת סטודנטים">
+            <button
+              type="button"
+              aria-pressed={mode === "single"}
+              onClick={() => {
+                setMode("single");
+                setMessage(null);
+              }}
+            >
+              סטודנט יחיד
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === "csv"}
+              onClick={() => {
+                setMode("csv");
+                setMessage(null);
+              }}
+            >
+              ייבוא רשימה מקובץ
+            </button>
+          </nav>
+          {mode === "single" ? (
+            <div className="form-grid">
+              <label className="form-group" htmlFor="student-first">
+                שם פרטי
                 <input
-                    type="checkbox"
-                    id="dry-run-check"
-                    checked={dryRun}
-                    onChange={(e) => setDryRun(e.target.checked)}
-                    disabled={isLoading}
+                  id="student-first"
+                  value={student.firstName}
+                  onChange={(e) =>
+                    setStudent({ ...student, firstName: e.target.value })
+                  }
+                  required
                 />
-                <label htmlFor="dry-run-check">Test Run (RECOMMENDED! it tests the data without actually adding anyone)</label>
+              </label>
+              <label className="form-group" htmlFor="student-last">
+                שם משפחה
+                <input
+                  id="student-last"
+                  value={student.lastName}
+                  onChange={(e) =>
+                    setStudent({ ...student, lastName: e.target.value })
+                  }
+                  required
+                />
+              </label>
+              <label className="form-group" htmlFor="student-email">
+                כתובת דוא״ל
+                <input
+                  id="student-email"
+                  type="email"
+                  dir="ltr"
+                  value={student.email}
+                  onChange={(e) =>
+                    setStudent({ ...student, email: e.target.value })
+                  }
+                  required
+                />
+              </label>
+              <label className="form-group" htmlFor="student-taz">
+                תעודת זהות
+                <input
+                  id="student-taz"
+                  inputMode="numeric"
+                  value={student.taz}
+                  onChange={(e) =>
+                    setStudent({ ...student, taz: e.target.value })
+                  }
+                  required
+                />
+              </label>
             </div>
-
-            <nav className="tab-nav" aria-label="Student addition method">
-                <button
-                    type="button"
-                    className={`tab-button ${activeStudentTab === 'single' ? 'active' : ''}`}
-                    aria-selected={activeStudentTab === 'single'}
-                    onClick={() => setActiveStudentTab('single')}
-                >
-                    Single Student
-                </button>
-                <button
-                    type="button"
-                    className={`tab-button ${activeStudentTab === 'many' ? 'active' : ''}`}
-                    aria-selected={activeStudentTab === 'many'}
-                    onClick={() => setActiveStudentTab('many')}
-                >
-                    Many Students
-                </button>
-            </nav>
-
-            {activeStudentTab === 'single' ? (
-                <form onSubmit={handleSingleStudentSubmit}>
-                    <h3>Add One Student</h3>
-                    <div className="form-group">
-                        <label htmlFor="single-first-name">First name:</label>
-                        <input className="rtl-input" dir="rtl" id="single-first-name" value={singleStudent.firstName} onChange={(e) => setSingleStudent((current) => ({ ...current, firstName: e.target.value }))} required />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="single-last-name">Last name:</label>
-                        <input className="rtl-input" dir="rtl" id="single-last-name" value={singleStudent.lastName} onChange={(e) => setSingleStudent((current) => ({ ...current, lastName: e.target.value }))} required />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="single-email">Email:</label>
-                        <input id="single-email" type="email" value={singleStudent.email} onChange={(e) => setSingleStudent((current) => ({ ...current, email: e.target.value }))} required />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="single-taz">TAZ:</label>
-                        <input id="single-taz" value={singleStudent.taz} onChange={(e) => setSingleStudent((current) => ({ ...current, taz: e.target.value }))} required />
-                    </div>
-                    <button type="submit" disabled={isLoading || isLoadingClasses || !classId}>
-                        {isLoading ? 'Processing...' : 'Add Student'}
-                    </button>
-                </form>
-            ) : (
-                <form onSubmit={handleSubmit}>
-                    <h3>Import Students (CSV)</h3>
-                    <div className="template-explainer">
-                        <p>
-                            <strong>צריכים עזרה עם הפורמט?</strong>
-                            <a href="https://docs.google.com/spreadsheets/d/1DQXTOjh7o9U10ooJbIiaI1z3ZNRBBXyuglH2d3Sc3Go/edit?usp=sharing" target="_blank">לחצו כאן לתבנית גוגל שיטס לדוגמה</a>
-                        </p>
-                        <ol>
-                            <li>בגוגל שיטס, לחצו על <strong>'קובץ' (File) {'>'} 'יצירת עותק' (Make a copy)</strong>.</li>
-                            <li>מלאו את פרטי הסטודנטים בעותק שיצרתם (בדיוק לפי העמודות).</li>
-                            <li>בסיום, לחצו על <strong>'קובץ' (File) {'>'} 'הורדה' (Download)</strong> ובחרו <strong>'ערכים מופרדים בפסיקים (.csv)'</strong>.</li>
-                            <li>את הקובץ שירד למחשב, צרפו כאן למטה.</li>
-                        </ol>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="file-input">Select CSV File:</label>
-                        <input
-                            type="file"
-                            id="file-input"
-                            accept=".csv"
-                            required
-                            onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        />
-                    </div>
-                    <button type="submit" disabled={isLoading || isLoadingClasses || !file || !classId}>
-                        {isLoading ? 'Processing...' : 'Upload and Process'}
-                    </button>
-                </form>
-            )}
-        </section>
-    );
+          ) : (
+            <>
+              <div className="template-explainer">
+                <strong>הכנת קובץ הסטודנטים</strong>
+                <p>
+                  <a
+                    href="https://docs.google.com/spreadsheets/d/1DQXTOjh7o9U10ooJbIiaI1z3ZNRBBXyuglH2d3Sc3Go/edit?usp=sharing"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    פתיחת תבנית Google Sheets לדוגמה ↗
+                  </a>
+                </p>
+                <ol>
+                  <li>
+                    צרו עותק של התבנית ומלאו את פרטי הסטודנטים לפי העמודות.
+                  </li>
+                  <li>בחרו קובץ ← הורדה ← ערכים מופרדים בפסיקים (CSV).</li>
+                  <li>בחרו כאן את הקובץ שהורדתם.</li>
+                </ol>
+              </div>
+              <label className="admin-file-picker">
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                />
+                <span>בחירת קובץ סטודנטים</span>
+                <small>{file?.name || "קובץ CSV לפי התבנית"}</small>
+              </label>
+            </>
+          )}
+          <label className="admin-check-label admin-subsection">
+            <input
+              type="checkbox"
+              checked={dryRun}
+              onChange={(e) => setDryRun(e.target.checked)}
+            />
+            <span>
+              <strong>בדיקה בלבד, ללא הוספה למערכת</strong>
+              <br />
+              מומלץ לבדוק תחילה שהנתונים תקינים. לאחר הבדיקה בטלו את הסימון כדי
+              לבצע את ההוספה.
+            </span>
+          </label>
+          <div className="admin-action-bar">
+            <p>
+              {dryRun
+                ? "הפעולה הבאה תבדוק נתונים בלבד"
+                : "הפעולה הבאה תוסיף סטודנטים למערכת"}
+            </p>
+            <button
+              type="submit"
+              disabled={
+                busy ||
+                loading ||
+                loadError ||
+                !classId ||
+                (mode === "csv" && !file)
+              }
+            >
+              {busy
+                ? "מעבדים את הנתונים…"
+                : dryRun
+                  ? "בדיקת הנתונים"
+                  : mode === "single"
+                    ? "הוספת הסטודנט"
+                    : "ייבוא הסטודנטים"}
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+  );
 }

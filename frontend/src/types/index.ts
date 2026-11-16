@@ -217,18 +217,20 @@ export interface ManualEntryPayload {
  * The result of a bulk approval request.
  */
 export interface BulkApproveResult {
-    approved: number;
-    notFound: number;
-    errors: Array<{ id: string; error: string }>;
+    total: number;
+    succeeded: number;
+    notFound?: string[];
+    errors?: Array<{ id: string; error: string }>;
 }
 
 /**
  * The result of a bulk add manual entries request.
  */
 export interface BulkAddManualEntriesResult {
-    created: number;
-    failures: Array<{ userId: string; error: string }>;
-    batchId: string; // The batch ID for all created entries
+    createdCount: number;
+    failedCount: number;
+    failures: Array<{ input: { UserID: string; Hours: number; Cause: string; Type: string }; error: string }>;
+    batchId?: string;
 }
 
 /**
@@ -236,6 +238,9 @@ export interface BulkAddManualEntriesResult {
  */
 export interface DeleteEntriesResult {
     deleted: number;
-    notFound: number;
-    errors: Array<{ id: string; error: string }>;
+}
+
+export interface DeleteManualEntriesResult {
+    entriesDeleted: number;
+    batchesDeleted: number;
 }

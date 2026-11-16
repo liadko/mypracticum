@@ -1,147 +1,136 @@
-import { useState } from 'react';
-import * as adminApi from '../../api/adminApi';
+import { useState } from "react";
+import * as adminApi from "../../api/adminApi";
+import { AdminFeedback, type Feedback } from "./AdminShared";
 
-interface Props {
-    logMessage: (message: string) => void;
+function EntryAction({
+  deletion,
+  logMessage,
+}: {
+  deletion?: boolean;
+  logMessage: (message: string) => void;
+}) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<Feedback>(null);
+  const ids = [
+    ...new Set(
+      text
+        .trim()
+        .split(/[\s,;]+/)
+        .filter(Boolean),
+    ),
+  ];
+  const valid =
+    ids.length > 0 &&
+    ids.every((id) => /^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(id));
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!valid || busy) return;
+    if (
+      deletion &&
+      !window.confirm(
+        `למחוק לצמיתות ${ids.length} דיווחים? לא ניתן לבטל את הפעולה.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      if (deletion) {
+        const result = await adminApi.deleteEntries(ids);
+        logMessage(`Entry deletion: ${JSON.stringify(result)}`);
+        setMessage({
+          kind: "success",
+          text: `נמחקו ${result.deleted} דיווחים.`,
+        });
+        setText("");
+      } else {
+        const result = await adminApi.approveEntries(ids);
+        logMessage(`Entry approval: ${JSON.stringify(result)}`);
+        const failed =
+          (result.notFound?.length || 0) + (result.errors?.length || 0);
+        setMessage({
+          kind: failed ? "error" : "success",
+          text: `אושרו ${result.succeeded} מתוך ${result.total} דיווחים.${failed ? " חלק מהדיווחים לא אושרו. פרטים ביומן הפעולות." : ""}`,
+        });
+        setText(
+          [
+            ...(result.notFound || []),
+            ...(result.errors || []).map((row) => row.id),
+          ].join("\n"),
+        );
+      }
+    } catch (err) {
+      logMessage(
+        `Entry action error: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      setMessage({
+        kind: "error",
+        text: "הפעולה לא הושלמה. פרטים ביומן הפעולות.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <form onSubmit={submit}>
+      <AdminFeedback message={message} />
+      <label
+        className="form-group"
+        htmlFor={deletion ? "delete-entry-ids" : "approve-entry-ids"}
+      >
+        מזהי הדיווחים, אחד בכל שורה
+        <textarea
+          id={deletion ? "delete-entry-ids" : "approve-entry-ids"}
+          className="uuids-input"
+          dir="ltr"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          disabled={busy}
+          required
+        />
+      </label>
+      {text.trim() && !valid && (
+        <p className="form-error">יש להזין מזהי דיווח תקינים (UUID).</p>
+      )}
+      <div className="admin-action-bar">
+        <p>{ids.length} דיווחים ברשימה</p>
+        <button
+          type="submit"
+          className={deletion ? "button-danger" : undefined}
+          disabled={busy || !valid}
+        >
+          {busy
+            ? "מבצעים…"
+            : deletion
+              ? "מחיקת הדיווחים לצמיתות"
+              : "אישור הדיווחים"}
+        </button>
+      </div>
+    </form>
+  );
 }
-
-export function EntriesForm({ logMessage }: Props) {
-    const [ids, setIds] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-
-    // --- Delete Form State ---
-    const [deleteIds, setDeleteIds] = useState('');
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    // --- Delete Form Handler ---
-    const handleDeleteSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const raw = deleteIds.trim();
-        if (!raw) {
-            logMessage('Error: No IDs provided for deletion.');
-            return;
-        }
-
-        const idList = Array.from(
-            new Set(raw.split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean)),
-        );
-
-        const invalid = idList.filter(
-            (s) => !/^[0-9a-fA-F-]{36}$/.test(s) || s.length !== 36,
-        );
-        if (invalid.length > 0) {
-            logMessage(`Error: Found ${invalid.length} invalid-looking IDs: \n${invalid.join(',\n')}`);
-            return;
-        }
-
-        const confirmMsg = `Are you sure you want to permanently delete ${idList.length} entries?`;
-        if (!window.confirm(confirmMsg)) {
-            logMessage('Deletion canceled by user.');
-            return;
-        }
-
-        setIsDeleting(true);
-        logMessage(`Deleting ${idList.length} items...`);
-        try {
-            const result = await adminApi.deleteEntries(idList);
-            logMessage('SUCCESS: Deletion complete.');
-            logMessage(JSON.stringify(result, null, 2));
-            setDeleteIds(''); // Clear form
-        } catch (err: unknown) {
-            logMessage(`FATAL ERROR: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        } finally {
-            setIsDeleting(false);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const raw = ids.trim();
-        if (!raw) {
-            logMessage('Error: No IDs provided.');
-            return;
-        }
-
-        const idList = Array.from(
-            new Set(raw.split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean)),
-        );
-
-        // Basic UUID check (you can make this more robust)
-        const invalid = idList.filter(
-            (s) => !/^[0-9a-fA-F-]{36}$/.test(s) || s.length !== 36,
-        );
-        if (invalid.length > 0) {
-            logMessage(`Error: Found ${invalid.length} invalid-looking IDs.`);
-            return;
-        }
-
-        setIsLoading(true);
-        logMessage(`Approving ${idList.length} entries…`);
-
-        try {
-            const result = await adminApi.approveEntries(idList);
-            logMessage('SUCCESS: Bulk approval complete.');
-            logMessage(JSON.stringify(result, null, 2));
-            setIds(''); // Clear form on success
-        } catch (err: unknown) {
-            logMessage(`FATAL ERROR: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <section className="admin-card admin-page active" id="page-approve-entries">
-            <h2>Approve Entries</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label htmlFor="approve-ids-input">Entry IDs (one per line)</label>
-                    <textarea
-                        id="approve-ids-input"
-                        className='uuids-input'
-                        placeholder="id1&#10;id2&#10;id3"
-                        required
-                        value={ids}
-                        onChange={(e) => setIds(e.target.value)}
-                        disabled={isLoading}
-                    />
-                </div>
-                <button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Approving...' : 'Approve Listed Entries'}
-                </button>
-            </form>
-
-            <hr className="section-divider" />
-
-            <h2>Delete Entries</h2>
-            <p className="description">
-                Paste a list of Entry UUIDs to delete them. (no commas)
-            </p>
-
-            <form onSubmit={handleDeleteSubmit}>
-                <div className="form-group">
-                    <label htmlFor="delete-ids-input">
-                        Entry IDs (one per line)
-                    </label>
-                    <textarea
-                        id="delete-ids-input"
-                        className="uuids-input"
-                        placeholder="entry_uuid_1...&#10;entry_uuid_2..."
-                        required
-                        value={deleteIds}
-                        onChange={(e) => setDeleteIds(e.target.value)}
-                        disabled={isDeleting}
-                    />
-                </div>
-                <button
-                    type="submit"
-                    id="delete-entries-button"
-                    className="button-danger"
-                    disabled={isDeleting}
-                >
-                    {isDeleting ? 'Deleting...' : 'Delete Listed Entries'}
-                </button>
-            </form>
-        </section>
-    );
+export function EntriesForm({
+  logMessage,
+}: {
+  logMessage: (message: string) => void;
+}) {
+  return (
+    <section className="admin-card">
+      <h2>אישור דיווחי שעות</h2>
+      <p className="description">
+        הדביקו את מזהי הדיווחים לאישור. אפשר להפריד בשורות, ברווחים או בפסיקים.
+        הפעולה מתייחסת לדיווחים שהסטודנטים הוסיפו בלוח השנה.
+      </p>
+      <EntryAction logMessage={logMessage} />
+      <details className="admin-subsection">
+        <summary>מחיקת דיווחים</summary>
+        <p className="description">
+          מחיקה מסירה את השעות מהמערכת לצמיתות. עבור שעות מנהלתיות, השתמשו בכלי
+          המחיקה בלשונית שעות מנהלתיות.
+        </p>
+        <EntryAction deletion logMessage={logMessage} />
+      </details>
+    </section>
+  );
 }

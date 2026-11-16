@@ -1,467 +1,779 @@
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f4f7f6;
-    color: #333;
-    margin: 0;
-    padding: 20px;
+.admin-shell {
+  min-height: 100dvh;
+  background: #f5f8f7;
+  color: #233d39;
+  font-size: 16px;
+  line-height: 1.6;
 }
-
-header {
-    text-align: center;
-    margin-bottom: 30px;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 20px;
+.admin-shell *,
+.admin-shell *::before,
+.admin-shell *::after {
+  box-sizing: border-box;
 }
-
-h1 {
-    color: #005a9c;
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3,
+.admin-shell p {
+  margin: 0;
 }
-
-h2 {
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-    margin-top: 0;
+.admin-shell h1 {
+  font-size: clamp(1.65rem, 2.5vw, 2.15rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  color: #173d35;
 }
-
-main {
-    max-width: 900px;
-    margin: 0 auto;
-    display: grid;
-    gap: 20px;
+.admin-shell h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
 }
-
-.admin-card {
-    background-color: #ffffff;
-    border-radius: 8px;
-    padding: 25px;
-    min-width: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+.admin-shell h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
 }
-
-.dryrun-form-group {
-    display: flex;
-    margin-bottom: 15px;
+.admin-shell a {
+  color: #08796c;
+  text-decoration: none;
 }
-
-
-
-
-.form-group {
-    margin-bottom: 15px;
+.admin-shell a:hover {
+  text-decoration: underline;
 }
-
-.form-group label,
-.dryrun-form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
+.admin-shell button,
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea {
+  font: inherit;
 }
-
-input[type="file"] {
-    display: block;
+.admin-shell button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0.65rem 1.15rem;
+  background: #087f70;
+  color: white;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    border-color 0.18s;
 }
-
-.form-group input,
-.form-group select {
-    display: block;
-    width: 100%;
-    max-width: 420px;
-    padding: 8px;
-    box-sizing: border-box;
+.admin-shell button:hover:not(:disabled) {
+  background: #066b5e;
 }
-
-.rtl-input {
-    direction: rtl;
-    text-align: right;
+.admin-shell button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
-
-.form-error {
-    color: #b91c1c;
-    margin-bottom: 0;
+.admin-shell :is(button, a, input, textarea, select, summary):focus-visible {
+  outline: 3px solid #73beb1;
+  outline-offset: 3px;
 }
-
-.date-cutoff-explainer {
-    background-color: #eff6ff;
-    border-left: 4px solid #007bff;
-    padding: 12px;
-    margin: 0 0 15px;
+.admin-shell input:not([type="checkbox"]):not([type="file"]),
+.admin-shell select,
+.admin-shell textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #cfddd7;
+  border-radius: 9px;
+  padding: 0.6rem 0.8rem;
+  background: white;
+  color: #243f38;
 }
-
-.class-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.admin-shell input::placeholder,
+.admin-shell textarea::placeholder {
+  color: #7c8d87;
 }
-
-.class-list li {
-    display: grid;
-    gap: 4px;
-    padding: 12px 0;
-    border-bottom: 1px solid #eee;
+.admin-shell input:disabled {
+  background: #f2f5f3;
 }
-
-input[type="checkbox"] {
-    margin-right: 8px;
-    vertical-align: middle;
+.admin-shell input[type="checkbox"] {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  accent-color: #087f70;
+  cursor: pointer;
 }
-
-button {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
+.admin-shell fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
 }
-
-button:hover {
-    background-color: #0056b3;
+.admin-shell .admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1rem max(2rem, calc((100vw - 1440px) / 2));
+  background: #fff;
+  border-bottom: 1px solid #e2ebe5;
 }
-
-button:disabled {
-    background-color: #c0c0c0;
-    cursor: not-allowed;
+.admin-shell .admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: #193f35;
+  font-size: 1.2rem;
+  font-weight: 750;
+  text-decoration: none;
 }
-
-/* Log output area */
-#log-output {
-    background-color: #2d2d2d;
-    color: #f1f1f1;
-    padding: 15px;
-    border-radius: 5px;
-    min-height: 100px;
-    max-height: 300px;
-
-    /* Enable both vertical and horizontal scrolling */
-    overflow-y: auto;
-    overflow-x: auto;
-
-    /* Keep text on a single line to enable horizontal scrolling */
-    white-space: pre;
-
-    /* Strictly cap the width to its parent container */
-    max-width: 100%;
-    box-sizing: border-box;
+.admin-shell .admin-brand img {
+  width: 100px;
+  max-height: 48px;
+  object-fit: contain;
 }
-
-/* Container to align the header and the clear button */
-.logs-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+.admin-shell .admin-brand > span {
+  border-right: 1px solid #dce7df;
+  padding-right: 0.9rem;
 }
-
-.logs-header h2 {
-    margin: 0;
+.admin-shell .admin-brand span span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 450;
+  color: #75877d;
 }
-
-/* Clear Logs button styling */
-.clear-logs-btn {
-    background-color: #f1f5f9;
-    color: #475569;
-    border: 1px solid #cbd5e1;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.875rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
+.admin-shell .admin-topbar nav {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
 }
-
-.clear-logs-btn:hover:not(:disabled) {
-    background-color: #e2e8f0;
-    color: #0f172a;
+.admin-shell .admin-topbar nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.94rem;
+  font-weight: 550;
 }
-
-.clear-logs-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.admin-shell .admin-topbar nav a:hover {
+  background: #edf5f1;
+  text-decoration: none;
 }
-
-.uuids-input {
-    width: 100%;
-    min-height: 140px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-    font-size: 14px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-sizing: border-box;
-    resize: vertical;
+.admin-shell .admin-account {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #657c70;
 }
-
-/* --- Create Group Styles --- */
-
-#group-title-input,
-#mentor-select,
-#student-search-input {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    box-sizing: border-box;
-    /* Ensures padding doesn't break layout */
-    direction: rtl;
+.admin-shell .admin-icon-button {
+  padding: 0.5rem;
+  color: #5c786b;
+  background: transparent;
 }
-
-/* Container for the scrollable student list */
-.student-list-container {
-    height: 300px;
-    overflow-y: auto;
-    border: 1px solid #eee;
-    border-radius: 6px;
-    background-color: #fdfdfd;
-    padding: 8px;
-    margin: 10px 0;
+.admin-shell .admin-icon-button:hover:not(:disabled) {
+  background: #edf5f1;
 }
-
-.loading-text {
-    color: #888;
-    font-style: italic;
-    padding: 10px;
+.admin-shell .admin-workspace {
+  max-width: 1440px;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 3rem;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
 }
-
-/* Styles for each student row in the list */
-.student-list-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 8px;
-    border-bottom: 1px solid #f0f0f0;
-    gap: 15px;
-    /* Creates space between items */
+.admin-shell .admin-sidebar {
+  padding-top: 0.4rem;
 }
-
-.student-list-item:last-child {
-    border-bottom: none;
+.admin-shell .admin-sidebar-label {
+  color: #84958c;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+  padding-right: 0.8rem;
 }
-
-.student-list-item input[type="checkbox"] {
-    /* Make the checkbox bigger and easier to click */
-    transform: scale(1.3);
-    margin-left: 5px;
+.admin-shell .admin-sidebar nav {
+  display: grid;
+  gap: 0.4rem;
 }
-
-.student-info {
-    flex-grow: 1;
-    /* This makes the info block take up available space */
-    line-height: 1.4;
+.admin-shell .admin-sidebar nav button {
+  justify-content: flex-start;
+  text-align: right;
+  padding: 1rem 0.8rem;
+  gap: 0.8rem;
+  color: #577265;
+  background: transparent;
+  border-radius: 12px;
+  border: 1px solid transparent;
 }
-
-.student-info .name {
-    font-weight: 600;
-    color: #222;
+.admin-shell .admin-sidebar nav button:hover {
+  background: #eaf2ed;
 }
-
-.student-info .email,
-.student-info .uuid {
-    font-size: 0.85em;
-    color: #555;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+.admin-shell .admin-sidebar nav button.is-active {
+  color: #06695d;
+  background: #e1f0e9;
+  border-color: #c9e4d7;
 }
-
-.student-hours-input {
-    width: 70px;
-    /* Small input for hours */
-    padding: 8px;
-    text-align: center;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+.admin-shell .admin-sidebar nav small {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 400;
+  color: #73897b;
+  margin-top: 0.2rem;
 }
-
-/* Style for when the hours input is disabled */
-.student-hours-input:disabled {
-    background-color: #f4f4f4;
-    color: #aaa;
-    border-color: #eee;
+.admin-shell .admin-sidebar-note {
+  margin: 2.5rem 0.8rem 0;
+  color: #8a9b91;
+  font-size: 0.8rem;
+  line-height: 1.9;
 }
-
-
-
-/* --- Tab Navigation Styles --- */
-
-.tab-nav {
-    display: flex;
-    margin-bottom: 20px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    padding: 5px;
+.admin-shell .admin-main {
+  min-width: 0;
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
 }
-
-.tab-button {
-    flex-grow: 1;
-    /* Make all buttons share space equally */
-    padding: 12px 15px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #555;
-    background-color: transparent;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
+.admin-shell .admin-page-heading > span {
+  display: block;
+  font-size: 0.8rem;
+  color: #80958a;
+  margin-bottom: 0.7rem;
 }
-
-.tab-button:hover {
-    background-color: #f4f7f6;
-    /* Light hover */
+.admin-shell .admin-page-heading p {
+  margin-top: 0.45rem;
+  color: #6a8074;
 }
-
-.tab-button.active {
-    background-color: #007bff;
-    color: white;
-    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+.admin-shell .admin-card {
+  background: white;
+  border: 1px solid #e1eae3;
+  border-radius: 16px;
+  padding: 1.8rem;
+  min-width: 0;
 }
-
-/* --- Page Visibility --- */
-
-/* Hide all pages by default */
-.admin-page {
+.admin-shell .description {
+  color: #708278;
+  font-size: 0.94rem;
+  line-height: 1.75;
+  margin: 0.2rem 0 1.3rem;
+  max-width: 75ch;
+}
+.admin-shell form {
+  display: grid;
+  gap: 1.15rem;
+}
+.admin-shell .form-group {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  align-content: start;
+  font-weight: 600;
+  font-size: 0.94rem;
+}
+.admin-shell .form-group label {
+  font-weight: 600;
+}
+.admin-shell .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem;
+}
+.admin-shell .date-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.admin-shell .admin-date-hint {
+  display: block;
+  font-size: 0.79rem;
+  color: #70867a;
+  font-weight: 400;
+  min-height: 1.4rem;
+}
+.admin-shell .admin-date-input {
+  direction: ltr;
+  text-align: right;
+}
+.admin-shell .admin-subsection {
+  margin-top: 1.6rem;
+}
+.admin-shell .admin-secondary,
+.admin-shell .admin-source-tabs button,
+.admin-shell .tab-button {
+  background: #f4f8f5;
+  color: #4c6b5c;
+  border-color: #d9e5dc;
+}
+.admin-shell .admin-secondary:hover:not(:disabled),
+.admin-shell .admin-source-tabs button:hover:not(:disabled),
+.admin-shell .tab-button:hover:not(:disabled) {
+  background: #e9f2ec;
+}
+.admin-shell .admin-source-tabs,
+.admin-shell .tab-nav {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 11px;
+  background: #f1f5f2;
+  width: fit-content;
+  margin: 1rem 0 1.25rem;
+  max-width: 100%;
+}
+.admin-shell .admin-source-tabs button,
+.admin-shell .tab-button {
+  border-color: transparent;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 0.93rem;
+}
+.admin-shell .admin-source-tabs button[aria-pressed="true"],
+.admin-shell .tab-button.active {
+  color: #087366;
+  background: white;
+  border-color: #d5e5da;
+  box-shadow: 0 2px 4px #183f2910;
+}
+.admin-shell .admin-feedback {
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+  border: 1px solid;
+}
+.admin-shell .admin-feedback--success,
+.admin-shell .admin-feedback--info {
+  background: #eff8f2;
+  border-color: #cce7d5;
+  color: #28634a;
+}
+.admin-shell .admin-feedback--error {
+  background: #fff4f2;
+  border-color: #f0cec7;
+  color: #a34a3c;
+}
+.admin-shell .form-error {
+  color: #a34a3c;
+  font-size: 0.87rem;
+}
+.admin-shell .admin-info,
+.admin-shell .date-cutoff-explainer {
+  padding: 1rem 1.1rem;
+  background: #f0f7f3;
+  border: 1px solid #dae9df;
+  border-radius: 10px;
+  color: #4e6e5c;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+.admin-shell .admin-action-bar {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #e4ece6;
+  padding-top: 1.2rem;
+  margin-top: 0.5rem;
+}
+.admin-shell .admin-action-bar p {
+  font-size: 0.9rem;
+  color: #627d6d;
+}
+.admin-shell .admin-action-buttons {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.admin-shell .button-danger {
+  background: #b44d40;
+}
+.admin-shell .button-danger:hover:not(:disabled) {
+  background: #963d32;
+}
+.admin-shell .admin-text-button {
+  padding: 0.2rem 0.3rem;
+  color: #08796c;
+  background: transparent;
+  font-size: 0.84rem;
+  font-weight: 550;
+}
+.admin-shell .admin-text-button:hover:not(:disabled) {
+  background: #e5f2e9;
+}
+.admin-shell .admin-picker-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 155px;
+  gap: 0.8rem;
+}
+.admin-shell .admin-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.admin-shell .admin-search > svg {
+  position: absolute;
+  right: 0.8rem;
+  color: #82988a;
+  pointer-events: none;
+}
+.admin-shell .admin-search input {
+  padding-right: 2.4rem !important;
+}
+.admin-shell .admin-selection-bar {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.9rem 0 0.6rem;
+  font-size: 0.9rem;
+}
+.admin-shell .admin-selection-bar strong {
+  color: #08776a;
+}
+.admin-shell .admin-selected-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.7rem;
+}
+.admin-shell .admin-selected-chips button {
+  background: #e5f3eb;
+  color: #2f6a4d;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}
+.admin-shell .admin-selected-chips button:hover {
+  background: #cce7d7;
+}
+.admin-shell .admin-list-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0.8rem;
+  background: #f4f7f4;
+  border: 1px solid #e2eae3;
+  border-radius: 10px 10px 0 0;
+  font-size: 0.8rem;
+  color: #7a8e80;
+  gap: 0.5rem;
+}
+.admin-shell .student-list-container {
+  max-height: 370px;
+  overflow-y: auto;
+  border: 1px solid #e2eae3;
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  scrollbar-color: #a9c6b5 #f2f6f3;
+}
+.admin-shell .student-list-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid #edf2ed;
+  padding: 0.85rem 1rem;
+}
+.admin-shell .student-list-item:last-child {
+  border-bottom: 0;
+}
+.admin-shell .student-list-item.is-selected {
+  background: #f0f8f2;
+  box-shadow: inset -3px 0 #20937b;
+}
+.admin-shell .admin-student-choice {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.admin-shell .student-info {
+  display: grid;
+  gap: 0.08rem;
+  min-width: 0;
+  flex: 1;
+}
+.admin-shell .student-info .name {
+  font-size: 0.96rem;
+  font-weight: 650;
+}
+.admin-shell .student-info .email {
+  font-size: 0.81rem;
+  color: #788c7e;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.admin-shell .student-info .taz {
+  font-size: 0.78rem;
+  color: #8b9d90;
+}
+.admin-shell .admin-selected-mark {
+  color: #08856e;
+  flex-shrink: 0;
+}
+.admin-shell .admin-status-chip {
+  font-size: 0.7rem;
+  margin-right: 0.5rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 5px;
+  background: #e9edf7;
+  color: #5d709b;
+  font-weight: 500;
+}
+.admin-shell .admin-hours-cell {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  color: #799080;
+  font-size: 0.72rem;
+  width: 78px;
+}
+.admin-shell .admin-hours-cell input {
+  text-align: center;
+  padding: 0.35rem !important;
+  min-height: 38px !important;
+}
+.admin-shell .admin-empty {
+  color: #8b9b90;
+  text-align: center;
+  padding: 2rem;
+}
+.admin-shell .admin-file-picker {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px dashed #b5d0be;
+  border-radius: 11px;
+  padding: 1.1rem;
+  background: #f7faf7;
+  cursor: pointer;
+  margin: 0.8rem 0;
+}
+.admin-shell .admin-file-picker:focus-within {
+  outline: 3px solid #73beb1;
+}
+.admin-shell .admin-file-picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.admin-shell .admin-file-picker span {
+  background: white;
+  border: 1px solid #d3e1d6;
+  border-radius: 7px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.88rem;
+  color: #3e6952;
+}
+.admin-shell .admin-file-picker small {
+  color: #83988a;
+  overflow-wrap: anywhere;
+}
+.admin-shell .uuids-input {
+  min-height: 135px;
+  font-family: ui-monospace, Consolas, monospace;
+  resize: vertical;
+  font-weight: 400;
+}
+.admin-shell .admin-preview {
+  padding: 1rem;
+  background: #f7faf7;
+  border: 1px solid #e0e9e1;
+  border-radius: 10px;
+  margin-top: 1rem;
+}
+.admin-shell .admin-preview ul {
+  padding-right: 1.3rem;
+  max-height: 200px;
+  overflow: auto;
+  font-size: 0.9rem;
+}
+.admin-shell .admin-preview li {
+  padding: 0.2rem 0;
+}
+.admin-shell .section-divider {
+  margin: 1.8rem 0;
+  border: 0;
+  border-top: 1px solid #e2ebe4;
+}
+.admin-shell .admin-logs {
+  border: 1px solid #dce7df;
+  border-radius: 12px;
+  background: #f9fbf9;
+  padding: 1rem 1.2rem;
+}
+.admin-shell .admin-logs summary {
+  cursor: pointer;
+  color: #667e6f;
+  font-size: 0.9rem;
+}
+.admin-shell .admin-logs summary span {
+  margin-right: 0.5rem;
+  font-size: 0.7rem;
+  background: #deeee3;
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+}
+.admin-shell .logs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.admin-shell .logs-header p {
+  font-size: 0.8rem;
+  color: #84968a;
+}
+.admin-shell #log-output {
+  padding: 1rem;
+  border-radius: 9px;
+  background: #243d34;
+  color: #d8ebe1;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre;
+  font-size: 0.8rem;
+  text-align: left;
+}
+.admin-shell .admin-class-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.admin-shell .admin-class-card {
+  border: 1px solid #e0e9e1;
+  border-radius: 12px;
+  padding: 1.2rem;
+}
+.admin-shell .admin-class-card summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.admin-shell .admin-class-card summary small {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #809386;
+  font-size: 0.8rem;
+}
+.admin-shell .admin-create-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #08796c;
+  cursor: pointer;
+  font-weight: 650;
+}
+.admin-shell .admin-class-card[open] summary {
+  margin-bottom: 1.25rem;
+}
+.admin-shell .admin-cap-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  padding-top: 1.2rem;
+  margin-top: 1.2rem;
+  border-top: 1px solid #e4ece6;
+}
+.admin-shell .admin-cap-row .form-group {
+  max-width: 240px;
+}
+.admin-shell .admin-check-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 450;
+  padding: 1rem;
+  border: 1px solid #dce9df;
+  border-radius: 10px;
+  background: #f5faf5;
+}
+.admin-shell .admin-check-label input {
+  margin-top: 0.2rem;
+}
+.admin-shell .template-explainer {
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  background: #f5f9f5;
+  color: #5d7966;
+  font-size: 0.9rem;
+}
+.admin-shell .template-explainer ol {
+  margin-bottom: 0;
+  padding-right: 1.3rem;
+}
+@media (max-width: 1080px) {
+  .admin-shell .admin-workspace {
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  .admin-shell .date-fields {
+    grid-template-columns: 1fr;
+  }
+  .admin-shell .admin-account > span {
     display: none;
+  }
 }
-
-/* Show only the active page */
-.admin-page.active {
+@media (max-width: 760px) {
+  .admin-shell .admin-topbar {
+    flex-wrap: wrap;
+    padding: 1rem;
+    gap: 0.8rem;
+  }
+  .admin-shell .admin-topbar nav {
+    order: 3;
+    width: 100%;
+  }
+  .admin-shell .admin-workspace {
     display: block;
-}
-
-hr.section-divider {
-    border: none;
-    border-top: 1px solid #eee;
-    margin: 30px 0;
-    /* Creates space between the forms */
-}
-
-p.description {
-    font-size: 0.95em;
-    color: #555;
-    margin-top: -10px;
-    /* Tucks it under the h2 */
-    margin-bottom: 15px;
-}
-
-
-/* --- Template Explainer Box --- */
-
-.template-explainer {
-    direction: rtl;
-    text-align: right;
-    background-color: #f4f7f6;
-    /* A slightly different bg */
-    border: 1px dashed #007bff;
-    /* Use your theme color */
-    border-radius: 8px;
-    padding: 15px 20px;
-    margin-bottom: 20px;
-}
-
-.template-explainer p {
-    margin-top: 0;
-}
-
-.template-explainer a {
-    font-weight: 600;
-    color: #0056b3;
-    display: block;
-    margin-top: 5px;
-}
-
-.template-explainer ol {
-    margin-bottom: 0;
-    padding-right: 20px;
-    /* Correct padding for RTL list */
-    font-size: 0.95em;
-    color: #333;
-}
-
-.template-explainer li {
-    margin-bottom: 8px;
-}
-
-.template-explainer li:last-child {
-    margin-bottom: 0;
-}
-
-/* Divider between discrete form actions */
-.section-divider {
-    margin: 2rem 0;
-    border: 0;
-    border-top: 1px solid #e2e8f0;
-}
-
-/* Destructive action button */
-.button-danger {
-    background-color: #ef4444;
-    color: #ffffff;
-    border: none;
-    transition: background-color 0.2s ease;
-}
-
-.button-danger:hover:not(:disabled) {
-    background-color: #dc2626;
-}
-
-.button-danger:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Creates distance from the main form action and adds a subtle visual break */
-.csv-import-section {
-    margin-top: 3rem;
-    padding-top: 1.5rem;
-    border-top: 1px dashed #cbd5e1;
-}
-
-/* Cleaner, slightly larger instruction text placed above the input */
-.csv-instruction-text {
-    font-size: 0.9rem;
-    color: #64748b;
-    margin-top: 0;
-    margin-bottom: 0.75rem;
-}
-
-/* Neutral, smaller button overriding the default blue primary styling */
-.csv-apply-btn {
-    padding: 0.35rem 0.75rem;
-    margin-right: 1.5rem;
-    font-size: 0.85rem;
-    background-color: #f1f5f9;
-    color: #475569;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.csv-apply-btn:hover:not(:disabled) {
-    background-color: #e2e8f0;
-    color: #0f172a;
-}
-
-.csv-apply-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Keep the row layout intact */
-.csv-import-row {
+    padding: 1rem;
+  }
+  .admin-shell .admin-sidebar nav {
     display: flex;
-    justify-content: space-between;
+    overflow-x: auto;
+    padding-bottom: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .admin-shell .admin-sidebar nav button {
+    white-space: nowrap;
+    padding: 0.7rem;
+  }
+  .admin-shell .admin-sidebar nav small,
+  .admin-shell .admin-sidebar-label,
+  .admin-shell .admin-sidebar-note {
+    display: none;
+  }
+  .admin-shell .admin-main {
+    gap: 1rem;
+  }
+  .admin-shell .admin-card {
+    padding: 1.15rem;
+  }
+  .admin-shell .form-grid,
+  .admin-shell .admin-picker-toolbar {
+    grid-template-columns: 1fr;
+  }
+  .admin-shell .admin-source-tabs {
+    width: 100%;
+  }
+  .admin-shell .admin-source-tabs button {
+    padding: 0.6rem;
+    flex: 1;
+    font-size: 0.83rem;
+  }
+  .admin-shell .admin-file-picker,
+  .admin-shell .admin-cap-row {
+    flex-wrap: wrap;
+  }
+  .admin-shell .admin-action-bar button {
+    width: 100%;
+  }
+  .admin-shell .admin-action-buttons {
+    width: 100%;
+  }
+  .admin-shell .student-list-item {
+    padding: 0.7rem;
     gap: 0.5rem;
-    align-items: center;
-}
-
-/* Student List TAZ Display */
-.student-info .taz {
-    font-size: 0.85em;
-    color: #64748b;
-    /* Subdued slate gray */
-    margin-top: 2px;
+  }
 }
