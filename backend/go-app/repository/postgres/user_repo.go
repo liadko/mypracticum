@@ -195,6 +195,16 @@ func (r *PostgresUserRepo) ListClasses(ctx context.Context) ([]domain.Class, err
 	return classes, nil
 }
 
+// UpdateClassReportingStartDates leaves the class name and hours cap unchanged.
+func (r *PostgresUserRepo) UpdateClassReportingStartDates(ctx context.Context, id uuid.UUID, dates domain.Class) (domain.Class, error) {
+	q := `UPDATE classes SET client_start_date = $2, mentor_start_date = $3, therapist_start_date = $4 WHERE id = $1 RETURNING ` + classColumns
+	class, err := scanClass(r.db.QueryRowContext(ctx, q, id, dates.ClientStartDate, dates.MentorStartDate, dates.TherapistStartDate))
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.Class{}, repository.ErrNotFound
+	}
+	return class, err
+}
+
 func (r *PostgresUserRepo) CreateClass(ctx context.Context, class domain.Class) (domain.Class, error) {
 	q := `
 INSERT INTO classes (name, client_start_date, mentor_start_date, therapist_start_date, private_clinic_cap)
