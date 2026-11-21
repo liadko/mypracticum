@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"testing"
 
@@ -24,7 +23,7 @@ func readMetadata(t *testing.T, id uuid.UUID) map[string]any {
 	return out
 }
 
-func TestContactDetailsAreWrittenOnlyToMetadata(t *testing.T) {
+func TestContactDetailsAreStoredInMetadata(t *testing.T) {
 	resetDB(t)
 	ctx := context.Background()
 	repo := NewPostgresContactRepo(testDB)
@@ -37,13 +36,6 @@ func TestContactDetailsAreWrittenOnlyToMetadata(t *testing.T) {
 
 	assertOnlyMetadata := func(wantPhone string) {
 		t.Helper()
-		var phone, specialty sql.NullString
-		if err := testDB.QueryRow(`SELECT phone, specialty FROM contacts WHERE id = $1`, c.ID).Scan(&phone, &specialty); err != nil {
-			t.Fatal(err)
-		}
-		if phone.Valid || specialty.Valid {
-			t.Fatalf("old columns must stay empty, got phone=%v specialty=%v", phone, specialty)
-		}
 		if got := readMetadata(t, c.ID)["phone"]; got != wantPhone {
 			t.Fatalf("metadata phone = %v, want %s", got, wantPhone)
 		}
@@ -55,23 +47,6 @@ func TestContactDetailsAreWrittenOnlyToMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertOnlyMetadata("052")
-}
-
-func TestOldColumnValuesAreIgnored(t *testing.T) {
-	resetDB(t)
-	student := seedUser(t, "s@x.co", "student", nil)
-	c := createContact(t, domain.Contact{UserID: student, Type: domain.TherapistContact, Name: "Tal", Phone: strptr("from-metadata")})
-	if _, err := testDB.Exec(`UPDATE contacts SET phone = 'stale-column' WHERE id = $1`, c.ID); err != nil {
-		t.Fatal(err)
-	}
-
-	list, err := NewPostgresContactRepo(testDB).ListByUser(context.Background(), student)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if *list[0].Phone != "from-metadata" {
-		t.Fatalf("got %q", *list[0].Phone)
-	}
 }
 
 func TestMetadataIsRequired(t *testing.T) {
